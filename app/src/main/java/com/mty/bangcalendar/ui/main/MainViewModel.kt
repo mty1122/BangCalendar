@@ -11,7 +11,8 @@ import com.mty.bangcalendar.logic.util.CalendarUtil
 class MainViewModel : ViewModel() {
 
     var calendarCurrentPosition = 1 //当前view在viewPager中的位置
-    val systemDate = CalendarUtil()
+    private val systemDate = CalendarUtil()
+    val todayEvent = Repository.getEventByDate(systemDate.getDate())
 
 
     //当前选中的日期
@@ -41,14 +42,22 @@ class MainViewModel : ViewModel() {
 
     private val searchDateLiveData = MutableLiveData<Int>()
 
-    //判断是否首次启动
     val event: LiveData<Event> = Transformations.switchMap(searchDateLiveData) {
         Repository.getEventByDate(it)
     }
 
-    //调用该方法使isFirstStartLiveData的值改变从而调用Repository.isFirstStart()方法
     fun getEventByDate(date: Int) {
         searchDateLiveData.value = date
+    }
+
+    private val getEventPictureLiveData = MutableLiveData<String>()
+
+    val eventPicture = Transformations.switchMap(getEventPictureLiveData) {
+        Repository.getEventPicture(it)
+    }
+
+    fun getEventPicture(id: String) {
+        getEventPictureLiveData.value = id
     }
 
 }

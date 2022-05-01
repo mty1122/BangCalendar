@@ -12,7 +12,7 @@ class CalendarUtil {
 
     var month: Int
     get() = calendar.get(Calendar.MONTH) + 1
-    set(value) = calendar.set(Calendar.MONTH, value)
+    set(value) = calendar.set(Calendar.MONTH, value - 1)
 
     var day: Int
     get() = calendar.get(Calendar.DATE)
@@ -59,8 +59,11 @@ class CalendarUtil {
         calendar.add(Calendar.MONTH, month)
     }
 
-    fun getCalendar(): Calendar {
-        return calendar
+    fun getDate(): Int {
+        val year = year * 10000
+        val month = month * 100
+        val day = day
+        return year + month + day
     }
 
 }

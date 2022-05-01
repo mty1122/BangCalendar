@@ -21,7 +21,7 @@ class CalendarViewPager(context: Context, attrs: AttributeSet) : ViewPager(conte
                 val view = getChildAt(1) as RecyclerView
                 val adapter = view.adapter as CalendarViewAdapter
                 val calendarUtil = adapter.calendarUtil
-                LogUtil.d("CalendarViewItem", "date：${calendarUtil.getCalendar().time}")
+                LogUtil.d("CalendarViewItem", "date：${calendarUtil.getDate()}")
             }
         }
 

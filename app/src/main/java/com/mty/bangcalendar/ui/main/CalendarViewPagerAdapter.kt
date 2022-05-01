@@ -50,7 +50,7 @@ class CalendarViewPagerAdapter(private val views: List<CalendarScrollView>) : Pa
         //已经移除view，故销毁item时无需操作
     }
 
-    @SuppressLint("NotifyDataSetChanged")//由于每月的数据集都不通过，因此只能使用notifyDataSetChange
+    @SuppressLint("NotifyDataSetChanged")//由于每月的数据集都不同，因此只能使用notifyDataSetChange
     private fun refreshView(calendarView: CalendarScrollView, lastPosition: Int, position: Int) {
         val recyclerView = calendarView.view as RecyclerView
         val adapter = recyclerView.adapter as CalendarViewAdapter
@@ -61,14 +61,22 @@ class CalendarViewPagerAdapter(private val views: List<CalendarScrollView>) : Pa
                 repeat(3) {
                     calendarUtil.plusOneMonth()
                 }
-                adapter.dateList = calendarUtil.getDateList()
+                adapter.dateList.run {
+                    this as ArrayList
+                    clear()
+                    addAll(calendarUtil.getDateList())
+                }
                 adapter.notifyDataSetChanged()
             }
             RESULT_MINUS -> {
                 repeat(3) {
                     calendarUtil.minusOneMonth()
                 }
-                adapter.dateList = calendarUtil.getDateList()
+                adapter.dateList.run {
+                    this as ArrayList
+                    clear()
+                    addAll(calendarUtil.getDateList())
+                }
                 adapter.notifyDataSetChanged()
             }
         }

@@ -2,11 +2,15 @@ package com.mty.bangcalendar.logic
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.liveData
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.logic.dao.AppDatabase
 import com.mty.bangcalendar.logic.dao.PreferenceDao
 import com.mty.bangcalendar.logic.model.Character
 import com.mty.bangcalendar.logic.model.Event
+import com.mty.bangcalendar.logic.network.BangCalendarNetwork
+import kotlinx.coroutines.Dispatchers
+import java.lang.Exception
 import kotlin.concurrent.thread
 
 object Repository {
@@ -40,6 +44,16 @@ object Repository {
             liveData.postValue(event)
         }
         return liveData
+    }
+
+    fun getEventPicture(eventId: String) = liveData(Dispatchers.IO) {
+        val result = try {
+            val pictureResponse = BangCalendarNetwork.getEventPicture(eventId)
+            Result.success(pictureResponse)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+        emit(result)
     }
 
 }

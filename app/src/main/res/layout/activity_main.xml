@@ -18,11 +18,14 @@
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
-            <ImageView
-                android:layout_width="160dp"
-                android:layout_height="wrap_content"
-                android:src="@drawable/poppinparty_logo"
-                android:contentDescription="@string/logo" />
+                <TextView
+                    android:id="@+id/date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="bottom"
+                    android:layout_marginBottom="8dp"
+                    android:textColor="@color/white"
+                    android:textSize="26sp" />
 
         </androidx.appcompat.widget.Toolbar>
 
@@ -56,13 +59,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
 
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="30dp"
-                            android:gravity="center"
-                            android:text="@string/DailyTag"
-                            android:textColor="@color/white"
-                            android:background="@color/together" />
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="30dp"
+                                android:gravity="center"
+                                android:text="@string/DailyTag"
+                                android:textColor="@color/white"
+                                android:background="@color/together" />
 
                         <TextView
                             android:id="@+id/dailytag"

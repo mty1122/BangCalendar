@@ -14,14 +14,14 @@ import kotlin.concurrent.thread
 
 class RefreshEventService : Service() {
 
-    override fun onBind(intent: Intent): IBinder {
-        TODO("Return the communication channel to the service.")
+    override fun onBind(intent: Intent): IBinder? {
+        //暂时无需与activity绑定，待完善
+        return null
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         thread {
             val isInit = intent.getBooleanExtra("isInit", true)
-            val isInsert = intent.getBooleanExtra("isInsert", true)
             val gson = Gson()
             val typeOf = object : TypeToken<List<Event>>() {}.type
             if (isInit) {
@@ -35,9 +35,16 @@ class RefreshEventService : Service() {
                     LogUtil.d("AppInit", "向数据库加入活动：$event")
                 }
             }
+            sendMessage()
             stopSelf()
         }
         return super.onStartCommand(intent, flags, startId)
+    }
+
+    private fun sendMessage() {
+        val intent = Intent("com.mty.bangcalendar.REFRESH_DATABASE_FINISH")
+        intent.setPackage(packageName)
+        sendBroadcast(intent)
     }
 
 }

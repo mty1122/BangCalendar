@@ -12,10 +12,11 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import kotlin.concurrent.thread
 
-class AddCharacterService : Service() {
+class RefreshCharacterService : Service() {
 
-    override fun onBind(intent: Intent): IBinder {
-        TODO("Return the communication channel to the service.")
+    override fun onBind(intent: Intent): IBinder? {
+        //暂时无需与activity绑定，待完善
+        return null
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
@@ -32,9 +33,16 @@ class AddCharacterService : Service() {
                     LogUtil.d("AppInit", "向数据库加入角色：$character")
                 }
             }
+            sendMessage()
             stopSelf()
         }
         return super.onStartCommand(intent, flags, startId)
+    }
+
+    private fun sendMessage() {
+        val intent = Intent("com.mty.bangcalendar.REFRESH_DATABASE_FINISH")
+        intent.setPackage(packageName)
+        sendBroadcast(intent)
     }
 
 }

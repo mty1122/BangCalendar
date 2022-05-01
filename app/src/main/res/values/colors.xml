@@ -7,4 +7,9 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="ppp_bar">#f7a6de</color>
+    <color name="ppp_background">#fbf2f7</color>
+    <color name="together">#f79ab5</color>
+    <color name="single">#08b6f7</color>
+    <color name="powerful">#ff345a</color>
 </resources>

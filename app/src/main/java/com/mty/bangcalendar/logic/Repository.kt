@@ -33,4 +33,13 @@ object Repository {
         return liveData
     }
 
+    fun getEventByDate(date: Int): LiveData<Event> {
+        val liveData = MutableLiveData<Event>()
+        thread {
+            val event = AppDatabase.getDatabase().eventDao().getNearlyEventByDate(date)
+            liveData.postValue(event)
+        }
+        return liveData
+    }
+
 }

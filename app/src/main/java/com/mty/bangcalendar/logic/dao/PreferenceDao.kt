@@ -10,11 +10,13 @@ object PreferenceDao {
         .getSharedPreferences("bang_calendar", Context.MODE_PRIVATE)
 
     fun isFirstStart(): Boolean = sharedPreference().run {
-            val isFirstStart = this.getBoolean("isFirstStart", true)
+        val isFirstStart = this.getBoolean("isFirstStart", true)
+        if (isFirstStart) {
             this.edit {
                 putBoolean("isFirstStart", false)
             }
-            isFirstStart
         }
+        isFirstStart
+    }
 
 }

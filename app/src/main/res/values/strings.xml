@@ -1,3 +1,43 @@
 <resources>
     <string name="app_name">BangCalendar</string>
+    <string name="band">乐队</string>
+    <string name="ppp">"Poppin'Party"</string>
+    <string name="settings">设置</string>
+    <string name="search">搜索</string>
+    <string name="DailyTag">DailyTag</string>
+    <string name="plusButton">添加功能</string>
+    <string name="logo">logo</string>
+    <string name="defaultTag">"欢迎使用BangCalendar，DailyTag将为您提供每日资讯以及订阅提醒，该组件正在开发中，敬请期待"</string>
+    <!-- week -->
+    <string name="mon">一</string>
+    <string name="tue">二</string>
+    <string name="wed">三</string>
+    <string name="thu">四</string>
+    <string name="fri">五</string>
+    <string name="sat">六</string>
+    <string name="sun">日</string>
+    <!-- event type -->
+    <string name="challengeLive">挑战LIVE</string>
+    <string name="missionLive">任务LIVE</string>
+    <string name="vsLive">对邦LIVE</string>
+    <string name="goalsLive">试炼LIVE</string>
+    <string name="multiVs">多人对邦</string>
+    <string name="groupLive">组曲模式</string>
+    <!-- event info -->
+    <string name="char1">角色1</string>
+    <string name="char2">角色2</string>
+    <string name="char3">角色3</string>
+    <string name="char4">角色4</string>
+    <string name="char5">角色5</string>
+    <string name="char6">角色6</string>
+    <string name="char7">角色7</string>
+    <string name="prepare">尚未开始</string>
+    <string name="finish">已完成</string>
+    <string name="ing">正在进行</string>
+    <!-- event attrs -->
+    <string name="eventAttrs">eventAttrs</string>
+    <string name="pure">pure</string>
+    <string name="powerful">powerful</string>
+    <string name="cool">cool</string>
+    <string name="happy">happy</string>
 </resources>

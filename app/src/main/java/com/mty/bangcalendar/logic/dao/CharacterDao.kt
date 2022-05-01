@@ -1,15 +1,12 @@
 package com.mty.bangcalendar.logic.dao
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.Query
-import androidx.room.Update
+import androidx.room.*
 import com.mty.bangcalendar.logic.model.Character
 
 @Dao
 interface CharacterDao {
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertCharacter(character: Character): Long
 
     @Update

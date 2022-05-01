@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ppp_bar">#FF000000</color>
+    <color name="ppp_background">#FF000000</color>
+    <color name="together">#FF000000</color>
+    <color name="single">#08b6f7</color>
+    <color name="powerful">#ff345a</color>
+</resources>

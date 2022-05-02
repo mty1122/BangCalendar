@@ -6,6 +6,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.ViewModelProvider
@@ -17,9 +18,10 @@ import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivityMainBinding
 import com.mty.bangcalendar.logic.model.CalendarScrollView
 import com.mty.bangcalendar.logic.model.Event
-import com.mty.bangcalendar.logic.util.CalendarUtil
-import com.mty.bangcalendar.logic.util.EventUtil
-import com.mty.bangcalendar.logic.util.LogUtil
+import com.mty.bangcalendar.util.CalendarUtil
+import com.mty.bangcalendar.util.CharacterUtil
+import com.mty.bangcalendar.util.EventUtil
+import com.mty.bangcalendar.util.LogUtil
 import java.lang.StringBuilder
 
 class MainActivity : AppCompatActivity() {
@@ -48,28 +50,42 @@ class MainActivity : AppCompatActivity() {
                 append("年")
                 append(it.month)
                 append("月")
+                toString()
             }
         }
         viewModel.refreshCurrentDate() //初次启动刷新当前界面活动组件内容
 
         //观察活动变化，刷新活动组件内容
         viewModel.event.observe(this) {
-            LogUtil.d("Event", "Event id is ${it.id}")
-            refreshEventComponent(it, mainBinding)
+            val currentDate = viewModel.currentDate.value!!.getDate()
+            if (it == null || CalendarUtil.differentOfTwoDates(it.startDate, currentDate) >= 7) {
+                LogUtil.d("Event", "currentDate $currentDate startDate ${it?.startDate}")
+                mainBinding.eventCard.eventCardItem.visibility = View.GONE
+            } else {
+                mainBinding.eventCard.eventCardItem.visibility = View.VISIBLE
+                LogUtil.d("Event", "Event id is ${it.id}")
+                refreshEventComponent(it, mainBinding)
+            }
         }
 
         //观察活动图片变化，刷新活动图片
         viewModel.eventPicture.observe(this) {
             val responseBody = it.getOrNull()
             if (responseBody != null) {
-                val byte = responseBody.bytes()
-                val bitmap = BitmapFactory.decodeByteArray(byte, 0, byte.size)
-                mainBinding.eventCard.eventBackground.background =
-                    BitmapDrawable(this.resources, bitmap)
+                try {
+                    val byte = responseBody.bytes()
+                    val bitmap = BitmapFactory.decodeByteArray(byte, 0, byte.size)
+                    mainBinding.eventCard.eventBackground.background =
+                        BitmapDrawable(this.resources, bitmap)
+                } catch (e: Exception) {
+                    LogUtil.i("Internet", "获取不到返回Body，可能是屏幕发生旋转")
+                }
             } else {
                 it.exceptionOrNull()?.printStackTrace()
             }
         }
+
+        viewModel.getCharacterByMonth(viewModel.systemDate.month) //首次启动刷新当前月的生日角色
 
     }
 
@@ -119,6 +135,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.getEventPicture(EventUtil.eventIdFormat(event.id.toInt()))
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private fun calendarInit() {
         val list = ArrayList<CalendarScrollView>().apply {
             add(getCalendarView(-1, 0))
@@ -132,6 +149,27 @@ class MainActivity : AppCompatActivity() {
         viewPager.currentItem = 1 //viewPager初始位置为1
         //设置监听器，用来监听滚动（日历翻页）
         viewPager.addOnPageChangeListener(getOnPageChangeListener(viewPager, list, pagerAdapter))
+        //观察角色集合的变化，刷新当前月过生日的角色
+        viewModel.characterInMonth.observe(this) {
+            if (it.isNotEmpty()) {
+                val birthdayMap = CharacterUtil.characterListToBirthdayMap(it)
+                for (calendarView in list) {
+                    //由于生日角色只在当前页面刷新，故获取当前显示的view信息
+                    if (calendarView.lastPosition == viewModel.calendarCurrentPosition) {
+                        val view = calendarView.view as RecyclerView
+                        val adapter = view.adapter as CalendarViewAdapter
+                        val calendarUtil = adapter.calendarUtil
+                        //如果当前view的月份与得到的月份一样，则刷新生日角色
+                        if (CharacterUtil.birthdayToMonth(it[0].birthday) == calendarUtil.month) {
+                            adapter.birthdayMap.clear()
+                            adapter.birthdayMap.putAll(birthdayMap)
+                            adapter.notifyDataSetChanged()
+                        }
+                    }
+                }
+            }
+        }
+
     }
 
     private fun getOnPageChangeListener(viewPager: ViewPager, list: List<CalendarScrollView>,
@@ -148,6 +186,7 @@ class MainActivity : AppCompatActivity() {
                     val calendarUtil = adapter.calendarUtil
                     val year = calendarUtil.year
                     val month = calendarUtil.month
+                    viewModel.getCharacterByMonth(month) //刷新当前月的生日角色
                     val selectedDay = viewModel.selectedItem.value!!
                     val maxDay = calendarUtil.getMaximumDaysInMonth()
                     //刷新当前日期，从而刷新卡片信息

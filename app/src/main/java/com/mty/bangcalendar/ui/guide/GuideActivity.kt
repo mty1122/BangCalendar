@@ -5,7 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.lifecycle.ViewModelProvider
 import com.mty.bangcalendar.R
-import com.mty.bangcalendar.logic.util.LogUtil
+import com.mty.bangcalendar.util.LogUtil
 import com.mty.bangcalendar.ui.main.MainActivity
 
 class GuideActivity : AppCompatActivity() {

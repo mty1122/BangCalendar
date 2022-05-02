@@ -5,7 +5,7 @@ import android.util.AttributeSet
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
-import com.mty.bangcalendar.logic.util.LogUtil
+import com.mty.bangcalendar.util.LogUtil
 
 @Deprecated("过早设置监听器会导致空指针异常，因为RecyclerView还未初始化完成，读取不到子布局")
 class CalendarViewPager(context: Context, attrs: AttributeSet) : ViewPager(context, attrs) {

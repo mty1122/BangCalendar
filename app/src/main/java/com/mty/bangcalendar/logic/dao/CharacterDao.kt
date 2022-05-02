@@ -12,7 +12,7 @@ interface CharacterDao {
     @Update
     fun updateCharacter(character: Character)
 
-    @Query("select * from Character where birthday = :birthday")
+    @Query("select * from Character where birthday like :birthday || '%'")
     fun getCharacterByBirthday(birthday: String): List<Character>
 
 }

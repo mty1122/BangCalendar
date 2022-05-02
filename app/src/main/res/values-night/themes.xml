@@ -2,9 +2,9 @@
     <!-- Base application theme. -->
     <style name="Theme.BangCalendar" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/purple_200</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
-        <item name="colorOnPrimary">@color/black</item>
+        <item name="colorPrimary">#292829</item>
+        <item name="colorPrimaryVariant">#292829</item>
+        <item name="colorOnPrimary">#292829</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/teal_200</item>
         <item name="colorSecondaryVariant">@color/teal_200</item>

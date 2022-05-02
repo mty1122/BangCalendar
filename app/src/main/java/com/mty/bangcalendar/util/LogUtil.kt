@@ -1,4 +1,4 @@
-package com.mty.bangcalendar.logic.util
+package com.mty.bangcalendar.util
 
 import android.util.Log
 

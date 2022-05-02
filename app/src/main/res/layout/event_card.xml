@@ -2,10 +2,11 @@
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/eventCardItem"
     android:layout_width="match_parent"
     android:layout_height="150dp"
     android:layout_margin="10dp"
-    app:cardBackgroundColor="@color/white"
+    app:cardBackgroundColor="@color/ppp_card_background"
     app:cardCornerRadius="15dp">
 
     <LinearLayout
@@ -142,7 +143,7 @@
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:text="@string/ing"
-                        android:textColor="@color/ppp_bar"
+                        android:textColor="@color/ppp_text"
                         android:gravity="center_vertical"/>
 
                 </LinearLayout>

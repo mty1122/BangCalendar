@@ -4,18 +4,27 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.mty.bangcalendar.R
-import com.mty.bangcalendar.logic.util.CalendarUtil
-import com.mty.bangcalendar.logic.util.LogUtil
+import com.mty.bangcalendar.util.CalendarUtil
+import com.mty.bangcalendar.util.EventUtil
+import com.mty.bangcalendar.util.LogUtil
+import de.hdodenhof.circleimageview.CircleImageView
+import java.util.TreeMap
 
 class CalendarViewAdapter(private val context: Context, var dateList: List<String>,
     val calendarUtil: CalendarUtil, private val viewModel: MainViewModel)
     : RecyclerView.Adapter<CalendarViewAdapter.ViewHolder>() {
 
+    val birthdayMap = TreeMap<String, Int>()
+
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val date: TextView = view.findViewById(R.id.dateItem)
+        val selectBg: CircleImageView = view.findViewById(R.id.select_bg)
+        val birthday: ImageView = view.findViewById(R.id.birthday)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -26,9 +35,12 @@ class CalendarViewAdapter(private val context: Context, var dateList: List<Strin
             if (day != "") {
                 //如果不为空，则选中目标日期
                 viewModel.run {
-                    currentDate.value?.day = Integer.parseInt(day)
-                    setSelectedItem(Integer.parseInt(day)) //选中目标
-                    refreshCurrentDate() //刷新日期
+                    //避免重复点击
+                    if (selectedItem.value != Integer.parseInt(day)) {
+                        currentDate.value?.day = Integer.parseInt(day)
+                        setSelectedItem(Integer.parseInt(day)) //选中目标
+                        refreshCurrentDate() //刷新日期
+                    }
                 }
             }
         }
@@ -36,10 +48,10 @@ class CalendarViewAdapter(private val context: Context, var dateList: List<Strin
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val dayOfWeek = calendarUtil.getDayOfWeak()
-        val maxDay = calendarUtil.getMaximumDaysInMonth()
+        //获取生日角色
+        val character = birthdayMap[dateList[position]]
         //五行显示不下动态调整六行
-        if (dayOfWeek + maxDay > 36) {
+        if (calendarUtil.rows == CalendarUtil.SIX_ROWS) {
             val scale = context.resources.displayMetrics.density
             val dpValue = 58
             val pxValue = (dpValue * scale + 0.5f).toInt()
@@ -50,11 +62,22 @@ class CalendarViewAdapter(private val context: Context, var dateList: List<Strin
         }
         //添加日期
         holder.date.text = dateList[position]
-        //设置背景
+        //设置选中项背景
         if (dateList[position] != "" && Integer.parseInt(dateList[position])
             == viewModel.selectedItem.value) {
-            holder.date.setBackgroundColor(context.getColor(R.color.ppp_bar))
+            holder.selectBg.visibility = View.VISIBLE
+            holder.birthday.visibility = View.GONE
+            holder.date.setTextColor(context.getColor(R.color.white))
             LogUtil.d("Calendar", "$position 被选中")
+        } else if (dateList[position] != "" && character != null) { //如果生日角色存在则设置角色为背景
+            holder.selectBg.visibility = View.GONE
+            holder.birthday.visibility = View.VISIBLE
+            holder.date.setTextColor(context.getColor(R.color.transparent))
+            Glide.with(context).load(EventUtil.matchCharacter(character)).into(holder.birthday)
+        } else {
+            holder.selectBg.visibility = View.GONE
+            holder.birthday.visibility = View.GONE
+            holder.date.setTextColor(context.getColor(R.color.ppp_date_text))
         }
     }
 

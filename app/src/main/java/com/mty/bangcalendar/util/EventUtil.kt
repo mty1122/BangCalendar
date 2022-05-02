@@ -1,4 +1,4 @@
-package com.mty.bangcalendar.logic.util
+package com.mty.bangcalendar.util
 
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.enum.EventConstant

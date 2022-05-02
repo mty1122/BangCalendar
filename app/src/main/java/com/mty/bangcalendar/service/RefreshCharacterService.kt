@@ -7,7 +7,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Character
-import com.mty.bangcalendar.logic.util.LogUtil
+import com.mty.bangcalendar.util.LogUtil
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import kotlin.concurrent.thread

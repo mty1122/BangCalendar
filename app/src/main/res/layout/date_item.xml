@@ -1,8 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="70dp">
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/select_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:src="@color/ppp_select"
+        android:contentDescription="@string/select_bg"/>
+
+    <ImageView
+        android:id="@+id/birthday"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:contentDescription="@string/birthday"/>
 
     <TextView
         android:id="@+id/dateItem"
@@ -10,6 +24,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="center"
         android:gravity="center"
-        android:textSize="16.5sp"/>
+        android:textSize="17sp"
+        android:textStyle="bold"/>
 
-</LinearLayout>
+</FrameLayout>

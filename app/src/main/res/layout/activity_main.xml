@@ -51,7 +51,7 @@
                     android:layout_marginTop="10dp"
                     android:layout_marginLeft="10dp"
                     android:layout_marginRight="10dp"
-                    app:cardBackgroundColor="@color/white"
+                    app:cardBackgroundColor="@color/ppp_card_background"
                     app:cardCornerRadius="15dp">
 
                     <LinearLayout
@@ -72,7 +72,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:layout_margin="10dp"
-                            android:textColor="@color/ppp_bar"
+                            android:textColor="@color/ppp_text"
                             android:text="@string/defaultTag" />
 
                     </LinearLayout>

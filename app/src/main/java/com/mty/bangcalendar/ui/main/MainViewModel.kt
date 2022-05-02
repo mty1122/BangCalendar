@@ -6,14 +6,13 @@ import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Event
-import com.mty.bangcalendar.logic.util.CalendarUtil
+import com.mty.bangcalendar.util.CalendarUtil
 
 class MainViewModel : ViewModel() {
 
     var calendarCurrentPosition = 1 //当前view在viewPager中的位置
-    private val systemDate = CalendarUtil()
+    val systemDate = CalendarUtil()
     val todayEvent = Repository.getEventByDate(systemDate.getDate())
-
 
     //当前选中的日期
     val currentDate: LiveData<CalendarUtil>
@@ -42,7 +41,7 @@ class MainViewModel : ViewModel() {
 
     private val searchDateLiveData = MutableLiveData<Int>()
 
-    val event: LiveData<Event> = Transformations.switchMap(searchDateLiveData) {
+    val event: LiveData<Event?> = Transformations.switchMap(searchDateLiveData) {
         Repository.getEventByDate(it)
     }
 
@@ -58,6 +57,16 @@ class MainViewModel : ViewModel() {
 
     fun getEventPicture(id: String) {
         getEventPictureLiveData.value = id
+    }
+
+    private val getCharacterByMonthLiveData = MutableLiveData<Int>()
+
+    val characterInMonth = Transformations.switchMap(getCharacterByMonthLiveData) {
+        Repository.getCharacterByMonth(it)
+    }
+
+    fun getCharacterByMonth(month: Int) {
+        getCharacterByMonthLiveData.value = month
     }
 
 }

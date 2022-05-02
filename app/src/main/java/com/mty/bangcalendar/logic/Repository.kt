@@ -37,8 +37,8 @@ object Repository {
         return liveData
     }
 
-    fun getEventByDate(date: Int): LiveData<Event> {
-        val liveData = MutableLiveData<Event>()
+    fun getEventByDate(date: Int): LiveData<Event?> {
+        val liveData = MutableLiveData<Event?>()
         thread {
             val event = AppDatabase.getDatabase().eventDao().getNearlyEventByDate(date)
             liveData.postValue(event)
@@ -54,6 +54,18 @@ object Repository {
             Result.failure(e)
         }
         emit(result)
+    }
+
+    fun getCharacterByMonth(month: Int): LiveData<List<Character>> {
+        val formatMonth = if (month < 10) "0$month"
+                          else month.toString()
+        val liveData = MutableLiveData<List<Character>>()
+        thread {
+            val characterList = AppDatabase.getDatabase().characterDao()
+                .getCharacterByBirthday(formatMonth)
+            liveData.postValue(characterList)
+        }
+        return liveData
     }
 
 }

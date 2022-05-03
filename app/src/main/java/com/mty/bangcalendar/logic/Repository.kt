@@ -68,4 +68,8 @@ object Repository {
         return liveData
     }
 
+    fun getCharacterListFromInternet() = BangCalendarNetwork.getCharacterList()
+
+    fun getEventListFromInternet() = BangCalendarNetwork.getEventList()
+
 }

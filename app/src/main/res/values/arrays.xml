@@ -1,0 +1,12 @@
+<resources>
+    <!-- Theme Preference -->
+    <string-array name="theme_entries">
+        <item>PoppinParty粉</item>
+        <item>其他主题还在开发中</item>
+    </string-array>
+
+    <string-array name="theme_values">
+        <item>theme_ppp</item>
+        <item>theme_other</item>
+    </string-array>
+</resources>

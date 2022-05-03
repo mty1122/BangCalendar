@@ -13,6 +13,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.BangCalendar">
         <activity
+            android:name=".ui.settings.SettingsActivity"
+            android:exported="false"
+            android:label="@string/title_activity_settings" />
+        <activity
             android:name=".ui.guide.GuideActivity"
             android:exported="true">
             <intent-filter>
@@ -23,19 +27,17 @@
         </activity>
 
         <service
-            android:name=".service.RefreshEventService"
+            android:name=".service.EventRefreshService"
             android:enabled="true"
             android:exported="false" />
         <service
-            android:name=".service.RefreshCharacterService"
+            android:name=".service.CharacterRefreshService"
             android:enabled="true"
             android:exported="false" />
 
         <activity
             android:name=".ui.main.MainActivity"
-            android:exported="true">
-
-        </activity>
+            android:exported="true" />
     </application>
 
 </manifest>

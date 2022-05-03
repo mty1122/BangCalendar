@@ -10,8 +10,8 @@ import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.logic.Repository
-import com.mty.bangcalendar.service.RefreshCharacterService
-import com.mty.bangcalendar.service.RefreshEventService
+import com.mty.bangcalendar.service.CharacterRefreshService
+import com.mty.bangcalendar.service.EventRefreshService
 
 class GuideViewModel : ViewModel() {
 
@@ -48,13 +48,13 @@ class GuideViewModel : ViewModel() {
 
     //初始化应用
     private fun addCharacter(context: Context) {
-        val intent = Intent(context, RefreshCharacterService::class.java)
+        val intent = Intent(context, CharacterRefreshService::class.java)
         intent.putExtra("isInit", true)
         context.startService(intent)
     }
 
     private fun addEvent(context: Context) {
-        val intent = Intent(context, RefreshEventService::class.java)
+        val intent = Intent(context, EventRefreshService::class.java)
         intent.putExtra("isInit", true)
         context.startService(intent)
     }

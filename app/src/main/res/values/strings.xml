@@ -1,4 +1,5 @@
 <resources>
+    <!-- app -->
     <string name="app_name">BangCalendar</string>
     <string name="band">乐队</string>
     <string name="ppp">"Poppin'Party"</string>
@@ -42,4 +43,23 @@
     <string name="powerful">powerful</string>
     <string name="cool">cool</string>
     <string name="happy">happy</string>
+    <!-- settings -->
+    <string name="title_activity_settings">SettingsActivity</string>
+    <string name="preference_header">用户偏好</string>
+    <string name="user_name_title">昵称</string>
+    <string name="theme_title">主题</string>
+    <string name="update_header">同步</string>
+    <string name="update_database_title">更新本地数据库</string>
+    <string name="update_database_summary">更新活动信息与乐队成员信息</string>
+    <string name="sign_in_title">登录</string>
+    <string name="update_user_preference_title">同步用户偏好</string>
+    <string name="about_header">关于</string>
+    <string name="version_title">版本</string>
+    <string name="version">1.0.0</string>
+    <string name="program_title">项目地址</string>
+    <string name="program_url">https://github.com/mty1122/BangCalendar</string>
+    <string name="material_title">素材来源</string>
+    <string name="material_source">图片素材来自网络，如有侵权，烦请通知删除</string>
+    <string name="author_title">联系作者</string>
+    <string name="author_mail">admin@mxmnb.cn</string>
 </resources>

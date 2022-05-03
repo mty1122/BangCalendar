@@ -12,6 +12,8 @@ object BangCalendarNetwork {
 
     private val eventPictureService = ServiceCreator.create<EventPictureService>()
 
+    private val databaseRefreshService = ServiceCreator.create<DatabaseRefreshService>()
+
     private suspend fun <T> Call<T>.await(): T {
         return suspendCoroutine {
             enqueue(object : Callback<T> {
@@ -30,5 +32,9 @@ object BangCalendarNetwork {
 
     suspend fun getEventPicture(eventId: String) =
         eventPictureService.getEventPicture(eventId).await()
+
+    fun getCharacterList() = databaseRefreshService.getCharacterList()
+
+    fun getEventList() = databaseRefreshService.getEventList()
 
 }

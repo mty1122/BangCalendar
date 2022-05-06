@@ -5,7 +5,6 @@ import android.content.Intent
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -46,7 +45,7 @@ class MainActivity : AppCompatActivity() {
         //观察当前日期变化，及时刷新活动信息
         viewModel.currentDate.observe(this) {
             val date = it.getDate()
-            Log.d("MainActivity", "日期发生变化 $date")
+            LogUtil.d("MainActivity", "日期发生变化 $date")
             viewModel.getEventByDate(date) //刷新活动
             mainBinding.date.text = StringBuilder().run {
                 append(it.year)
@@ -243,6 +242,7 @@ class MainActivity : AppCompatActivity() {
         val calendar = CalendarUtil()
         calendar.clearDays()
         calendar.setRelativeMonth(relativeMonth)
+        calendar.refreshRows()
         val dateList = calendar.getDateList()
         //创建日历recyclerView
         val layoutManager = object : GridLayoutManager(this, 7) {

@@ -43,7 +43,6 @@ class CalendarUtil {
 
     init {
         calendar.firstDayOfWeek = Calendar.SUNDAY
-        refreshRows()
     }
 
     fun getMaximumDaysInMonth(): Int {
@@ -84,22 +83,10 @@ class CalendarUtil {
         for (date in 1 until maxDays + 1) {
             dateList.add(date.toString())
         }
-        when (rows) {
-            FIVE_ROWS -> {
-                repeat(35 - dayOfWeak - maxDays + 1) {
-                    dateList.add("")
-                }
-            }
-            SIX_ROWS -> {
-                repeat(42 - dayOfWeak - maxDays + 1) {
-                    dateList.add("")
-                }
-            }
-        }
         return dateList
     }
 
-    private fun refreshRows() {
+    fun refreshRows() {
         val maxDays = getMaximumDaysInMonth()
         val dayOfWeak = getDayOfWeak()
         rows = if (maxDays + dayOfWeak < 37) {
@@ -107,6 +94,8 @@ class CalendarUtil {
         } else {
             SIX_ROWS
         }
+        LogUtil.d("CalendarUtil",
+            "maxDays = $maxDays  dayOfWeek = $dayOfWeak rows = $rows")
     }
 
     fun setRelativeMonth(month: Int) {

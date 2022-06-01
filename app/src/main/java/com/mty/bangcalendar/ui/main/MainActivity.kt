@@ -55,18 +55,23 @@ class MainActivity : AppCompatActivity() {
                 toString()
             }
         }
+
         viewModel.refreshCurrentDate() //初次启动刷新当前界面活动组件内容
 
         //观察活动变化，刷新活动组件内容
         viewModel.event.observe(this) {
             val currentDate = viewModel.currentDate.value!!.getDate()
+            //活动小于第一期或者大于最后一期时，隐藏活动卡片
             if (it == null || CalendarUtil.differentOfTwoDates(it.startDate, currentDate) >= 7) {
                 LogUtil.d("Event", "currentDate $currentDate startDate ${it?.startDate}")
                 mainBinding.eventCard.eventCardItem.visibility = View.GONE
             } else {
                 mainBinding.eventCard.eventCardItem.visibility = View.VISIBLE
                 LogUtil.d("Event", "Event id is ${it.id}")
-                refreshEventComponent(it, mainBinding)
+                //相同活动之间移动，不刷新活动
+                if (!EventUtil.isSameEvent(mainBinding, it.id.toInt())) {
+                    refreshEventComponent(it, mainBinding)
+                }
             }
         }
 
@@ -89,6 +94,13 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.getCharacterByMonth(viewModel.systemDate.month) //首次启动刷新当前月的生日角色
 
+        viewModel.birthdayCard.observe(this) {
+            when (it) {
+                0 -> mainBinding.birCard.visibility = View.GONE
+                else -> refreshBirthdayCard(it, mainBinding)
+            }
+        }
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -104,6 +116,22 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return true
+    }
+
+    //刷新生日卡片
+    private fun refreshBirthdayCard(id: Int, binding: ActivityMainBinding) {
+        LogUtil.d("MainActivity", "生日卡片刷新")
+        if (id == 12 || id == 17) {
+            Glide.with(this).load(CharacterUtil.matchCharacter(12))
+                .into(binding.birChar1)
+            Glide.with(this).load(CharacterUtil.matchCharacter(17))
+                .into(binding.birChar2)
+            binding.birChar2.visibility = View.VISIBLE
+        }else {
+            binding.birChar2.visibility = View.GONE
+            Glide.with(this).load(CharacterUtil.matchCharacter(id)).into(binding.birChar1)
+        }
+        binding.birCard.visibility = View.VISIBLE
     }
 
     private fun refreshEventComponent(event: Event, binding: ActivityMainBinding) {
@@ -211,6 +239,11 @@ class MainActivity : AppCompatActivity() {
                             setSelectedItem(maxDay)
                         }
                         refreshCurrentDate()
+                        //刷新生日卡片
+                        refreshBirthdayCard(0)
+                        adapter.birthdayMap[currentDate.value?.day.toString()]?.let {
+                            refreshBirthdayCard(it)
+                        }
                     }
                 }
             }

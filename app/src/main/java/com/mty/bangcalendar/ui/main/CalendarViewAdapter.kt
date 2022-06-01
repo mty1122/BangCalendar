@@ -34,12 +34,21 @@ class CalendarViewAdapter(private val context: Context, var dateList: List<Strin
             val day = holder.date.text.toString()
             if (day != "") {
                 //如果不为空，则选中目标日期
+                val intDay = Integer.parseInt(day)
                 viewModel.run {
                     //避免重复点击
-                    if (selectedItem.value != Integer.parseInt(day)) {
-                        currentDate.value?.day = Integer.parseInt(day)
-                        setSelectedItem(Integer.parseInt(day)) //选中目标
+                    if (selectedItem.value != intDay) {
+                        currentDate.value?.day = intDay
+                        setSelectedItem(intDay) //选中目标
                         refreshCurrentDate() //刷新日期
+                        //刷新生日卡片
+                        val characterId = birthdayMap[day]
+                        if (characterId != null) {
+                            LogUtil.d("Character", "有角色过生日")
+                            viewModel.refreshBirthdayCard(characterId)
+                        }else {
+                            viewModel.refreshBirthdayCard(0)
+                        }
                     }
                 }
             }
@@ -49,7 +58,7 @@ class CalendarViewAdapter(private val context: Context, var dateList: List<Strin
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         //获取生日角色
-        val character = birthdayMap[dateList[position]]
+        val characterId = birthdayMap[dateList[position]]
         //五行显示不下动态调整六行
         if (calendarUtil.rows == CalendarUtil.SIX_ROWS) {
             val scale = context.resources.displayMetrics.density
@@ -65,15 +74,15 @@ class CalendarViewAdapter(private val context: Context, var dateList: List<Strin
         //设置选中项背景
         if (dateList[position] != "" && Integer.parseInt(dateList[position])
             == viewModel.selectedItem.value) {
-            holder.selectBg.visibility = View.VISIBLE
             holder.birthday.visibility = View.GONE
+            holder.selectBg.visibility = View.VISIBLE
             holder.date.setTextColor(context.getColor(R.color.white))
             LogUtil.d("Calendar", "$position 被选中")
-        } else if (dateList[position] != "" && character != null) { //如果生日角色存在则设置角色为背景
+        } else if (dateList[position] != "" && characterId != null) { //如果生日角色存在则设置角色为背景
             holder.selectBg.visibility = View.GONE
-            holder.birthday.visibility = View.VISIBLE
             holder.date.setTextColor(context.getColor(R.color.transparent))
-            Glide.with(context).load(EventUtil.matchCharacter(character)).into(holder.birthday)
+            Glide.with(context).load(EventUtil.matchCharacter(characterId)).into(holder.birthday)
+            holder.birthday.visibility = View.VISIBLE
         } else {
             holder.selectBg.visibility = View.GONE
             holder.birthday.visibility = View.GONE

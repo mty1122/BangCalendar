@@ -35,7 +35,7 @@
     <string name="char6">角色6</string>
     <string name="char7">角色7</string>
     <string name="prepare">尚未开始</string>
-    <string name="finish">已完成</string>
+    <string name="finish">已经完成</string>
     <string name="ing">正在进行</string>
     <!-- event attrs -->
     <string name="eventAttrs">eventAttrs</string>
@@ -43,6 +43,9 @@
     <string name="powerful">powerful</string>
     <string name="cool">cool</string>
     <string name="happy">happy</string>
+    <!-- character -->
+    <string name="bir_char">角色生日</string>
+    <string name="happy_birthday">生日快乐</string>
     <!-- settings -->
     <string name="title_activity_settings">SettingsActivity</string>
     <string name="preference_header">用户偏好</string>
@@ -55,7 +58,7 @@
     <string name="update_user_preference_title">同步用户偏好</string>
     <string name="about_header">关于</string>
     <string name="version_title">版本</string>
-    <string name="version">1.0.0</string>
+    <string name="version">1.0.1</string>
     <string name="program_title">项目地址</string>
     <string name="program_url">https://github.com/mty1122/BangCalendar</string>
     <string name="material_title">素材来源</string>

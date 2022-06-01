@@ -47,6 +47,69 @@
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/bir_card"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp"
+                    app:cardBackgroundColor="@color/ppp_card_background"
+                    app:cardCornerRadius="15dp"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="30dp"
+                            android:gravity="center"
+                            android:text="@string/happy_birthday"
+                            android:textColor="@color/white"
+                            android:background="@color/together" />
+
+                        <LinearLayout
+                            android:orientation="vertical"
+                            android:layout_width="match_parent"
+                            android:layout_height="60dp"
+                            android:layout_margin="5dp" >
+
+                            <ImageView
+                                android:layout_width="match_parent"
+                                android:layout_height="30dp"
+                                android:src="@drawable/bir_basic"
+                                android:contentDescription="@string/bir_char"/>
+
+                            <LinearLayout
+                                android:orientation="horizontal"
+                                android:layout_width="wrap_content"
+                                android:layout_height="30dp"
+                                android:layout_gravity="center">
+
+                                <ImageView
+                                    android:layout_width="85dp"
+                                    android:layout_height="wrap_content"
+                                    android:id="@+id/bir_char1"
+                                    android:contentDescription="@string/bir_char" />
+
+                                <ImageView
+                                    android:layout_width="85dp"
+                                    android:layout_height="wrap_content"
+                                    android:id="@+id/bir_char2"
+                                    android:contentDescription="@string/bir_char"
+                                    android:visibility="gone"/>
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
                     android:layout_height="150dp"
                     android:layout_marginTop="10dp"
                     android:layout_marginLeft="10dp"

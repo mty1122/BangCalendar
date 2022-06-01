@@ -34,6 +34,16 @@ class MainViewModel : ViewModel() {
         _selectedItem.value = item
     }
 
+    //生日卡片
+    val birthdayCard: LiveData<Int>
+    get() = _birthdayCard
+
+    private val _birthdayCard = MutableLiveData<Int>()
+
+    fun refreshBirthdayCard(id: Int) {
+        _birthdayCard.value = id
+    }
+
     init {
         _currentDate.value = CalendarUtil()
         _selectedItem.value = systemDate.day

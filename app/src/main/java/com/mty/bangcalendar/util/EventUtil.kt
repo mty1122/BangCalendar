@@ -1,8 +1,10 @@
 package com.mty.bangcalendar.util
 
 import com.mty.bangcalendar.R
+import com.mty.bangcalendar.databinding.ActivityMainBinding
 import com.mty.bangcalendar.enum.EventConstant
 import com.mty.bangcalendar.logic.model.Event
+import java.util.regex.Pattern
 
 object EventUtil {
 
@@ -91,5 +93,16 @@ object EventUtil {
             (id < 100) -> "0$id"
             else -> id.toString()
         }
+
+    fun isSameEvent(binding: ActivityMainBinding, eventId: Int): Boolean {
+        val eventCardTitle = binding.eventCard.eventType.text
+        val regex = "\\d+"
+        val pattern = Pattern.compile(regex)
+        val matcher = pattern.matcher(eventCardTitle)
+        if (matcher.find()) {
+            return matcher.group() == eventId.toString()
+        }
+        return false
+    }
 
 }

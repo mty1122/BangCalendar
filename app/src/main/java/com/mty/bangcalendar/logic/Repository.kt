@@ -62,7 +62,7 @@ object Repository {
         val liveData = MutableLiveData<List<Character>>()
         thread {
             val characterList = AppDatabase.getDatabase().characterDao()
-                .getCharacterByBirthday(formatMonth)
+                .getCharacterByMonth(formatMonth)
             liveData.postValue(characterList)
         }
         return liveData

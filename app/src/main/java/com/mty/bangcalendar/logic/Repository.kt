@@ -37,6 +37,14 @@ object Repository {
         return liveData
     }
 
+    fun getUserName(): LiveData<String> {
+        val liveData = MutableLiveData<String>()
+        thread {
+            liveData.postValue(PreferenceDao.getUserName())
+        }
+        return liveData
+    }
+
     fun getEventByDate(date: Int): LiveData<Event?> {
         val liveData = MutableLiveData<Event?>()
         thread {

@@ -54,6 +54,13 @@ class MainActivity : AppCompatActivity() {
                 append("月")
                 toString()
             }
+            //返回今天浮窗
+            if (it.year == viewModel.systemDate.year && it.month == viewModel.systemDate.month
+                && it.day== viewModel.systemDate.day) {
+                mainBinding.goBackFloatButton.visibility = View.GONE
+            } else {
+                mainBinding.goBackFloatButton.visibility = View.VISIBLE
+            }
         }
 
         viewModel.refreshCurrentDate() //初次启动刷新当前界面活动组件内容
@@ -99,6 +106,24 @@ class MainActivity : AppCompatActivity() {
                 0 -> mainBinding.birCard.visibility = View.GONE
                 else -> refreshBirthdayCard(it, mainBinding)
             }
+        }
+
+        viewModel.userName.observe(this) {
+            val stringBuilder = StringBuilder()
+            if(it == "") {
+                stringBuilder.append("${viewModel.systemDate.getTimeName()}好，邦邦人。")
+            } else {
+                stringBuilder.append("${viewModel.systemDate.getTimeName()}好，$it。")
+            }
+            stringBuilder.append(getString(R.string.defaultTag))
+            mainBinding.dailytag.text = stringBuilder.toString()
+        }
+
+        viewModel.getUserName()
+
+        //返回今天
+        mainBinding.goBackFloatButton.setOnClickListener {
+            goBackToSystemDate(mainBinding)
         }
 
     }
@@ -176,6 +201,43 @@ class MainActivity : AppCompatActivity() {
     }
 
     @SuppressLint("NotifyDataSetChanged")
+    private fun goBackToSystemDate(mainBinding: ActivityMainBinding) {
+        val viewPagerAdapter = mainBinding.viewPager.adapter as CalendarViewPagerAdapter
+        val scrollViewList = viewPagerAdapter.views
+        var lastPosition = 0
+        var relativeMonth = -1
+        //初始化view集合中view的日期
+        for (scrollView in scrollViewList) {
+            scrollView.lastPosition = lastPosition++ //设置上次位置
+            val viewAdapter = (scrollView.view as RecyclerView)
+                .adapter as CalendarViewAdapter
+            val calendarUtil = viewAdapter.calendarUtil
+            calendarUtil.year = viewModel.systemDate.year
+            calendarUtil.month = viewModel.systemDate.month
+            calendarUtil.rows = viewModel.systemDate.rows
+            calendarUtil.setRelativeMonth(relativeMonth++)
+            viewAdapter.dateList.run {
+                this as ArrayList
+                clear()
+                addAll(calendarUtil.getDateList())
+            }
+            viewAdapter.notifyDataSetChanged()
+        }
+        //初始化viewPager的当前item
+        mainBinding.viewPager.currentItem = 1
+        //初始化选中项
+        viewModel.setSelectedItem(viewModel.systemDate.day)
+        viewModel.currentDate.value?.let {
+            it.year = viewModel.systemDate.year
+            it.month = viewModel.systemDate.month
+            it.day = viewModel.systemDate.day
+            it.rows = viewModel.systemDate.rows
+        }
+        viewModel.refreshCurrentDate() //刷新卡片信息
+        viewModel.getCharacterByMonth(viewModel.systemDate.month) //刷新角色生日
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
     private fun calendarInit() {
         val list = ArrayList<CalendarScrollView>().apply {
             add(getCalendarView(-1, 0))
@@ -204,6 +266,11 @@ class MainActivity : AppCompatActivity() {
                             adapter.birthdayMap.clear()
                             adapter.birthdayMap.putAll(birthdayMap)
                             adapter.notifyDataSetChanged()
+                            //刷新生日卡片
+                            viewModel.refreshBirthdayCard(0)
+                            adapter.birthdayMap[viewModel.currentDate.value?.day.toString()]?.let {
+                                viewModel.refreshBirthdayCard(it)
+                            }
                         }
                     }
                 }
@@ -239,11 +306,6 @@ class MainActivity : AppCompatActivity() {
                             setSelectedItem(maxDay)
                         }
                         refreshCurrentDate()
-                        //刷新生日卡片
-                        refreshBirthdayCard(0)
-                        adapter.birthdayMap[currentDate.value?.day.toString()]?.let {
-                            refreshBirthdayCard(it)
-                        }
                     }
                 }
             }

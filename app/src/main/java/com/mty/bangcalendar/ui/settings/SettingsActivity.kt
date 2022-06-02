@@ -10,6 +10,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.R
 
 class SettingsActivity : AppCompatActivity() {
@@ -93,6 +94,15 @@ class SettingsActivity : AppCompatActivity() {
                     intent.data = Uri.parse("https://github.com/mty1122/BangCalendar")
                     startActivity(intent)
                     return@setOnPreferenceClickListener true
+                }
+            }
+
+            findPreference<Preference>("signature")?.let {
+                it.setOnPreferenceChangeListener { _, _ ->
+                    val intent = Intent("com.mty.bangcalendar.USERNAME_CHANGE")
+                    intent.setPackage(BangCalendarApplication.context.packageName)
+                    BangCalendarApplication.context.sendBroadcast(intent)
+                    return@setOnPreferenceChangeListener true
                 }
             }
         }

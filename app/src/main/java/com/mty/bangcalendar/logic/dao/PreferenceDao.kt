@@ -2,6 +2,7 @@ package com.mty.bangcalendar.logic.dao
 
 import android.content.Context
 import androidx.core.content.edit
+import androidx.preference.PreferenceManager
 import com.mty.bangcalendar.BangCalendarApplication
 
 object PreferenceDao {
@@ -18,5 +19,10 @@ object PreferenceDao {
         }
         isFirstStart
     }
+
+    private fun defaultPreference() = PreferenceManager
+        .getDefaultSharedPreferences(BangCalendarApplication.context)
+
+    fun getUserName(): String = defaultPreference().getString("signature", "邦邦人")!!
 
 }

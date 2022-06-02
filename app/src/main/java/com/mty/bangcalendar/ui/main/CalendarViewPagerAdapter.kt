@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.PagerAdapter
 import com.mty.bangcalendar.logic.model.CalendarScrollView
 
-class CalendarViewPagerAdapter(private val views: List<CalendarScrollView>) : PagerAdapter() {
+class CalendarViewPagerAdapter(val views: List<CalendarScrollView>) : PagerAdapter() {
 
     companion object {
         //定义滚动结果常量

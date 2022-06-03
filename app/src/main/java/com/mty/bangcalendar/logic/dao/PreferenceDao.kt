@@ -25,4 +25,9 @@ object PreferenceDao {
 
     fun getUserName(): String = defaultPreference().getString("signature", "邦邦人")!!
 
+    fun getPreferenceBand(): String = defaultPreference().getString("band", "other")!!
+
+    fun getPreferenceCharacter(): Int =
+        Integer.parseInt(defaultPreference().getString("character", "0")!!)
+
 }

@@ -69,6 +69,20 @@ object EventUtil {
             else -> -1
         }
 
+    fun matchBand(event: Event) =
+        if (event.character1 + 4 == event.character5)
+            when (event.character1) {
+                1 -> "ppp"
+                6 -> "ag"
+                11 -> "pp"
+                16 -> "r"
+                21 -> "hhw"
+                26 -> "m"
+                31 -> "ras"
+                else -> "other"
+            }
+        else "other"
+
     fun getBandPic(event: Event) =
         when (event.character7) {
             -1 -> if (event.character1 + 4 == event.character5) {

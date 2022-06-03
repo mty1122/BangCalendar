@@ -111,7 +111,7 @@
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
-                    android:layout_height="150dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"
                     android:layout_marginLeft="10dp"
                     android:layout_marginRight="10dp"
@@ -123,18 +123,18 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
 
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="30dp"
-                                android:gravity="center"
-                                android:text="@string/DailyTag"
-                                android:textColor="@color/white"
-                                android:background="@color/together" />
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="30dp"
+                            android:gravity="center"
+                            android:text="@string/DailyTag"
+                            android:textColor="@color/white"
+                            android:background="@color/together" />
 
                         <TextView
                             android:id="@+id/dailytag"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_height="wrap_content"
                             android:layout_margin="10dp"
                             android:textColor="@color/ppp_text"
                             android:text="@string/defaultTag" />

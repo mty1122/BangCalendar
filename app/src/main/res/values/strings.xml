@@ -11,7 +11,7 @@
     <string name="logo">logo</string>
     <string name="select_bg">选中项背景</string>
     <string name="birthday">生日</string>
-    <string name="defaultTag">"欢迎使用BangCalendar，DailyTag将为您提供每日资讯以及订阅提醒，该组件正在开发中，敬请期待。"</string>
+    <string name="defaultTag">"欢迎使用BangCalendar，DailyTag将为您提供每日资讯以及订阅提醒。"</string>
     <!-- week -->
     <string name="mon">一</string>
     <string name="tue">二</string>
@@ -52,14 +52,18 @@
     <string name="preference_header">用户偏好</string>
     <string name="user_name_title">昵称</string>
     <string name="theme_title">主题</string>
+    <string name="band_title">关注的乐队</string>
+    <string name="char_title">关注的角色</string>
     <string name="update_header">同步</string>
     <string name="update_database_title">更新本地数据库</string>
     <string name="update_database_summary">更新活动信息与乐队成员信息</string>
     <string name="sign_in_title">登录</string>
+    <string name="sign_in_summary">该功能正在开发</string>
     <string name="update_user_preference_title">同步用户偏好</string>
+    <string name="update_user_preference_summary">同步昵称、乐队等偏好至云端</string>
     <string name="about_header">关于</string>
     <string name="version_title">版本</string>
-    <string name="version">1.1.0</string>
+    <string name="version">1.1.1</string>
     <string name="program_title">项目地址</string>
     <string name="program_url">https://github.com/mty1122/BangCalendar</string>
     <string name="material_title">素材来源</string>

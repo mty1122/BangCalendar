@@ -18,6 +18,24 @@ object CharacterUtil {
 
     fun birthdayToMonth(birthday: String) = Integer.parseInt(birthday) / 100
 
+    fun birthdayAway(birthday: String, systemDate: CalendarUtil): Int {
+        val intBirthday = Integer.parseInt(birthday)
+        val month = intBirthday / 100
+        val day = intBirthday % 100
+        val year = if (month > systemDate.month) systemDate.year
+        else if (month < systemDate.month) systemDate.year + 1
+        else {
+            if (day > systemDate.day) systemDate.year
+            else if (day < systemDate.day) systemDate.year + 1
+            else 0
+        }
+        val dateLater = CalendarUtil.getDate(year, month, day)
+        val calendarUtilLater = CalendarUtil.dateToCalendarUtil(dateLater)
+        val dateEarlier = CalendarUtil.getDate(systemDate.year,systemDate.month,systemDate.day)
+        val calendarUtilEarlier = CalendarUtil.dateToCalendarUtil(dateEarlier)
+        return calendarUtilLater - calendarUtilEarlier
+    }
+
     fun matchCharacter(id: Int) =
         when (id) {
             1 -> R.drawable.bir_1

@@ -45,6 +45,22 @@ object Repository {
         return liveData
     }
 
+    fun getPreferenceBand(): LiveData<String> {
+        val liveData = MutableLiveData<String>()
+        thread {
+            liveData.postValue(PreferenceDao.getPreferenceBand())
+        }
+        return liveData
+    }
+
+    fun getPreferenceCharacter(): LiveData<Int> {
+        val liveData = MutableLiveData<Int>()
+        thread {
+            liveData.postValue(PreferenceDao.getPreferenceCharacter())
+        }
+        return liveData
+    }
+
     fun getEventByDate(date: Int): LiveData<Event?> {
         val liveData = MutableLiveData<Event?>()
         thread {
@@ -72,6 +88,15 @@ object Repository {
             val characterList = AppDatabase.getDatabase().characterDao()
                 .getCharacterByMonth(formatMonth)
             liveData.postValue(characterList)
+        }
+        return liveData
+    }
+
+    fun getCharacterById(id: Int): LiveData<Character> {
+        val liveData = MutableLiveData<Character>()
+        thread {
+            val character = AppDatabase.getDatabase().characterDao().getCharacterById(id)
+            liveData.postValue(character)
         }
         return liveData
     }

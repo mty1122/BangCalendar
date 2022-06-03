@@ -2,6 +2,9 @@ package com.mty.bangcalendar.util
 
 import java.util.Calendar
 
+operator fun CalendarUtil.minus(calendarUtil: CalendarUtil): Int =
+    ((this.getTimeInMillis() - calendarUtil.getTimeInMillis()) / (1000 * 3600 * 24)).toInt()
+
 class CalendarUtil {
 
     companion object {
@@ -9,7 +12,9 @@ class CalendarUtil {
         const val FIVE_ROWS = 5
         const val SIX_ROWS = 6
 
-        private fun dateToCalendarUtil(date: Int) = CalendarUtil().apply {
+        fun getDate(year: Int, month: Int, day: Int) = year * 10000 + month * 100 + day
+
+        fun dateToCalendarUtil(date: Int) = CalendarUtil().apply {
             clear()
             year = date / 10000
             month = date % 10000 / 100

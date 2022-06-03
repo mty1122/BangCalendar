@@ -18,4 +18,7 @@ interface CharacterDao {
     @Query("select * from Character where birthday = :birthday")
     fun getCharacterByBirthday(birthday: String): List<Character>
 
+    @Query("select * from Character where id = :id")
+    fun getCharacterById(id: Int): Character
+
 }

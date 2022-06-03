@@ -15,6 +15,22 @@
             app:title="@string/theme_title"
             app:useSimpleSummaryProvider="true" />
 
+        <ListPreference
+            app:defaultValue="other"
+            app:entries="@array/band_entries"
+            app:entryValues="@array/band_values"
+            app:key="band"
+            app:title="@string/band_title"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:defaultValue="0"
+            app:entries="@array/char_entries"
+            app:entryValues="@array/char_values"
+            app:key="character"
+            app:title="@string/char_title"
+            app:useSimpleSummaryProvider="true" />
+
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/update_header">
@@ -28,11 +44,13 @@
         <Preference
             app:key="sign_in"
             app:title="@string/sign_in_title"
+            app:summary="@string/sign_in_summary"
             app:useSimpleSummaryProvider="true" />
 
         <Preference
             app:key="update_preference"
             app:title="@string/update_user_preference_title"
+            app:summary="@string/update_user_preference_summary"
             app:useSimpleSummaryProvider="true" />
 
     </PreferenceCategory>

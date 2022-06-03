@@ -24,7 +24,6 @@ import com.mty.bangcalendar.util.CalendarUtil
 import com.mty.bangcalendar.util.CharacterUtil
 import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.LogUtil
-import java.lang.StringBuilder
 
 class MainActivity : AppCompatActivity() {
 
@@ -63,7 +62,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        viewModel.refreshCurrentDate() //初次启动刷新当前界面活动组件内容
+        viewModel.todayEvent.observe(this) {
+            viewModel.refreshCurrentDate() //初次启动刷新当前界面活动组件内容
+            viewModel.getPreferenceBand() //初次启动刷新关注的乐队
+        }
+        viewModel.getTodayEvent() //获取当天活动
 
         //观察活动变化，刷新活动组件内容
         viewModel.event.observe(this) {
@@ -108,18 +111,29 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        //dailyTag服务
         viewModel.userName.observe(this) {
-            val stringBuilder = StringBuilder()
-            if(it == "") {
-                stringBuilder.append("${viewModel.systemDate.getTimeName()}好，邦邦人。")
-            } else {
-                stringBuilder.append("${viewModel.systemDate.getTimeName()}好，$it。")
+            refreshDailyTag(mainBinding)
+        }
+        viewModel.getUserName()
+
+        viewModel.preferenceCharacterId.observe(this) {
+            viewModel.getPreferenceCharacter(it)
+        }
+        viewModel.getPreferenceCharacterId()
+
+        viewModel.preferenceCharacter.observe(this) { character ->
+            viewModel.birthdayAway = null
+            character?.let {
+                val birthdayAway = CharacterUtil.birthdayAway(it.birthday, viewModel.systemDate)
+                viewModel.birthdayAway = birthdayAway
             }
-            stringBuilder.append(getString(R.string.defaultTag))
-            mainBinding.dailytag.text = stringBuilder.toString()
+            refreshDailyTag(mainBinding)
         }
 
-        viewModel.getUserName()
+        viewModel.preferenceBand.observe(this) {
+            refreshDailyTag(mainBinding)
+        }
 
         //返回今天
         mainBinding.goBackFloatButton.setOnClickListener {
@@ -141,6 +155,35 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return true
+    }
+
+    //刷新dailyTag
+    private fun refreshDailyTag(mainBinding: ActivityMainBinding) {
+        val stringBuilder = StringBuilder()
+        val userName = viewModel.userName.value
+        val characterName = viewModel.preferenceCharacter.value?.name
+        val birthdayAway = viewModel.birthdayAway
+        val bandName = viewModel.preferenceBand.value
+        val todayEvent = viewModel.todayEvent.value
+
+        if(userName == "") {
+            stringBuilder.append("${viewModel.systemDate.getTimeName()}好，邦邦人。")
+        } else {
+            stringBuilder.append("${viewModel.systemDate.getTimeName()}好，$userName。")
+        }
+        stringBuilder.append(getString(R.string.defaultTag))
+        characterName?.let {
+            if (birthdayAway == 0) stringBuilder.append("今天是${it}的生日，生日快乐！")
+            else if (birthdayAway != null)
+                stringBuilder.append("距离${it}的生日还有${birthdayAway}天。")
+            else stringBuilder.append("")
+        }
+        if (bandName != null && todayEvent != null) {
+            if (bandName == EventUtil.matchBand(todayEvent)) {
+                stringBuilder.append("这期活动是${bandName}活哦，快去冲榜吧。")
+            }
+        }
+        mainBinding.dailytag.text = stringBuilder.toString()
     }
 
     //刷新生日卡片
@@ -268,8 +311,9 @@ class MainActivity : AppCompatActivity() {
                             adapter.notifyDataSetChanged()
                             //刷新生日卡片
                             viewModel.refreshBirthdayCard(0)
-                            adapter.birthdayMap[viewModel.currentDate.value?.day.toString()]?.let {
-                                viewModel.refreshBirthdayCard(it)
+                            adapter.birthdayMap[viewModel.currentDate.value?.day.toString()]
+                                ?.let { id ->
+                                viewModel.refreshBirthdayCard(id)
                             }
                         }
                     }

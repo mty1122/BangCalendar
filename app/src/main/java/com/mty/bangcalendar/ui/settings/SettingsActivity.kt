@@ -20,6 +20,9 @@ class SettingsActivity : AppCompatActivity() {
         const val REFRESH_CHARACTER_SUCCESS = 11
         const val REFRESH_EVENT_FAILURE = 20
         const val REFRESH_EVENT_SUCCESS = 21
+        const val REFRESH_USERNAME = 1
+        const val REFRESH_BAND = 2
+        const val REFRESH_CHARACTER = 3
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -99,8 +102,29 @@ class SettingsActivity : AppCompatActivity() {
 
             findPreference<Preference>("signature")?.let {
                 it.setOnPreferenceChangeListener { _, _ ->
-                    val intent = Intent("com.mty.bangcalendar.USERNAME_CHANGE")
+                    val intent = Intent("com.mty.bangcalendar.SETTINGS_CHANGE")
                     intent.setPackage(BangCalendarApplication.context.packageName)
+                    intent.putExtra("settingsCategory", REFRESH_USERNAME)
+                    BangCalendarApplication.context.sendBroadcast(intent)
+                    return@setOnPreferenceChangeListener true
+                }
+            }
+
+            findPreference<Preference>("band")?.let {
+                it.setOnPreferenceChangeListener { _, _ ->
+                    val intent = Intent("com.mty.bangcalendar.SETTINGS_CHANGE")
+                    intent.setPackage(BangCalendarApplication.context.packageName)
+                    intent.putExtra("settingsCategory", REFRESH_BAND)
+                    BangCalendarApplication.context.sendBroadcast(intent)
+                    return@setOnPreferenceChangeListener true
+                }
+            }
+
+            findPreference<Preference>("character")?.let {
+                it.setOnPreferenceChangeListener { _, _ ->
+                    val intent = Intent("com.mty.bangcalendar.SETTINGS_CHANGE")
+                    intent.setPackage(BangCalendarApplication.context.packageName)
+                    intent.putExtra("settingsCategory", REFRESH_CHARACTER)
                     BangCalendarApplication.context.sendBroadcast(intent)
                     return@setOnPreferenceChangeListener true
                 }

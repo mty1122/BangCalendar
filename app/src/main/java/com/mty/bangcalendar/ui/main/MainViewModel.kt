@@ -11,18 +11,26 @@ import androidx.lifecycle.ViewModel
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Event
+import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.CalendarUtil
 
 class MainViewModel : ViewModel() {
 
     var calendarCurrentPosition = 1 //当前view在viewPager中的位置
     val systemDate = CalendarUtil()
-    val todayEvent = Repository.getEventByDate(systemDate.getDate())
+
+    var birthdayAway: Int? = null //关注角色生日还有多少天
 
     //刷新用户昵称
-    private val refreshUserNameReceiver = object : BroadcastReceiver() {
+    private val refreshSettingsReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            getUserName()
+            val settingsCategory = intent
+                .getIntExtra("settingsCategory", SettingsActivity.REFRESH_USERNAME)
+            when (settingsCategory) {
+                SettingsActivity.REFRESH_USERNAME -> getUserName()
+                SettingsActivity.REFRESH_BAND -> getPreferenceBand()
+                SettingsActivity.REFRESH_CHARACTER -> getPreferenceCharacterId()
+            }
         }
     }
 
@@ -61,54 +69,79 @@ class MainViewModel : ViewModel() {
         _selectedItem.value = systemDate.day
 
         val intentFilter = IntentFilter()
-        intentFilter.addAction("com.mty.bangcalendar.USERNAME_CHANGE")
-        BangCalendarApplication.context.registerReceiver(refreshUserNameReceiver, intentFilter)
+        intentFilter.addAction("com.mty.bangcalendar.SETTINGS_CHANGE")
+        BangCalendarApplication.context.registerReceiver(refreshSettingsReceiver, intentFilter)
+    }
+
+    private val todayEventLiveData = MutableLiveData<Any>()
+    val todayEvent: LiveData<Event?> = Transformations.switchMap(todayEventLiveData) {
+        Repository.getEventByDate(systemDate.getDate())
+    }
+    fun getTodayEvent() {
+        todayEventLiveData.value = todayEventLiveData.value
     }
 
     private val searchDateLiveData = MutableLiveData<Int>()
-
     val event: LiveData<Event?> = Transformations.switchMap(searchDateLiveData) {
         Repository.getEventByDate(it)
     }
-
     fun getEventByDate(date: Int) {
         searchDateLiveData.value = date
     }
 
     private val getEventPictureLiveData = MutableLiveData<String>()
-
     val eventPicture = Transformations.switchMap(getEventPictureLiveData) {
         Repository.getEventPicture(it)
     }
-
     fun getEventPicture(id: String) {
         getEventPictureLiveData.value = id
     }
 
     private val getCharacterByMonthLiveData = MutableLiveData<Int>()
-
     val characterInMonth = Transformations.switchMap(getCharacterByMonthLiveData) {
         Repository.getCharacterByMonth(it)
     }
-
     fun getCharacterByMonth(month: Int) {
         getCharacterByMonthLiveData.value = month
     }
 
+    //dailyTag服务
     private val userNameLiveData = MutableLiveData<String>()
-
     val userName = Transformations.switchMap(userNameLiveData) {
         Repository.getUserName()
     }
-
     fun getUserName() {
         userNameLiveData.value = userNameLiveData.value
+    }
+
+    private val preferenceBandLiveData = MutableLiveData<String>()
+    val preferenceBand = Transformations.switchMap(preferenceBandLiveData) {
+        Repository.getPreferenceBand()
+    }
+    fun getPreferenceBand() {
+        preferenceBandLiveData.value = preferenceBandLiveData.value
+    }
+
+    private val preferenceCharacterIdLiveData = MutableLiveData<Int>()
+    val preferenceCharacterId = Transformations.switchMap(preferenceCharacterIdLiveData) {
+        Repository.getPreferenceCharacter()
+    }
+    fun getPreferenceCharacterId() {
+        preferenceCharacterIdLiveData.value = preferenceCharacterIdLiveData.value
+    }
+
+    private val preferenceCharacterLiveData = MutableLiveData<Int>()
+    val preferenceCharacter = Transformations.switchMap(preferenceCharacterLiveData) {
+        Repository.getCharacterById(it)
+    }
+    fun getPreferenceCharacter(id: Int) {
+        preferenceCharacterLiveData.value = id
     }
 
     //取消注册Broadcast
     override fun onCleared() {
         super.onCleared()
-        BangCalendarApplication.context.unregisterReceiver(refreshUserNameReceiver)
+        BangCalendarApplication.context.unregisterReceiver(refreshSettingsReceiver)
     }
 
 }

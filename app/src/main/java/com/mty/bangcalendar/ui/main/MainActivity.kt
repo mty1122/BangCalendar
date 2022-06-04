@@ -9,7 +9,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -20,10 +19,7 @@ import com.mty.bangcalendar.databinding.ActivityMainBinding
 import com.mty.bangcalendar.logic.model.CalendarScrollView
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.ui.settings.SettingsActivity
-import com.mty.bangcalendar.util.CalendarUtil
-import com.mty.bangcalendar.util.CharacterUtil
-import com.mty.bangcalendar.util.EventUtil
-import com.mty.bangcalendar.util.LogUtil
+import com.mty.bangcalendar.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -35,9 +31,13 @@ class MainActivity : AppCompatActivity() {
         val mainBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(mainBinding.root)
 
-        val toolbar: Toolbar = findViewById(R.id.toolBar)
-        setSupportActionBar(toolbar)
+        setSupportActionBar(mainBinding.toolBar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
+
+        mainBinding.eventCard.eventProgress.run {
+            progressColor = getColor(R.color.progress_color)
+            textColor = getColor(R.color.progress_color)
+        }
 
         calendarInit() //日历初始化
 
@@ -61,12 +61,6 @@ class MainActivity : AppCompatActivity() {
                 mainBinding.goBackFloatButton.visibility = View.VISIBLE
             }
         }
-
-        viewModel.todayEvent.observe(this) {
-            viewModel.refreshCurrentDate() //初次启动刷新当前界面活动组件内容
-            viewModel.getPreferenceBand() //初次启动刷新关注的乐队
-        }
-        viewModel.getTodayEvent() //获取当天活动
 
         //观察活动变化，刷新活动组件内容
         viewModel.event.observe(this) {
@@ -110,6 +104,19 @@ class MainActivity : AppCompatActivity() {
                 else -> refreshBirthdayCard(it, mainBinding)
             }
         }
+
+        viewModel.todayEvent.observe(this) { event ->
+            viewModel.run {
+                LogUtil.d("MainActivity", "本期活动序号为：${event?.id}")
+                eventStartTime = EventUtil.getEventStartTime(event)
+                eventEndTime = EventUtil.getEventEndTime(event)
+                event?.let {
+                    refreshEventStatus(event, mainBinding) //初次启动刷新活动状态
+                }
+                getPreferenceBand() //初次启动刷新关注的乐队
+            }
+        }
+        viewModel.getTodayEvent() //获取当天活动
 
         //dailyTag服务
         viewModel.userName.observe(this) {
@@ -203,18 +210,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun refreshEventComponent(event: Event, binding: ActivityMainBinding) {
+        LogUtil.d("MainActivity", "刷新活动组件")
         //刷新活动状态
-        val todayEventId = viewModel.todayEvent.value?.id
-        val eventId = event.id
-        todayEventId?.let {
-            when (true) {
-                (eventId < todayEventId) -> binding.eventCard.eventProgressName
-                    .setText(R.string.finish)
-                (eventId == todayEventId) -> binding.eventCard.eventProgressName
-                    .setText(R.string.ing)
-                else -> binding.eventCard.eventProgressName.setText(R.string.prepare)
-            }
-        }
+        refreshEventStatus(event, binding)
         //刷新活动类型
         binding.eventCard.eventType.text = StringBuilder().run {
             append("活动")
@@ -241,6 +239,46 @@ class MainActivity : AppCompatActivity() {
         Glide.with(this).load(EventUtil.getBandPic(event)).into(binding.eventCard.eventBand)
         //刷新活动图片
         viewModel.getEventPicture(EventUtil.eventIdFormat(event.id.toInt()))
+    }
+
+    private fun refreshEventStatus(event: Event, binding: ActivityMainBinding) {
+        val todayEventId = viewModel.todayEvent.value?.id
+        val eventId = event.id
+        todayEventId?.let {
+            LogUtil.d("MainActivity", "刷新活动状态")
+            when (true) {
+                (eventId < todayEventId) -> {
+                    binding.eventCard.eventProgressName.setText(R.string.finish)
+                    binding.eventCard.eventProgress.progress = 100
+                }
+                (eventId == todayEventId) -> {
+                    val systemTime = viewModel.systemDate.getTimeInMillis()
+                    val eventStartTime = viewModel.eventStartTime
+                    val eventEndTime = viewModel.eventEndTime
+                    if (eventStartTime != null && eventEndTime != null) {
+                        when (true) {
+                            (systemTime < eventStartTime) -> {
+                                binding.eventCard.eventProgressName.setText(R.string.prepare)
+                                binding.eventCard.eventProgress.progress = 0
+                            }
+                            (systemTime >= eventEndTime) -> {
+                                binding.eventCard.eventProgressName.setText(R.string.finish)
+                                binding.eventCard.eventProgress.progress = 100
+                            }
+                            else -> {
+                                binding.eventCard.eventProgressName.setText(R.string.ing)
+                                binding.eventCard.eventProgress.progress = EventUtil
+                                    .getEventProgress(systemTime, eventStartTime)
+                            }
+                        }
+                    }
+                }
+                else -> {
+                    binding.eventCard.eventProgressName.setText(R.string.prepare)
+                    binding.eventCard.eventProgress.progress = 0
+                }
+            }
+        }
     }
 
     @SuppressLint("NotifyDataSetChanged")

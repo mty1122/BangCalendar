@@ -8,6 +8,8 @@ import java.util.regex.Pattern
 
 object EventUtil {
 
+    private const val EVENT_LENGTH: Long = 460800000
+
     fun matchCharacter(character: Int) =
         when (character) {
             1 -> R.drawable.char_1
@@ -117,6 +119,31 @@ object EventUtil {
             return matcher.group() == eventId.toString()
         }
         return false
+    }
+
+    fun getEventStartTime(event: Event?): Long? =
+        if (event != null)
+            CalendarUtil.dateToCalendarUtil(event.startDate).run {
+                hour = 15
+                getTimeInMillis()
+            }
+        else null
+
+
+    fun getEventEndTime(event: Event?): Long? =
+        if (event != null)
+            CalendarUtil.dateToCalendarUtil(event.startDate).run {
+                day += 5
+                hour = 23
+                getTimeInMillis()
+            }
+        else null
+
+    fun getEventProgress(systemTime: Long, eventStartTime: Long): Int {
+        val eventFinishedTimes = (systemTime - eventStartTime).toDouble()
+        val eventProgress = ((eventFinishedTimes / EVENT_LENGTH) * 100).toInt()
+        LogUtil.d("EventUtil", "eventProgress = $eventProgress")
+        return eventProgress
     }
 
 }

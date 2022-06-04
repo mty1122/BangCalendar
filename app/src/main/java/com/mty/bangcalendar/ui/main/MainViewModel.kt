@@ -20,7 +20,9 @@ class MainViewModel : ViewModel() {
     val systemDate = CalendarUtil()
 
     var birthdayAway: Int? = null //关注角色生日还有多少天
-
+    //活动起始/终止时间
+    var eventStartTime: Long? = null
+    var eventEndTime: Long? = null
     //刷新用户昵称
     private val refreshSettingsReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {

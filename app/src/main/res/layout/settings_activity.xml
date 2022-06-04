@@ -11,7 +11,7 @@
         android:background="@color/ppp_bar"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:title="@string/settings"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+        app:popupTheme="@style/Theme.BangCalendar"/>
 
     <FrameLayout
         android:id="@+id/settings"

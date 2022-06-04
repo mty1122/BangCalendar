@@ -46,6 +46,10 @@ class CalendarUtil {
     get() = calendar.get(Calendar.DATE)
     set(value) = calendar.set(Calendar.DATE, value)
 
+    var hour: Int
+    get() = calendar.get(Calendar.HOUR_OF_DAY)
+    set(value) = calendar.set(Calendar.HOUR_OF_DAY, value)
+
     init {
         calendar.firstDayOfWeek = Calendar.SUNDAY
     }

@@ -127,24 +127,23 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:layout_marginBottom="8dp">
+                    android:layout_marginBottom="8dp"
+                    android:layout_gravity="center">
 
-                    <ProgressBar
+                    <com.tomergoldst.progress_circle.ProgressCircle
                         android:id="@+id/eventProgress"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:layout_gravity="center_vertical"/>
+                        android:layout_width="45dp"
+                        android:layout_height="45dp"
+                        android:layout_gravity="center_vertical" />
 
                     <TextView
                         android:id="@+id/eventProgressName"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="7.5dp"
                         android:text="@string/ing"
-                        android:textColor="@color/ppp_text"
-                        android:gravity="center_vertical"/>
+                        android:textColor="@color/progress_color"
+                        android:layout_gravity="center"/>
 
                 </LinearLayout>
 

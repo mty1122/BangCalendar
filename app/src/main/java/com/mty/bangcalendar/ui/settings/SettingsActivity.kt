@@ -2,11 +2,15 @@ package com.mty.bangcalendar.ui.settings
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.MenuItem
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
@@ -39,6 +43,18 @@ class SettingsActivity : AppCompatActivity() {
         val toolbar: Toolbar = findViewById(R.id.settingsToolBar)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+        //小白条沉浸
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.setDecorFitsSystemWindows(false)
+            findViewById<LinearLayout>(R.id.settingsActivity)
+                .setOnApplyWindowInsetsListener { view, insets ->
+                val top = WindowInsetsCompat.toWindowInsetsCompat(insets, view)
+                    .getInsets(WindowInsetsCompat.Type.statusBars()).top
+                view.updatePadding(top = top)
+                insets
+            }
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

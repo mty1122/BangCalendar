@@ -4,11 +4,16 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
+import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.FrameLayout
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -19,7 +24,10 @@ import com.mty.bangcalendar.databinding.ActivityMainBinding
 import com.mty.bangcalendar.logic.model.CalendarScrollView
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.ui.settings.SettingsActivity
-import com.mty.bangcalendar.util.*
+import com.mty.bangcalendar.util.CalendarUtil
+import com.mty.bangcalendar.util.CharacterUtil
+import com.mty.bangcalendar.util.EventUtil
+import com.mty.bangcalendar.util.LogUtil
 
 class MainActivity : AppCompatActivity() {
 
@@ -33,6 +41,21 @@ class MainActivity : AppCompatActivity() {
 
         setSupportActionBar(mainBinding.toolBar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
+
+        //小白条沉浸
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.setDecorFitsSystemWindows(false)
+            mainBinding.mainActivity.setOnApplyWindowInsetsListener { view, insets ->
+                val top = WindowInsetsCompat.toWindowInsetsCompat(insets, view)
+                    .getInsets(WindowInsetsCompat.Type.statusBars()).top
+                view.updatePadding(top = top)
+                (mainBinding.floatButton.layoutParams as FrameLayout.LayoutParams)
+                    .bottomMargin = top
+                (mainBinding.goBackFloatButton.layoutParams as FrameLayout.LayoutParams)
+                    .bottomMargin = top
+                insets
+            }
+        }
 
         mainBinding.eventCard.eventProgress.run {
             progressColor = getColor(R.color.progress_color)
@@ -105,19 +128,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        viewModel.todayEvent.observe(this) { event ->
-            viewModel.run {
-                LogUtil.d("MainActivity", "本期活动序号为：${event?.id}")
-                eventStartTime = EventUtil.getEventStartTime(event)
-                eventEndTime = EventUtil.getEventEndTime(event)
-                event?.let {
-                    refreshEventStatus(event, mainBinding) //初次启动刷新活动状态
-                }
-                getPreferenceBand() //初次启动刷新关注的乐队
-            }
-        }
-        viewModel.getTodayEvent() //获取当天活动
-
         //dailyTag服务
         viewModel.userName.observe(this) {
             refreshDailyTag(mainBinding)
@@ -138,13 +148,43 @@ class MainActivity : AppCompatActivity() {
             refreshDailyTag(mainBinding)
         }
 
-        viewModel.preferenceBand.observe(this) {
-            refreshDailyTag(mainBinding)
+        viewModel.preferenceNearlyBandEvent.observe(this) { event ->
+            event?.let {
+                LogUtil.d("Event", "乐队偏好近期活动为${event.id}")
+                refreshDailyTag(mainBinding)
+            }
         }
+
+        viewModel.preferenceBand.observe(this) {
+            if (it != null && it == EventUtil.getBandName(viewModel.todayEvent.value!!)) {
+                refreshDailyTag(mainBinding)
+            } else {
+                viewModel.getPreferenceNearlyBandEvent(EventUtil.bandNameToCharacter1(it))
+            }
+        }
+
+        viewModel.todayEvent.observe(this) { event ->
+            viewModel.run {
+                LogUtil.d("Event", "本期活动序号为：${event?.id}")
+                eventStartTime = EventUtil.getEventStartTime(event)
+                eventEndTime = EventUtil.getEventEndTime(event)
+                event?.let {
+                    //如果activity意外重启，若当前活动不为当日活动，则不刷新活动状态（说明不是初次启动）
+                    if (EventUtil.isSameEvent(mainBinding, event.id.toInt()))
+                        refreshEventStatus(event, mainBinding) //初次启动刷新活动状态
+                }
+                getPreferenceBand() //初次启动刷新关注的乐队
+            }
+        }
+        viewModel.getTodayEvent() //获取当天活动
 
         //返回今天
         mainBinding.goBackFloatButton.setOnClickListener {
             goBackToSystemDate(mainBinding)
+        }
+
+        mainBinding.floatButton.setOnClickListener {
+            Toast.makeText(this, "日程提醒功能正在开发，敬请期待", Toast.LENGTH_SHORT).show()
         }
 
     }
@@ -172,6 +212,7 @@ class MainActivity : AppCompatActivity() {
         val birthdayAway = viewModel.birthdayAway
         val bandName = viewModel.preferenceBand.value
         val todayEvent = viewModel.todayEvent.value
+        val nearlyBandEvent = viewModel.preferenceNearlyBandEvent.value
 
         if(userName == "") {
             stringBuilder.append("${viewModel.systemDate.getTimeName()}好，邦邦人。")
@@ -186,8 +227,13 @@ class MainActivity : AppCompatActivity() {
             else stringBuilder.append("")
         }
         if (bandName != null && todayEvent != null) {
-            if (bandName == EventUtil.matchBand(todayEvent)) {
+            if (bandName == EventUtil.getBandName(todayEvent)) {
                 stringBuilder.append("这期活动是${bandName}活哦，快去冲榜吧。")
+            } else if (nearlyBandEvent != null) {
+                stringBuilder.append("距离下次${bandName}活还有" +
+                        "${CalendarUtil.differentOfTwoDates(viewModel.systemDate.getDate(), 
+                            nearlyBandEvent.startDate)}天，活动编号为${nearlyBandEvent.id}，" +
+                        "活动属性为${EventUtil.getAttrsName(nearlyBandEvent.attrs)}。")
             }
         }
         mainBinding.dailytag.text = stringBuilder.toString()
@@ -204,7 +250,8 @@ class MainActivity : AppCompatActivity() {
             binding.birChar2.visibility = View.VISIBLE
         }else {
             binding.birChar2.visibility = View.GONE
-            Glide.with(this).load(CharacterUtil.matchCharacter(id)).into(binding.birChar1)
+            Glide.with(this).load(CharacterUtil.matchCharacter(id))
+                .into(binding.birChar1)
         }
         binding.birCard.visibility = View.VISIBLE
     }
@@ -236,7 +283,8 @@ class MainActivity : AppCompatActivity() {
         Glide.with(this).load(EventUtil.matchAttrs(event.attrs))
             .into(binding.eventCard.eventAttrs)
         //刷新乐队图片
-        Glide.with(this).load(EventUtil.getBandPic(event)).into(binding.eventCard.eventBand)
+        Glide.with(this).load(EventUtil.getBandPic(event))
+            .into(binding.eventCard.eventBand)
         //刷新活动图片
         viewModel.getEventPicture(EventUtil.eventIdFormat(event.id.toInt()))
     }

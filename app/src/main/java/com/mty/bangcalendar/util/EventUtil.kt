@@ -71,7 +71,16 @@ object EventUtil {
             else -> -1
         }
 
-    fun matchBand(event: Event) =
+    fun getAttrsName(attrs: Int) =
+        when (attrs) {
+            EventConstant.PURE.id -> EventConstant.PURE.describe
+            EventConstant.POWERFUL.id -> EventConstant.POWERFUL.describe
+            EventConstant.COOL.id -> EventConstant.COOL.describe
+            EventConstant.HAPPY.id -> EventConstant.HAPPY.describe
+            else -> -1
+        }
+
+    fun getBandName(event: Event) =
         if (event.character1 + 4 == event.character5)
             when (event.character1) {
                 1 -> "ppp"
@@ -84,6 +93,18 @@ object EventUtil {
                 else -> "other"
             }
         else "other"
+
+    fun bandNameToCharacter1(bandName: String) =
+        when (bandName) {
+            "ppp" -> 1
+            "ag" -> 6
+            "pp" -> 11
+            "r" -> 16
+            "hhw" -> 21
+            "m" -> 26
+            "ras" -> 31
+            else -> -1
+        }
 
     fun getBandPic(event: Event) =
         when (event.character7) {

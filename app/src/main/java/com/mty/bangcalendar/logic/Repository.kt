@@ -70,6 +70,16 @@ object Repository {
         return liveData
     }
 
+    fun getBandEventByDate(date: Int, character1Id: Int): LiveData<Event?> {
+        val liveData = MutableLiveData<Event?>()
+        thread {
+            val event = AppDatabase.getDatabase().eventDao()
+                .getNearlyBandEventByDate(date, character1Id)
+            liveData.postValue(event)
+        }
+        return liveData
+    }
+
     fun getEventPicture(eventId: String) = liveData(Dispatchers.IO) {
         val result = try {
             val pictureResponse = BangCalendarNetwork.getEventPicture(eventId)

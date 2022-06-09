@@ -124,6 +124,14 @@ class MainViewModel : ViewModel() {
         preferenceBandLiveData.value = preferenceBandLiveData.value
     }
 
+    private val preferenceNearlyBandEventLiveData = MutableLiveData<Int>()
+    val preferenceNearlyBandEvent = Transformations.switchMap(preferenceNearlyBandEventLiveData) {
+        Repository.getBandEventByDate(systemDate.getDate(), it)
+    }
+    fun getPreferenceNearlyBandEvent(character1Id: Int) {
+        preferenceNearlyBandEventLiveData.value = character1Id
+    }
+
     private val preferenceCharacterIdLiveData = MutableLiveData<Int>()
     val preferenceCharacterId = Transformations.switchMap(preferenceCharacterIdLiveData) {
         Repository.getPreferenceCharacter()

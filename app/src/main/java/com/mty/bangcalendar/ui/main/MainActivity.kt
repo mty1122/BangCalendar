@@ -23,6 +23,7 @@ import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivityMainBinding
 import com.mty.bangcalendar.logic.model.CalendarScrollView
 import com.mty.bangcalendar.logic.model.Event
+import com.mty.bangcalendar.ui.search.SearchActivity
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.CalendarUtil
 import com.mty.bangcalendar.util.CharacterUtil
@@ -155,11 +156,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        viewModel.preferenceBand.observe(this) {
-            if (it != null && it == EventUtil.getBandName(viewModel.todayEvent.value!!)) {
-                refreshDailyTag(mainBinding)
-            } else {
-                viewModel.getPreferenceNearlyBandEvent(EventUtil.bandNameToCharacter1(it))
+        viewModel.preferenceBand.observe(this) { bandName ->
+            bandName?.let {
+                if (it == "other" || it == EventUtil.getBandName(viewModel.todayEvent.value!!)) {
+                    refreshDailyTag(mainBinding)
+                } else {
+                    viewModel.getPreferenceNearlyBandEvent(EventUtil.bandNameToCharacter1(it))
+                }
             }
         }
 
@@ -200,6 +203,10 @@ class MainActivity : AppCompatActivity() {
                 val intent = Intent(this, SettingsActivity::class.java)
                 startActivity(intent)
             }
+            R.id.app_bar_search -> {
+                val intent = Intent(this, SearchActivity::class.java)
+                startActivity(intent)
+            }
         }
         return true
     }
@@ -226,7 +233,7 @@ class MainActivity : AppCompatActivity() {
                 stringBuilder.append("距离${it}的生日还有${birthdayAway}天。")
             else stringBuilder.append("")
         }
-        if (bandName != null && todayEvent != null) {
+        if (bandName != null && bandName != "other" && todayEvent != null) {
             if (bandName == EventUtil.getBandName(todayEvent)) {
                 stringBuilder.append("这期活动是${bandName}活哦，快去冲榜吧。")
             } else if (nearlyBandEvent != null) {

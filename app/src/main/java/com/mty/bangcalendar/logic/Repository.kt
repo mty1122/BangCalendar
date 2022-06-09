@@ -70,6 +70,15 @@ object Repository {
         return liveData
     }
 
+    fun getEventById(id: Int): LiveData<Event?> {
+        val liveData = MutableLiveData<Event?>()
+        thread {
+            val event = AppDatabase.getDatabase().eventDao().getEventById(id)
+            liveData.postValue(event)
+        }
+        return liveData
+    }
+
     fun getBandEventByDate(date: Int, character1Id: Int): LiveData<Event?> {
         val liveData = MutableLiveData<Event?>()
         thread {
@@ -106,6 +115,15 @@ object Repository {
         val liveData = MutableLiveData<Character>()
         thread {
             val character = AppDatabase.getDatabase().characterDao().getCharacterById(id)
+            liveData.postValue(character)
+        }
+        return liveData
+    }
+
+    fun getCharacterByName(name: String): LiveData<Character?> {
+        val liveData = MutableLiveData<Character?>()
+        thread {
+            val character = AppDatabase.getDatabase().characterDao().getCharacterByName(name)
             liveData.postValue(character)
         }
         return liveData

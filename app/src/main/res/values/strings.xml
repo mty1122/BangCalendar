@@ -5,6 +5,7 @@
     <string name="ppp">"Poppin'Party"</string>
     <string name="settings">设置</string>
     <string name="search">搜索</string>
+    <string name="search_activity">数据库检索</string>
     <string name="DailyTag">DailyTag</string>
     <string name="plusButton">添加功能</string>
     <string name="todayButton">返回今天</string>
@@ -63,11 +64,15 @@
     <string name="update_user_preference_summary">同步昵称、乐队等偏好至云端</string>
     <string name="about_header">关于</string>
     <string name="version_title">版本</string>
-    <string name="version">1.1.1</string>
+    <string name="version">1.2.0</string>
     <string name="program_title">项目地址</string>
     <string name="program_url">https://github.com/mty1122/BangCalendar</string>
     <string name="material_title">素材来源</string>
     <string name="material_source">图片素材来自网络，如有侵权，烦请通知删除</string>
     <string name="author_title">联系作者</string>
     <string name="author_mail">admin@mxmnb.cn</string>
+    <!-- searchActivity -->
+    <string name="search_edit">请输入活动编号或角色中文名</string>
+    <string name="character_title">角色档案</string>
+    <string name="character_pic">角色头像</string>
 </resources>

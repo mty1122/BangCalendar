@@ -20,4 +20,7 @@ interface EventDao {
             "and character5 = :character1Id + 4")
     fun getNearlyBandEventByDate(date: Int, character1Id: Int): Event?
 
+    @Query("select * from Event where id = :id")
+    fun getEventById(id: Int): Event?
+
 }

@@ -236,7 +236,7 @@ class MainActivity : AppCompatActivity() {
             .setView(view)
             .setNegativeButton("取消") { _, _ ->
             }
-            .setPositiveButton("确认") { _, _ ->
+            .setPositiveButton("提交") { _, _ ->
                 val newTip = editText.text.toString()
                 if (oldTip != newTip)
                     viewModel.setAdditionalTip(newTip)

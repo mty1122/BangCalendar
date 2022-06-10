@@ -7,6 +7,11 @@
         android:icon="?android:attr/actionModeWebSearchDrawable"
         android:title="@string/search"
         app:showAsAction="always" />
+
+    <item
+        android:id="@+id/menu_jump"
+        android:title="@string/jump" />
+
     <item
         android:id="@+id/menu_settings"
         android:title="@string/settings" />

@@ -20,6 +20,14 @@ object PreferenceDao {
         isFirstStart
     }
 
+    fun getAdditionalTip(): String = sharedPreference().getString("additionalTip", "")!!
+
+    fun setAdditionalTip(additionalTip: String) {
+        sharedPreference().edit {
+            putString("additionalTip", additionalTip)
+        }
+    }
+
     private fun defaultPreference() = PreferenceManager
         .getDefaultSharedPreferences(BangCalendarApplication.context)
 

@@ -37,6 +37,23 @@ object Repository {
         return liveData
     }
 
+    fun getAdditionalTip(): LiveData<String> {
+        val liveData = MutableLiveData<String>()
+        thread {
+            liveData.postValue(PreferenceDao.getAdditionalTip())
+        }
+        return liveData
+    }
+
+    fun setAdditionalTip(additionalTip: String): LiveData<String> {
+        val liveData = MutableLiveData<String>()
+        thread {
+            PreferenceDao.setAdditionalTip(additionalTip)
+            liveData.postValue(PreferenceDao.getAdditionalTip())
+        }
+        return liveData
+    }
+
     fun getUserName(): LiveData<String> {
         val liveData = MutableLiveData<String>()
         thread {

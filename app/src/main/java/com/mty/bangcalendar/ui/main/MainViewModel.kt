@@ -148,6 +148,21 @@ class MainViewModel : ViewModel() {
         preferenceCharacterLiveData.value = id
     }
 
+    //附加提醒
+    private val additionalTipLiveData = MutableLiveData<String?>()
+    val additionalTip = Transformations.switchMap(additionalTipLiveData) {
+        if (it != null)
+            Repository.setAdditionalTip(it)
+        else
+            Repository.getAdditionalTip()
+    }
+    fun getAdditionalTip() {
+        additionalTipLiveData.value = null
+    }
+    fun setAdditionalTip(additionalTip: String) {
+        additionalTipLiveData.value = additionalTip
+    }
+
     //取消注册Broadcast
     override fun onCleared() {
         super.onCleared()

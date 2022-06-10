@@ -6,11 +6,13 @@ import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.EditText
 import android.widget.FrameLayout
-import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -19,6 +21,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.ViewPager
 import com.bumptech.glide.Glide
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivityMainBinding
 import com.mty.bangcalendar.logic.model.CalendarScrollView
@@ -29,6 +32,7 @@ import com.mty.bangcalendar.util.CalendarUtil
 import com.mty.bangcalendar.util.CharacterUtil
 import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.LogUtil
+import java.util.regex.Pattern
 
 class MainActivity : AppCompatActivity() {
 
@@ -166,6 +170,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        //附加提示
+        viewModel.additionalTip.observe(this) {
+            refreshDailyTag(mainBinding)
+        }
+        viewModel.getAdditionalTip()
+
         viewModel.todayEvent.observe(this) { event ->
             viewModel.run {
                 LogUtil.d("Event", "本期活动序号为：${event?.id}")
@@ -187,7 +197,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         mainBinding.floatButton.setOnClickListener {
-            Toast.makeText(this, "日程提醒功能正在开发，敬请期待", Toast.LENGTH_SHORT).show()
+            addAdditionalTip()
         }
 
     }
@@ -203,12 +213,36 @@ class MainActivity : AppCompatActivity() {
                 val intent = Intent(this, SettingsActivity::class.java)
                 startActivity(intent)
             }
+            R.id.menu_jump -> {
+                chooseDate(findViewById(R.id.viewPager))
+            }
             R.id.app_bar_search -> {
                 val intent = Intent(this, SearchActivity::class.java)
                 startActivity(intent)
             }
         }
         return true
+    }
+
+    private fun addAdditionalTip() {
+        val view = LayoutInflater.from(this)
+            .inflate(R.layout.additional_tip, null, false)
+        val editText: EditText = view.findViewById(R.id.additionalText)
+        val oldTip = viewModel.additionalTip.value
+        editText.setText(oldTip)
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("额外的日程提醒")
+            .setIcon(R.mipmap.ic_launcher)
+            .setView(view)
+            .setNegativeButton("取消") { _, _ ->
+            }
+            .setPositiveButton("确认") { _, _ ->
+                val newTip = editText.text.toString()
+                if (oldTip != newTip)
+                    viewModel.setAdditionalTip(newTip)
+            }
+            .create()
+        dialog.show()
     }
 
     //刷新dailyTag
@@ -220,6 +254,7 @@ class MainActivity : AppCompatActivity() {
         val bandName = viewModel.preferenceBand.value
         val todayEvent = viewModel.todayEvent.value
         val nearlyBandEvent = viewModel.preferenceNearlyBandEvent.value
+        val additionalTip = viewModel.additionalTip.value
 
         if(userName == "") {
             stringBuilder.append("${viewModel.systemDate.getTimeName()}好，邦邦人。")
@@ -241,6 +276,34 @@ class MainActivity : AppCompatActivity() {
                         "${CalendarUtil.differentOfTwoDates(viewModel.systemDate.getDate(), 
                             nearlyBandEvent.startDate)}天，活动编号为${nearlyBandEvent.id}，" +
                         "活动属性为${EventUtil.getAttrsName(nearlyBandEvent.attrs)}。")
+            }
+        }
+        if (additionalTip != null && additionalTip != "") {
+            val strs = additionalTip.split(" ")
+            if (strs.size == 2) {
+                val regex = "\\b\\d{8}\\b"
+                val pattern = Pattern.compile(regex)
+                val matcher = pattern.matcher(strs[1])
+                //输入正确再进行对比
+                if (matcher.find()) {
+                    val systemDate = viewModel.systemDate.getDate()
+                    val targetDate = Integer.parseInt(strs[1])
+                    val differentOfTwoDates = CalendarUtil
+                        .differentOfTwoDates(systemDate, targetDate).toInt()
+                    when (true) {
+                        (differentOfTwoDates > 0) -> {
+                            stringBuilder.append("距离${strs[0]}还有${differentOfTwoDates}天。")
+                        }
+                        (differentOfTwoDates == 0) -> {
+                            stringBuilder.append("今天就是${strs[0]}。")
+                        }
+                        (differentOfTwoDates < 0) -> {
+                            stringBuilder.append("距离${strs[0]}已经过去" +
+                                    "${differentOfTwoDates * -1}天。")
+                        }
+                        else -> {}
+                    }
+                }
             }
         }
         mainBinding.dailytag.text = stringBuilder.toString()
@@ -336,9 +399,38 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("NotifyDataSetChanged")
+    private fun chooseDate(viewPager: ViewPager) {
+        val calendarView = android.widget.CalendarView(this)
+        val calendarUtil = CalendarUtil()
+        val floatButton: FloatingActionButton = findViewById(R.id.floatButton)
+        calendarView.setOnDateChangeListener { _, year, month, day ->
+            calendarUtil.run {
+                this.year = year
+                this.month = month + 1
+                this.day = day
+            }
+        }
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("请选择跳转的日期")
+            .setIcon(R.mipmap.ic_launcher)
+            .setView(calendarView)
+            .setNegativeButton("取消") { _, _ ->
+            }
+            .setPositiveButton("确认") { _, _ ->
+                if (floatButton.visibility == View.VISIBLE) //原地选择不跳转
+                    jumpDate(viewPager, calendarUtil)
+            }
+            .create()
+        dialog.show()
+    }
+
     private fun goBackToSystemDate(mainBinding: ActivityMainBinding) {
-        val viewPagerAdapter = mainBinding.viewPager.adapter as CalendarViewPagerAdapter
+        jumpDate(mainBinding.viewPager, viewModel.systemDate)
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    private fun jumpDate(viewPager: ViewPager, target: CalendarUtil) {
+        val viewPagerAdapter = viewPager.adapter as CalendarViewPagerAdapter
         val scrollViewList = viewPagerAdapter.views
         var lastPosition = 0
         var relativeMonth = -1
@@ -348,9 +440,9 @@ class MainActivity : AppCompatActivity() {
             val viewAdapter = (scrollView.view as RecyclerView)
                 .adapter as CalendarViewAdapter
             val calendarUtil = viewAdapter.calendarUtil
-            calendarUtil.year = viewModel.systemDate.year
-            calendarUtil.month = viewModel.systemDate.month
-            calendarUtil.rows = viewModel.systemDate.rows
+            calendarUtil.year = target.year
+            calendarUtil.month = target.month
+            calendarUtil.rows = target.rows
             calendarUtil.setRelativeMonth(relativeMonth++)
             viewAdapter.dateList.run {
                 this as ArrayList
@@ -360,17 +452,17 @@ class MainActivity : AppCompatActivity() {
             viewAdapter.notifyDataSetChanged()
         }
         //初始化viewPager的当前item
-        mainBinding.viewPager.currentItem = 1
+        viewPager.currentItem = 1
         //初始化选中项
-        viewModel.setSelectedItem(viewModel.systemDate.day)
+        viewModel.setSelectedItem(target.day)
         viewModel.currentDate.value?.let {
-            it.year = viewModel.systemDate.year
-            it.month = viewModel.systemDate.month
-            it.day = viewModel.systemDate.day
-            it.rows = viewModel.systemDate.rows
+            it.year = target.year
+            it.month = target.month
+            it.day = target.day
+            it.rows = target.rows
         }
         viewModel.refreshCurrentDate() //刷新卡片信息
-        viewModel.getCharacterByMonth(viewModel.systemDate.month) //刷新角色生日
+        viewModel.getCharacterByMonth(target.month) //刷新角色生日
     }
 
     @SuppressLint("NotifyDataSetChanged")

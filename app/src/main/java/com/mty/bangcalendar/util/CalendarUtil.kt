@@ -82,6 +82,10 @@ class CalendarUtil {
 
     fun getTimeInMillis() = calendar.timeInMillis
 
+    fun setTimeInMillis(time: Long) {
+        calendar.timeInMillis = time
+    }
+
     fun getDateList(): List<String> {
         val maxDays = getMaximumDaysInMonth()
         val dayOfWeak = getDayOfWeak()

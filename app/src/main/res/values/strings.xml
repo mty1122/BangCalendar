@@ -5,6 +5,7 @@
     <string name="ppp">"Poppin'Party"</string>
     <string name="settings">设置</string>
     <string name="search">搜索</string>
+    <string name="jump">日期跳转</string>
     <string name="search_activity">数据库检索</string>
     <string name="DailyTag">DailyTag</string>
     <string name="plusButton">添加功能</string>
@@ -75,4 +76,6 @@
     <string name="search_edit">请输入活动编号或角色中文名</string>
     <string name="character_title">角色档案</string>
     <string name="character_pic">角色头像</string>
+    <!-- additionalTip -->
+    <string name="additional_tip">格式为：国服三周年 20220528</string>
 </resources>

@@ -10,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.DatePicker
 import android.widget.EditText
 import android.widget.FrameLayout
 import androidx.appcompat.app.AlertDialog
@@ -400,25 +401,24 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun chooseDate(viewPager: ViewPager) {
-        val calendarView = android.widget.CalendarView(this)
-        val calendarUtil = CalendarUtil()
+        val view = layoutInflater.inflate(R.layout.date_picker, null)
+        val datePicker: DatePicker = view.findViewById(R.id.datePicker)
         val floatButton: FloatingActionButton = findViewById(R.id.floatButton)
-        calendarView.setOnDateChangeListener { _, year, month, day ->
-            calendarUtil.run {
-                this.year = year
-                this.month = month + 1
-                this.day = day
-            }
-        }
         val dialog = AlertDialog.Builder(this)
             .setTitle("请选择跳转的日期")
             .setIcon(R.mipmap.ic_launcher)
-            .setView(calendarView)
+            .setView(view)
             .setNegativeButton("取消") { _, _ ->
             }
             .setPositiveButton("确认") { _, _ ->
-                if (floatButton.visibility == View.VISIBLE) //原地选择不跳转
+                if (floatButton.visibility == View.VISIBLE) { //原地选择不跳转
+                    val calendarUtil = CalendarUtil().apply {
+                        year = datePicker.year
+                        month = datePicker.month + 1
+                        day = datePicker.dayOfMonth
+                    }
                     jumpDate(viewPager, calendarUtil)
+                }
             }
             .create()
         dialog.show()

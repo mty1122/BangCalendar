@@ -1,5 +1,6 @@
 package com.mty.bangcalendar.logic.network
 
+import com.mty.bangcalendar.logic.model.UserPreference
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -13,6 +14,8 @@ object BangCalendarNetwork {
     private val eventPictureService = ServiceCreator.create<EventPictureService>()
 
     private val databaseRefreshService = ServiceCreator.create<DatabaseRefreshService>()
+
+    private val userService = ServiceCreator.create<UserService>()
 
     private suspend fun <T> Call<T>.await(): T {
         return suspendCoroutine {
@@ -32,6 +35,14 @@ object BangCalendarNetwork {
 
     suspend fun getEventPicture(eventId: String) =
         eventPictureService.getEventPicture(eventId).await()
+
+    suspend fun login(phone: String) = userService.login(phone).await()
+
+    suspend fun setUserPreference(userPreference: UserPreference) =
+        userService.setPreference(userPreference).await()
+
+    suspend fun getUserPreference(phone: String) =
+        userService.getPreference(phone).await()
 
     fun getCharacterList() = databaseRefreshService.getCharacterList()
 

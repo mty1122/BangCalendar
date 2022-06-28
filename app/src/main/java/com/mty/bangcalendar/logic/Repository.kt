@@ -150,4 +150,36 @@ object Repository {
 
     fun getEventListFromInternet() = BangCalendarNetwork.getEventList()
 
+    fun login(phone: String) = liveData(Dispatchers.IO) {
+        val result =
+            if (phone == "1")
+                Result.success(null) //登陆完成
+            else {
+                try {
+                    val loginResponse = BangCalendarNetwork.login(phone)
+                    Result.success(loginResponse) //发起登录请求成功
+                } catch (e: Exception) {
+                    Result.failure(e) //登录请求失败
+                }
+            }
+        emit(result)
+    }
+
+    fun getPhoneNum(): LiveData<String> {
+        val liveData = MutableLiveData<String>()
+        thread {
+            liveData.postValue(PreferenceDao.getPhoneNum())
+        }
+        return liveData
+    }
+
+    fun setPhoneNum(phone: String): LiveData<String> {
+        val liveData = MutableLiveData<String>()
+        thread {
+            PreferenceDao.setPhoneNum(phone)
+            liveData.postValue(PreferenceDao.getPhoneNum())
+        }
+        return liveData
+    }
+
 }

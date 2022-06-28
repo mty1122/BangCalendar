@@ -2,6 +2,7 @@ package com.mty.bangcalendar.logic.network
 
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.scalars.ScalarsConverterFactory
 
 object ServiceCreator {
 
@@ -10,6 +11,7 @@ object ServiceCreator {
 
     private val retrofit = Retrofit.Builder()
         .baseUrl(TEMP_URL)
+        .addConverterFactory(ScalarsConverterFactory.create())
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 

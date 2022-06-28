@@ -6,10 +6,13 @@ import android.content.Intent
 import android.content.IntentFilter
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import com.mty.bangcalendar.BangCalendarApplication
+import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.service.CharacterRefreshService
 import com.mty.bangcalendar.service.EventRefreshService
+import com.mty.bangcalendar.util.LogUtil
 
 class SettingsViewModel : ViewModel() {
 
@@ -44,6 +47,32 @@ class SettingsViewModel : ViewModel() {
         val intent = Intent(context, EventRefreshService::class.java)
         intent.putExtra("isInit", false)
         context.startService(intent)
+    }
+
+    private val loginLiveData = MutableLiveData<String>()
+    val loginResponse = Transformations.switchMap(loginLiveData) {
+        Repository.login(it)
+    }
+    fun login(phone: String) {
+        loginLiveData.value = phone
+        LogUtil.d("Repository", "login request $phone")
+    }
+    fun loginFinished() {
+        loginLiveData.value = "1"
+    }
+
+    private val phoneNumLiveData = MutableLiveData<String?>()
+    val phoneNum = Transformations.switchMap(phoneNumLiveData) {
+        if (it != null)
+            Repository.setPhoneNum(it)
+        else
+            Repository.getPhoneNum()
+    }
+    fun getPhoneNum() {
+        phoneNumLiveData.value = null
+    }
+    fun setPhoneNum(phone: String) {
+        phoneNumLiveData.value = phone
     }
 
     init {

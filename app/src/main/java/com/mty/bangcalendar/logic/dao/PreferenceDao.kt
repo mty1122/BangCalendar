@@ -28,6 +28,14 @@ object PreferenceDao {
         }
     }
 
+    fun getPhoneNum(): String = sharedPreference().getString("phone", "")!!
+
+    fun setPhoneNum(phone: String) {
+        sharedPreference().edit {
+            putString("phone", phone)
+        }
+    }
+
     private fun defaultPreference() = PreferenceManager
         .getDefaultSharedPreferences(BangCalendarApplication.context)
 

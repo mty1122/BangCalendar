@@ -63,6 +63,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        //活动进度条初始化
         mainBinding.eventCard.eventProgress.run {
             progressColor = getColor(R.color.progress_color)
             textColor = getColor(R.color.progress_color)
@@ -75,6 +76,7 @@ class MainActivity : AppCompatActivity() {
             val date = it.getDate()
             LogUtil.d("MainActivity", "日期发生变化 $date")
             viewModel.getEventByDate(date) //刷新活动
+            //顶部日期刷新
             mainBinding.date.text = StringBuilder().run {
                 append(it.year)
                 append("年")
@@ -192,11 +194,12 @@ class MainActivity : AppCompatActivity() {
         }
         viewModel.getTodayEvent() //获取当天活动
 
-        //返回今天
+        //返回今天按钮
         mainBinding.goBackFloatButton.setOnClickListener {
             goBackToSystemDate(mainBinding)
         }
 
+        //额外的提醒按钮
         mainBinding.floatButton.setOnClickListener {
             addAdditionalTip()
         }

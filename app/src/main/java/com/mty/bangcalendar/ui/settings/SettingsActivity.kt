@@ -4,9 +4,10 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.MenuItem
-import android.widget.LinearLayout
-import android.widget.Toast
+import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.WindowInsetsCompat
@@ -16,6 +17,8 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.R
+import com.mty.bangcalendar.util.LogUtil
+import java.util.regex.Pattern
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -107,6 +110,24 @@ class SettingsActivity : AppCompatActivity() {
                 }
             }
 
+            //登录
+            viewModel.phoneNum.observe(this) {
+                findPreference<Preference>("sign_in")?.let { preference ->
+                    if (it != "")
+                        preference.summary = "已登录：$it"
+                    else
+                        preference.summary = getString(R.string.sign_in_summary)
+                }
+            }
+            viewModel.getPhoneNum()
+
+            viewModel.loginResponse.observe(this) {
+                val loginResponse = it.getOrNull()
+                loginResponse?.let {
+                    LogUtil.d("login", "send sms success")
+                }
+            }
+
             findPreference<Preference>("program")?.let {
                 it.setOnPreferenceClickListener {
                     val intent = Intent(Intent.ACTION_VIEW)
@@ -145,6 +166,86 @@ class SettingsActivity : AppCompatActivity() {
                     return@setOnPreferenceChangeListener true
                 }
             }
+
+            findPreference<Preference>("sign_in")?.let {
+                it.setOnPreferenceClickListener { preference ->
+                    if (preference.summary == getString(R.string.sign_in_summary))
+                        login()
+                    else
+                        logout()
+                    return@setOnPreferenceClickListener true
+                }
+            }
+        }
+
+        private fun login() {
+            val view = LayoutInflater.from(activity)
+                .inflate(R.layout.login, null, false)
+            val phoneText: EditText = view.findViewById(R.id.sms_phone)
+            val codeText: EditText = view.findViewById(R.id.sms_code)
+            val dialog = AlertDialog.Builder(requireActivity())
+                .setTitle("登录")
+                .setIcon(R.mipmap.ic_launcher)
+                .setView(view)
+                .create()
+
+            view.findViewById<Button>(R.id.send_sms_button).setOnClickListener {
+                if (checkPhoneNum(phoneText.text.toString())) {
+                    viewModel.login(phoneText.text.toString())
+                    val button = it as Button
+                    button.isEnabled = false
+                    button.text = getString(R.string.sms_send_success)
+                } else
+                    Toast.makeText(activity, "请输入正确的手机号", Toast.LENGTH_SHORT).show()
+            }
+            view.findViewById<Button>(R.id.login_cancel_button).setOnClickListener {
+                dialog.hide()
+            }
+            view.findViewById<Button>(R.id.login_button).setOnClickListener {
+                viewModel.loginResponse.value?.let {
+                    val loginResponse = it.getOrNull()
+                    if (loginResponse != null && loginResponse.phone == phoneText.text.toString()
+                        && loginResponse.smsCode == codeText.text.toString()) {
+                        viewModel.setPhoneNum(loginResponse.phone)
+                        dialog.hide()
+                        viewModel.loginFinished()
+                        Toast.makeText(activity, "登录成功", Toast.LENGTH_SHORT).show()
+                    } else {
+                        it.exceptionOrNull()?.printStackTrace()
+                        Toast.makeText(activity, "手机号或验证码错误", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                if (viewModel.loginResponse.value == null)
+                    Toast.makeText(activity, "手机号或验证码错误", Toast.LENGTH_SHORT).show()
+            }
+
+            dialog.show()
+        }
+
+        private fun logout() {
+            val dialog = AlertDialog.Builder(requireActivity())
+                .setTitle("退出登录")
+                .setIcon(R.mipmap.ic_launcher)
+                .setMessage(getString(R.string.logout))
+                .setNegativeButton("取消") { _, _ ->
+                }
+                .setPositiveButton("确认") { _, _ ->
+                    viewModel.setPhoneNum("")
+                    Toast.makeText(activity, "退出登录成功", Toast.LENGTH_SHORT).show()
+                }
+                .create()
+            dialog.show()
+        }
+
+        private fun checkPhoneNum(phone: String?): Boolean {
+            phone?.let {
+                val regex = "\\b1[3-9]\\d{9}\\b"
+                val pattern = Pattern.compile(regex)
+                val matcher = pattern.matcher(it)
+                if (matcher.find())
+                    return true
+            }
+            return false
         }
 
     }

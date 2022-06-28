@@ -60,7 +60,7 @@
     <string name="update_database_title">更新本地数据库</string>
     <string name="update_database_summary">更新活动信息与乐队成员信息</string>
     <string name="sign_in_title">登录</string>
-    <string name="sign_in_summary">该功能正在开发</string>
+    <string name="sign_in_summary">未登录</string>
     <string name="update_user_preference_title">同步用户偏好</string>
     <string name="update_user_preference_summary">同步昵称、乐队等偏好至云端</string>
     <string name="about_header">关于</string>
@@ -78,4 +78,14 @@
     <string name="character_pic">角色头像</string>
     <!-- additionalTip -->
     <string name="additional_tip">格式为：国服三周年 20220528</string>
+    <!-- login -->
+    <string name="phone">手机号：</string>
+    <string name="phone_hint">请输入手机号</string>
+    <string name="sms_code">验证码：</string>
+    <string name="sms_code_hint">请输入验证码</string>
+    <string name="sms_send">发送验证码</string>
+    <string name="sms_send_success">已发送</string>
+    <string name="login_tip">Tip：点击发送验证码按钮后，您会收到一条来自“淡定的个人博客”的验证码，该网站为我的个人网站，请放心登录。</string>
+    <string name="cancel">取消</string>
+    <string name="logout">您已登录，是否退出登录？</string>
 </resources>

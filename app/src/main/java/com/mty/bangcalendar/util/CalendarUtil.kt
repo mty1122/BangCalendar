@@ -121,10 +121,10 @@ class CalendarUtil {
     fun getTimeName(): String {
         val time = calendar.get(Calendar.HOUR_OF_DAY)
         return when (true) {
-            (time in 0..6 || time in 19..24) -> "晚上"
-            (time in 6..11) -> "上午"
-            (time in 11..13) -> "中午"
-            (time in 13..19) -> "下午"
+            (time in 0..5 || time in 19..24) -> "晚上"
+            (time in 6..10) -> "上午"
+            (time in 11..12) -> "中午"
+            (time in 13..18) -> "下午"
             else -> ""
         }
     }

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import com.mty.bangcalendar.BangCalendarApplication
+import com.mty.bangcalendar.logic.model.UserPreference
 
 object PreferenceDao {
 
@@ -43,7 +44,21 @@ object PreferenceDao {
 
     fun getPreferenceBand(): String = defaultPreference().getString("band", "other")!!
 
+    private fun getTheme(): String = defaultPreference().getString("theme", "theme_ppp")!!
+
     fun getPreferenceCharacter(): Int =
         Integer.parseInt(defaultPreference().getString("character", "0")!!)
+
+    fun getUserPreference(): UserPreference = UserPreference(getPhoneNum(), getUserName()
+        , getTheme(), getPreferenceBand(), getPreferenceCharacter().toString())
+
+    fun setUserPreference(userPreference: UserPreference) {
+        defaultPreference().edit {
+            putString("signature", userPreference.name)
+            putString("theme", userPreference.theme)
+            putString("band", userPreference.band)
+            putString("character", userPreference.character)
+        }
+    }
 
 }

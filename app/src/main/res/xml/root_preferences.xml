@@ -48,9 +48,15 @@
             app:useSimpleSummaryProvider="true" />
 
         <Preference
-            app:key="update_preference"
-            app:title="@string/update_user_preference_title"
-            app:summary="@string/update_user_preference_summary"
+            app:key="upload_preference"
+            app:title="@string/upload_user_preference_title"
+            app:summary="@string/upload_user_preference_summary"
+            app:useSimpleSummaryProvider="true" />
+
+        <Preference
+            app:key="download_preference"
+            app:title="@string/download_user_preference_title"
+            app:summary="@string/download_user_preference_summary"
             app:useSimpleSummaryProvider="true" />
 
     </PreferenceCategory>

@@ -8,6 +8,7 @@ import com.mty.bangcalendar.logic.dao.AppDatabase
 import com.mty.bangcalendar.logic.dao.PreferenceDao
 import com.mty.bangcalendar.logic.model.Character
 import com.mty.bangcalendar.logic.model.Event
+import com.mty.bangcalendar.logic.model.UserPreference
 import com.mty.bangcalendar.logic.network.BangCalendarNetwork
 import kotlinx.coroutines.Dispatchers
 import java.lang.Exception
@@ -178,6 +179,43 @@ object Repository {
         thread {
             PreferenceDao.setPhoneNum(phone)
             liveData.postValue(PreferenceDao.getPhoneNum())
+        }
+        return liveData
+    }
+
+    fun downloadUserPreference(phone: String) = liveData(Dispatchers.IO) {
+        val result = try {
+            val getResponse = BangCalendarNetwork.getUserPreference(phone)
+            Result.success(getResponse)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+        emit(result)
+    }
+
+    fun uploadUserPreference(userPreference: UserPreference) = liveData(Dispatchers.IO) {
+        val result = try {
+            val setResponse = BangCalendarNetwork.setUserPreference(userPreference)
+            Result.success(setResponse)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+        emit(result)
+    }
+
+    fun getUserPreference(): LiveData<UserPreference> {
+        val liveData = MutableLiveData<UserPreference>()
+        thread {
+            liveData.postValue(PreferenceDao.getUserPreference())
+        }
+        return liveData
+    }
+
+    fun setUserPreference(userPreference: UserPreference): LiveData<Int> {
+        val liveData = MutableLiveData<Int>()
+        thread {
+            PreferenceDao.setUserPreference(userPreference)
+            liveData.postValue(0)
         }
         return liveData
     }

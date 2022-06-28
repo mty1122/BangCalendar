@@ -61,11 +61,13 @@
     <string name="update_database_summary">更新活动信息与乐队成员信息</string>
     <string name="sign_in_title">登录</string>
     <string name="sign_in_summary">未登录</string>
-    <string name="update_user_preference_title">同步用户偏好</string>
-    <string name="update_user_preference_summary">同步昵称、乐队等偏好至云端</string>
+    <string name="upload_user_preference_title">备份用户偏好</string>
+    <string name="download_user_preference_title">恢复用户偏好</string>
+    <string name="upload_user_preference_summary">备份昵称、乐队等偏好至云端</string>
+    <string name="download_user_preference_summary">从云端恢复昵称、乐队等偏好</string>
     <string name="about_header">关于</string>
     <string name="version_title">版本</string>
-    <string name="version">1.2.1</string>
+    <string name="version">1.3.0</string>
     <string name="program_title">项目地址</string>
     <string name="program_url">https://github.com/mty1122/BangCalendar</string>
     <string name="material_title">素材来源</string>

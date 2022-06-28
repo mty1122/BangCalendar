@@ -128,6 +128,65 @@ class SettingsActivity : AppCompatActivity() {
                 }
             }
 
+            viewModel.userPreference.observe(this) {
+                viewModel.uploadUserPreference(it)
+            }
+            viewModel.uploadResponse.observe(this) {
+                val response = it.getOrNull()
+                response?.let { responseBody ->
+                    if (responseBody.string() == "0")
+                        Toast.makeText(activity, "备份成功", Toast.LENGTH_SHORT).show()
+                    else
+                        Toast.makeText(activity, "备份失败，可能是服务器故障"
+                            , Toast.LENGTH_SHORT).show()
+                }
+                if (response == null)
+                    Toast.makeText(activity, "备份失败，请检查网络", Toast.LENGTH_SHORT).show()
+            }
+
+            viewModel.downloadPreference.observe(this) { result ->
+                val userPreference = result.getOrNull()
+                userPreference?.let {
+                    viewModel.setUserPreference(it)
+                }
+                if (userPreference == null)
+                    Toast.makeText(activity, "恢复失败，原因可能是还未进行过备份或网络连接失败",
+                        Toast.LENGTH_LONG).show()
+            }
+            viewModel.setResponse.observe(this) {
+                if (it == 0)
+                    Toast.makeText(activity, "恢复成功，请重启应用", Toast.LENGTH_SHORT).show()
+                else
+                    Toast.makeText(activity, "恢复失败", Toast.LENGTH_SHORT).show()
+            }
+
+            //设置同步
+            findPreference<Preference>("upload_preference")?.let {
+                it.setOnPreferenceClickListener {
+                    findPreference<Preference>("sign_in")?.let { preference ->
+                        if (preference.summary == getString(R.string.sign_in_summary)) {
+                            Toast.makeText(activity, "请先登录", Toast.LENGTH_SHORT).show()
+                            return@setOnPreferenceClickListener true
+                        }
+                    }
+                    viewModel.getUserPreference(viewModel.phoneNum.value!!)
+                    return@setOnPreferenceClickListener true
+                }
+            }
+
+            findPreference<Preference>("download_preference")?.let {
+                it.setOnPreferenceClickListener {
+                    findPreference<Preference>("sign_in")?.let { preference ->
+                        if (preference.summary == getString(R.string.sign_in_summary)) {
+                            Toast.makeText(activity, "请先登录", Toast.LENGTH_SHORT).show()
+                            return@setOnPreferenceClickListener true
+                        }
+                    }
+                    viewModel.downloadUserPreference(viewModel.phoneNum.value!!)
+                    return@setOnPreferenceClickListener true
+                }
+            }
+
             findPreference<Preference>("program")?.let {
                 it.setOnPreferenceClickListener {
                     val intent = Intent(Intent.ACTION_VIEW)

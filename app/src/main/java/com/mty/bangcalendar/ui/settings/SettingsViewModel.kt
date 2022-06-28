@@ -10,6 +10,7 @@ import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.logic.Repository
+import com.mty.bangcalendar.logic.model.UserPreference
 import com.mty.bangcalendar.service.CharacterRefreshService
 import com.mty.bangcalendar.service.EventRefreshService
 import com.mty.bangcalendar.util.LogUtil
@@ -49,6 +50,7 @@ class SettingsViewModel : ViewModel() {
         context.startService(intent)
     }
 
+    //登录
     private val loginLiveData = MutableLiveData<String>()
     val loginResponse = Transformations.switchMap(loginLiveData) {
         Repository.login(it)
@@ -73,6 +75,39 @@ class SettingsViewModel : ViewModel() {
     }
     fun setPhoneNum(phone: String) {
         phoneNumLiveData.value = phone
+    }
+
+    //同步偏好
+    private val downloadPreferenceLiveData = MutableLiveData<String>()
+    val downloadPreference = Transformations.switchMap(downloadPreferenceLiveData) {
+        Repository.downloadUserPreference(it)
+    }
+    fun downloadUserPreference(phone: String) {
+        downloadPreferenceLiveData.value = phone
+    }
+
+    private val uploadPreferenceLiveData = MutableLiveData<UserPreference>()
+    val uploadResponse = Transformations.switchMap(uploadPreferenceLiveData) {
+        Repository.uploadUserPreference(it)
+    }
+    fun uploadUserPreference(userPreference: UserPreference) {
+        uploadPreferenceLiveData.value = userPreference
+    }
+
+    private val getPreferenceLiveData = MutableLiveData<String>()
+    val userPreference = Transformations.switchMap(getPreferenceLiveData) {
+        Repository.getUserPreference()
+    }
+    fun getUserPreference(phone: String) {
+        getPreferenceLiveData.value = phone
+    }
+
+    private val setPreferenceLiveData = MutableLiveData<UserPreference>()
+    val setResponse = Transformations.switchMap(setPreferenceLiveData) {
+        Repository.setUserPreference(it)
+    }
+    fun setUserPreference(userPreference: UserPreference) {
+        setPreferenceLiveData.value = userPreference
     }
 
     init {

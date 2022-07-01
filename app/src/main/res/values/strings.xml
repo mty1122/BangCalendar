@@ -23,12 +23,13 @@
     <string name="sat">六</string>
     <string name="sun">日</string>
     <!-- event type -->
-    <string name="challengeLive">挑战LIVE</string>
-    <string name="missionLive">任务LIVE</string>
-    <string name="vsLive">对邦LIVE</string>
-    <string name="goalsLive">试炼LIVE</string>
-    <string name="multiVs">多人对邦</string>
-    <string name="groupLive">组曲模式</string>
+    <string name="normalLive">一般活动（协力）</string>
+    <string name="challengeLive">挑战LIVE（CP）</string>
+    <string name="missionLive">任务LIVE（协力）</string>
+    <string name="vsLive">竞演LIVE（对邦）</string>
+    <string name="goalsLive">LIVE试炼（EX）</string>
+    <string name="multiVs">团队LIVE（5v5）</string>
+    <string name="groupLive">组曲LIVE（3组曲）</string>
     <!-- event info -->
     <string name="char1">角色1</string>
     <string name="char2">角色2</string>
@@ -42,10 +43,10 @@
     <string name="ing">正在进行</string>
     <!-- event attrs -->
     <string name="eventAttrs">eventAttrs</string>
-    <string name="pure">pure</string>
-    <string name="powerful">powerful</string>
-    <string name="cool">cool</string>
-    <string name="happy">happy</string>
+    <string name="pure">Pure</string>
+    <string name="powerful">Powerful</string>
+    <string name="cool">Cool</string>
+    <string name="happy">Happy</string>
     <!-- character -->
     <string name="bir_char">角色生日</string>
     <string name="happy_birthday">生日快乐</string>
@@ -67,7 +68,7 @@
     <string name="download_user_preference_summary">从云端恢复昵称、乐队等偏好</string>
     <string name="about_header">关于</string>
     <string name="version_title">版本</string>
-    <string name="version">1.3.0</string>
+    <string name="version">1.3.1</string>
     <string name="program_title">项目地址</string>
     <string name="program_url">https://github.com/mty1122/BangCalendar</string>
     <string name="material_title">素材来源</string>

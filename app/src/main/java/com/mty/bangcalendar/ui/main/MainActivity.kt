@@ -447,6 +447,7 @@ class MainActivity : AppCompatActivity() {
             calendarUtil.month = target.month
             calendarUtil.rows = target.rows
             calendarUtil.setRelativeMonth(relativeMonth++)
+            calendarUtil.refreshRows()
             viewAdapter.dateList.run {
                 this as ArrayList
                 clear()

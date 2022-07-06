@@ -12,6 +12,7 @@ import com.mty.bangcalendar.R
 import com.mty.bangcalendar.util.CalendarUtil
 import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.LogUtil
+import com.mty.bangcalendar.util.ThemeUtil
 import de.hdodenhof.circleimageview.CircleImageView
 import java.util.TreeMap
 
@@ -86,7 +87,7 @@ class CalendarViewAdapter(private val context: Context, var dateList: List<Strin
         } else {
             holder.selectBg.visibility = View.GONE
             holder.birthday.visibility = View.GONE
-            holder.date.setTextColor(context.getColor(R.color.ppp_date_text))
+            holder.date.setTextColor(context.getColor(ThemeUtil.getDateTextColor(context)))
         }
     }
 

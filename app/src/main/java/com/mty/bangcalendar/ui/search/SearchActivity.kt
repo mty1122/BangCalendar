@@ -21,6 +21,7 @@ import com.mty.bangcalendar.logic.model.Character
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.LogUtil
+import com.mty.bangcalendar.util.ThemeUtil
 import java.util.regex.Pattern
 
 class SearchActivity : AppCompatActivity() {
@@ -60,8 +61,10 @@ class SearchActivity : AppCompatActivity() {
         searchBinding.searchEventCard.run {
             eventCardItem.visibility = View.GONE
             eventProgress.progress = 88
-            eventProgress.progressColor = getColor(R.color.progress_color)
-            eventProgress.textColor = getColor(R.color.progress_color)
+            eventProgress.progressColor =
+                getColor(ThemeUtil.getThemeColor(this@SearchActivity))
+            eventProgress.textColor =
+                getColor(ThemeUtil.getThemeColor(this@SearchActivity))
             eventProgressName.text = "搜索模式"
         }
         searchBinding.searchCharacterCard.characterCardItem.visibility = View.GONE

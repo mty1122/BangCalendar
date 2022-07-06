@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="150dp"
     android:layout_margin="10dp"
-    app:cardBackgroundColor="@color/ppp_card_background"
+    app:cardBackgroundColor="?attr/card_background_color"
     app:cardCornerRadius="15dp"
     android:visibility="visible">
 
@@ -23,7 +23,7 @@
             android:gravity="center"
             android:textColor="@color/white"
             android:text="@string/character_title"
-            android:background="@color/together" />
+            android:background="?attr/card_bar_color" />
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -42,28 +42,28 @@
                     android:layout_width="wrap_content"
                     android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:textColor="@color/ppp_text"/>
+                    android:textColor="?attr/app_text_color"/>
 
                 <TextView
                     android:id="@+id/char_bir"
                     android:layout_width="wrap_content"
                     android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:textColor="@color/ppp_text"/>
+                    android:textColor="?attr/app_text_color"/>
 
                 <TextView
                     android:id="@+id/char_color"
                     android:layout_width="wrap_content"
                     android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:textColor="@color/ppp_text"/>
+                    android:textColor="?attr/app_text_color"/>
 
                 <TextView
                     android:id="@+id/char_band"
                     android:layout_width="wrap_content"
                     android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:textColor="@color/ppp_text"/>
+                    android:textColor="?attr/app_text_color"/>
 
             </LinearLayout>
 

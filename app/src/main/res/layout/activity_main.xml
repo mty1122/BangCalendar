@@ -4,7 +4,7 @@
     android:id="@+id/mainActivity"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/ppp_background">
+    android:background="?attr/app_background_color">
 
     <LinearLayout
         android:orientation="vertical"
@@ -15,7 +15,7 @@
             android:id="@+id/toolBar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/ppp_bar"
+            android:background="?attr/colorPrimaryVariant"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
             app:popupTheme="@style/Theme.BangCalendar">
 
@@ -54,7 +54,7 @@
                     android:layout_marginLeft="10dp"
                     android:layout_marginRight="10dp"
                     android:layout_marginBottom="5dp"
-                    app:cardBackgroundColor="@color/ppp_card_background"
+                    app:cardBackgroundColor="?attr/card_background_color"
                     app:cardCornerRadius="15dp"
                     android:visibility="gone">
 
@@ -69,7 +69,7 @@
                             android:gravity="center"
                             android:text="@string/happy_birthday"
                             android:textColor="@color/white"
-                            android:background="@color/together" />
+                            android:background="?attr/card_bar_color" />
 
                         <LinearLayout
                             android:orientation="vertical"
@@ -116,7 +116,7 @@
                     android:layout_marginTop="5dp"
                     android:layout_marginLeft="10dp"
                     android:layout_marginRight="10dp"
-                    app:cardBackgroundColor="@color/ppp_card_background"
+                    app:cardBackgroundColor="?attr/card_background_color"
                     app:cardCornerRadius="15dp">
 
                     <LinearLayout
@@ -130,14 +130,14 @@
                             android:gravity="center"
                             android:text="@string/DailyTag"
                             android:textColor="@color/white"
-                            android:background="@color/together" />
+                            android:background="?attr/card_bar_color" />
 
                         <TextView
                             android:id="@+id/dailytag"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_margin="10dp"
-                            android:textColor="@color/ppp_text"
+                            android:textColor="?attr/app_text_color"
                             android:text="@string/defaultTag" />
 
                     </LinearLayout>

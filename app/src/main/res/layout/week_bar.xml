@@ -3,7 +3,7 @@
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="20dp"
-    android:background="@color/ppp_bar" >
+    android:background="?attr/colorPrimaryVariant" >
 
     <TextView
         android:layout_width="0dp"

@@ -33,7 +33,7 @@ object CharacterUtil {
         val calendarUtilLater = CalendarUtil.dateToCalendarUtil(dateLater)
         val dateEarlier = CalendarUtil.getDate(systemDate.year,systemDate.month,systemDate.day)
         val calendarUtilEarlier = CalendarUtil.dateToCalendarUtil(dateEarlier)
-        return calendarUtilLater - calendarUtilEarlier
+        return (calendarUtilLater - calendarUtilEarlier).toInt()
     }
 
     fun matchCharacter(id: Int) =

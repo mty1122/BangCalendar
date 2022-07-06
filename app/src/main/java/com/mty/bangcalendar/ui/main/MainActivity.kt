@@ -29,10 +29,7 @@ import com.mty.bangcalendar.logic.model.CalendarScrollView
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.ui.search.SearchActivity
 import com.mty.bangcalendar.ui.settings.SettingsActivity
-import com.mty.bangcalendar.util.CalendarUtil
-import com.mty.bangcalendar.util.CharacterUtil
-import com.mty.bangcalendar.util.EventUtil
-import com.mty.bangcalendar.util.LogUtil
+import com.mty.bangcalendar.util.*
 import java.util.regex.Pattern
 
 class MainActivity : AppCompatActivity() {
@@ -65,8 +62,8 @@ class MainActivity : AppCompatActivity() {
 
         //活动进度条初始化
         mainBinding.eventCard.eventProgress.run {
-            progressColor = getColor(R.color.progress_color)
-            textColor = getColor(R.color.progress_color)
+            progressColor = getColor(ThemeUtil.getThemeColor(this@MainActivity))
+            textColor = getColor(ThemeUtil.getThemeColor(this@MainActivity))
         }
 
         calendarInit() //日历初始化

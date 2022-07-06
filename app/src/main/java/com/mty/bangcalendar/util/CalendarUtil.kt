@@ -2,8 +2,8 @@ package com.mty.bangcalendar.util
 
 import java.util.Calendar
 
-operator fun CalendarUtil.minus(calendarUtil: CalendarUtil): Int =
-    ((this.getTimeInMillis() - calendarUtil.getTimeInMillis()) / (1000 * 3600 * 24)).toInt()
+operator fun CalendarUtil.minus(calendarUtil: CalendarUtil): Long =
+    (this.getTimeInMillis() - calendarUtil.getTimeInMillis()) / (1000 * 3600 * 24)
 
 class CalendarUtil {
 
@@ -21,11 +21,8 @@ class CalendarUtil {
             day = date % 100
         }
 
-        fun differentOfTwoDates(date1: Int, date2: Int): Long {
-            val timeStart = dateToCalendarUtil(date1).getTimeInMillis()
-            val timeEnd = dateToCalendarUtil(date2).getTimeInMillis()
-            return (timeEnd - timeStart) / (1000 * 3600 * 24)
-        }
+        fun differentOfTwoDates(dateStart: Int, dateEnd: Int): Long =
+            dateToCalendarUtil(dateEnd) - dateToCalendarUtil(dateStart)
 
     }
 

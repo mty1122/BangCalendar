@@ -9,7 +9,7 @@
         android:id="@+id/searchToolBar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/ppp_bar"
+        android:background="?attr/colorPrimaryVariant"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:title="@string/search_activity"
         app:popupTheme="@style/Theme.BangCalendar"/>

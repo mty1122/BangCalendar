@@ -13,5 +13,11 @@
         <item name="android:statusBarColor" >?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
         <item name="android:navigationBarColor">@color/transparent</item>
+        <item name="app_theme_color">@color/ppp_bar</item>
+        <item name="app_text_color">@color/ppp_text</item>
+        <item name="app_background_color">@color/ppp_background</item>
+        <item name="card_bar_color">@color/ppp_card_bar</item>
+        <item name="card_background_color">@color/ppp_card_background</item>
+        <item name="date_text_color">@color/ppp_date_text</item>
     </style>
 </resources>

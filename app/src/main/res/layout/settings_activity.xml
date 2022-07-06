@@ -9,7 +9,7 @@
         android:id="@+id/settingsToolBar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/ppp_bar"
+        android:background="?attr/colorPrimaryVariant"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:title="@string/settings"
         app:popupTheme="@style/Theme.BangCalendar"/>
@@ -18,6 +18,6 @@
         android:id="@+id/settings"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/ppp_background" />
+        android:background="?attr/app_background_color" />
 
 </LinearLayout>

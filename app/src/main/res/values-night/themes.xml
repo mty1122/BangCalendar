@@ -1,6 +1,6 @@
 <resources>
     <!-- Base application theme. -->
-    <style name="Theme.BangCalendar" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="theme_ppp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/teal_200</item>
         <item name="colorPrimaryVariant">@color/ppp_bar</item>
@@ -21,4 +21,6 @@
         <item name="card_background_color">@color/ppp_card_background</item>
         <item name="date_text_color">@color/ppp_date_text</item>
     </style>
+    <!-- theme_r -->
+    <style name="theme_r" parent="theme_ppp" />
 </resources>

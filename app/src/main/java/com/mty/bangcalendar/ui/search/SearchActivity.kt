@@ -9,7 +9,6 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -19,12 +18,13 @@ import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivitySearchBinding
 import com.mty.bangcalendar.logic.model.Character
 import com.mty.bangcalendar.logic.model.Event
+import com.mty.bangcalendar.ui.BaseActivity
 import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.LogUtil
 import com.mty.bangcalendar.util.ThemeUtil
 import java.util.regex.Pattern
 
-class SearchActivity : AppCompatActivity() {
+class SearchActivity : BaseActivity() {
 
     companion object {
         const val SEARCH_CHARACTER = 0

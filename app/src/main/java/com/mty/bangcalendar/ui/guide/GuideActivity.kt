@@ -7,6 +7,8 @@ import androidx.lifecycle.ViewModelProvider
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.util.LogUtil
 import com.mty.bangcalendar.ui.main.MainActivity
+import com.mty.bangcalendar.ui.settings.SettingsActivity
+import com.mty.bangcalendar.util.ThemeUtil
 
 class GuideActivity : AppCompatActivity() {
 
@@ -16,12 +18,13 @@ class GuideActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_guide)
         supportActionBar?.hide()
-        firstStartInit()
+        appStartInit()
     }
 
-    private fun firstStartInit() {
-        viewModel.isFirstStart.observe(this) { isFirstStart ->
-            if (isFirstStart) {
+    private fun appStartInit() {
+        viewModel.initData.observe(this) { initData ->
+            ThemeUtil.setCurrentTheme(initData.theme)
+            if (initData.isFirstStart) {
                 LogUtil.d("AppInit", "App is first start")
                 viewModel.refreshDataProgress.observe(this) { progress ->
                     if (progress == 100) {
@@ -35,12 +38,17 @@ class GuideActivity : AppCompatActivity() {
                 startMainActivity()
             }
         }
-        viewModel.isFirstStart()
+        viewModel.getInitData()
     }
 
     private fun startMainActivity() {
-        val intent = Intent(this, MainActivity::class.java)
-        startActivity(intent)
+        val mainIntent = Intent(this, MainActivity::class.java)
+        startActivity(mainIntent)
+        val isSettingsChange = intent.getBooleanExtra("settings_change", false)
+        if (isSettingsChange) {
+            val settingsIntent = Intent(this, SettingsActivity::class.java)
+            startActivity(settingsIntent)
+        }
         finish()
     }
 

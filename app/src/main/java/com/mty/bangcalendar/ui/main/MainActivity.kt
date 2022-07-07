@@ -14,7 +14,6 @@ import android.widget.DatePicker
 import android.widget.EditText
 import android.widget.FrameLayout
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.ViewModelProvider
@@ -27,12 +26,13 @@ import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivityMainBinding
 import com.mty.bangcalendar.logic.model.CalendarScrollView
 import com.mty.bangcalendar.logic.model.Event
+import com.mty.bangcalendar.ui.BaseActivity
 import com.mty.bangcalendar.ui.search.SearchActivity
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.*
 import java.util.regex.Pattern
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity() {
 
     private val viewModel by lazy { ViewModelProvider(this).get(MainViewModel::class.java) }
 

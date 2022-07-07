@@ -12,7 +12,7 @@
         android:background="?attr/colorPrimaryVariant"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:title="@string/settings"
-        app:popupTheme="@style/Theme.BangCalendar"/>
+        app:popupTheme="@style/theme_ppp"/>
 
     <FrameLayout
         android:id="@+id/settings"

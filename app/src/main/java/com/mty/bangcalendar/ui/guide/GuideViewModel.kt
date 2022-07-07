@@ -10,21 +10,19 @@ import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.logic.Repository
+import com.mty.bangcalendar.logic.model.GuideInitData
 import com.mty.bangcalendar.service.CharacterRefreshService
 import com.mty.bangcalendar.service.EventRefreshService
 
 class GuideViewModel : ViewModel() {
 
-    private val isFirstStartLiveData = MutableLiveData<Any?>()
-
-    //判断是否首次启动
-    val isFirstStart: LiveData<Boolean> = Transformations.switchMap(isFirstStartLiveData) {
-        Repository.isFirstStart()
+    //载入GuideInitData，包括判断是否初次启动和获取主题
+    private val initDataLiveData = MutableLiveData<Any?>()
+    val initData: LiveData<GuideInitData> = Transformations.switchMap(initDataLiveData) {
+        Repository.getGuideInitData()
     }
-
-    //调用该方法使isFirstStartLiveData的值改变从而调用Repository.isFirstStart()方法
-    fun isFirstStart() {
-        isFirstStartLiveData.value = isFirstStartLiveData.value
+    fun getInitData() {
+        initDataLiveData.value = initDataLiveData.value
     }
 
     //接收service发来的更新进度

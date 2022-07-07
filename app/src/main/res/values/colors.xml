@@ -7,13 +7,21 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="transparent">#00FFFFFF</color>
+    <color name="single">#08b6f7</color>
+    <color name="powerful">#ff345a</color>
+    <!-- theme_ppp -->
     <color name="ppp_bar">#f7a6de</color>
     <color name="ppp_card_bar">#f79ab5</color>
     <color name="ppp_text">#f7a6de</color>
     <color name="ppp_date_text">#f79ab5</color>
     <color name="ppp_background">#fbf2f7</color>
     <color name="ppp_card_background">#fff</color>
-    <color name="transparent">#00FFFFFF</color>
-    <color name="single">#08b6f7</color>
-    <color name="powerful">#ff345a</color>
+    <!-- theme_r -->
+    <color name="r_bar">#dac3f7</color>
+    <color name="r_card_bar">#dfc3f7</color>
+    <color name="r_text">#d6c3f7</color>
+    <color name="r_date_text">#dac3f7</color>
+    <color name="r_background">#f8f2f9</color>
+    <color name="r_card_background">#fff</color>
 </resources>

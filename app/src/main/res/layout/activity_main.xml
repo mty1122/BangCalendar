@@ -17,7 +17,7 @@
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimaryVariant"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            app:popupTheme="@style/Theme.BangCalendar">
+            app:popupTheme="@style/theme_ppp">
 
                 <TextView
                     android:id="@+id/date"

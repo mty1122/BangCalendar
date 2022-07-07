@@ -44,7 +44,7 @@ object PreferenceDao {
 
     fun getPreferenceBand(): String = defaultPreference().getString("band", "other")!!
 
-    private fun getTheme(): String = defaultPreference().getString("theme", "theme_ppp")!!
+    fun getTheme(): String = defaultPreference().getString("theme", "theme_ppp")!!
 
     fun getPreferenceCharacter(): Int =
         Integer.parseInt(defaultPreference().getString("character", "0")!!)

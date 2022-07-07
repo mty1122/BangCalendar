@@ -8,6 +8,7 @@ import com.mty.bangcalendar.logic.dao.AppDatabase
 import com.mty.bangcalendar.logic.dao.PreferenceDao
 import com.mty.bangcalendar.logic.model.Character
 import com.mty.bangcalendar.logic.model.Event
+import com.mty.bangcalendar.logic.model.GuideInitData
 import com.mty.bangcalendar.logic.model.UserPreference
 import com.mty.bangcalendar.logic.network.BangCalendarNetwork
 import kotlinx.coroutines.Dispatchers
@@ -30,10 +31,12 @@ object Repository {
         AppDatabase.getDatabase().eventDao().insertEvent(event)
     }
 
-    fun isFirstStart(): LiveData<Boolean> {
-        val liveData = MutableLiveData<Boolean>()
+    fun getGuideInitData(): LiveData<GuideInitData> {
+        val liveData = MutableLiveData<GuideInitData>()
         thread {
-            liveData.postValue(PreferenceDao.isFirstStart())
+            val isFirstStart = PreferenceDao.isFirstStart()
+            val theme = PreferenceDao.getTheme()
+            liveData.postValue(GuideInitData(isFirstStart, theme))
         }
         return liveData
     }

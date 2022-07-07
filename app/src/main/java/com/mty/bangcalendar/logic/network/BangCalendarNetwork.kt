@@ -11,8 +11,6 @@ import kotlin.coroutines.suspendCoroutine
 
 object BangCalendarNetwork {
 
-    private val eventPictureService = ServiceCreator.create<EventPictureService>()
-
     private val databaseRefreshService = ServiceCreator.create<DatabaseRefreshService>()
 
     private val userService = ServiceCreator.create<UserService>()
@@ -32,9 +30,6 @@ object BangCalendarNetwork {
             })
         }
     }
-
-    suspend fun getEventPicture(eventId: String) =
-        eventPictureService.getEventPicture(eventId).await()
 
     suspend fun login(phone: String) = userService.login(phone).await()
 

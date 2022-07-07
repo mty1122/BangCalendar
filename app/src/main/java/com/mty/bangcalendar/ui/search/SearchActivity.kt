@@ -1,8 +1,8 @@
 package com.mty.bangcalendar.ui.search
 
-import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.MenuItem
@@ -14,6 +14,8 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivitySearchBinding
 import com.mty.bangcalendar.logic.model.Character
@@ -68,22 +70,6 @@ class SearchActivity : BaseActivity() {
             eventProgressName.text = "搜索模式"
         }
         searchBinding.searchCharacterCard.characterCardItem.visibility = View.GONE
-
-        viewModel.eventPicture.observe(this) {
-            val responseBody = it.getOrNull()
-            if (responseBody != null) {
-                try {
-                    val byte = responseBody.bytes()
-                    val bitmap = BitmapFactory.decodeByteArray(byte, 0, byte.size)
-                    searchBinding.searchEventCard.eventBackground.background =
-                        BitmapDrawable(this.resources, bitmap)
-                } catch (e: Exception) {
-                    LogUtil.i("Internet", "获取不到返回Body，可能是屏幕发生旋转")
-                }
-            } else {
-                it.exceptionOrNull()?.printStackTrace()
-            }
-        }
 
         viewModel.event.observe(this) { event ->
             if (event != null &&
@@ -198,7 +184,20 @@ class SearchActivity : BaseActivity() {
         Glide.with(this).load(EventUtil.getBandPic(event))
             .into(binding.searchEventCard.eventBand)
         //刷新活动图片
-        viewModel.getEventPicture(EventUtil.eventIdFormat(event.id.toInt()))
+        val eventId = EventUtil.eventIdFormat(event.id.toInt())
+        val uri = Uri.parse("https://www.mxmnb.cn/bangcalendar/" +
+                "event/banner_memorial_event$eventId.png")
+        Glide.with(this).load(uri).apply(viewModel.glideOptions)
+            .into(object : CustomTarget<Drawable>() {
+                override fun onResourceReady(resource: Drawable
+                                             , transition: Transition<in Drawable>?) {
+                    binding.searchEventCard.eventBackground.background = resource
+                }
+
+                override fun onLoadCleared(placeholder: Drawable?) {
+                    //
+                }
+            })
         binding.searchEventCard.eventCardItem.visibility = View.VISIBLE
     }
 

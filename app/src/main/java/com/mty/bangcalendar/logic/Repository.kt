@@ -110,16 +110,6 @@ object Repository {
         return liveData
     }
 
-    fun getEventPicture(eventId: String) = liveData(Dispatchers.IO) {
-        val result = try {
-            val pictureResponse = BangCalendarNetwork.getEventPicture(eventId)
-            Result.success(pictureResponse)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-        emit(result)
-    }
-
     fun getCharacterByMonth(month: Int): LiveData<List<Character>> {
         val formatMonth = if (month < 10) "0$month"
                           else month.toString()

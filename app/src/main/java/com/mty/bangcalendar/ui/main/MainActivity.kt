@@ -2,8 +2,8 @@ package com.mty.bangcalendar.ui.main
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.graphics.BitmapFactory
-import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -21,6 +21,8 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.ViewPager
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivityMainBinding
@@ -104,23 +106,6 @@ class MainActivity : BaseActivity() {
                 if (!EventUtil.isSameEvent(mainBinding, it.id.toInt())) {
                     refreshEventComponent(it, mainBinding)
                 }
-            }
-        }
-
-        //观察活动图片变化，刷新活动图片
-        viewModel.eventPicture.observe(this) {
-            val responseBody = it.getOrNull()
-            if (responseBody != null) {
-                try {
-                    val byte = responseBody.bytes()
-                    val bitmap = BitmapFactory.decodeByteArray(byte, 0, byte.size)
-                    mainBinding.eventCard.eventBackground.background =
-                        BitmapDrawable(this.resources, bitmap)
-                } catch (e: Exception) {
-                    LogUtil.i("Internet", "获取不到返回Body，可能是屏幕发生旋转")
-                }
-            } else {
-                it.exceptionOrNull()?.printStackTrace()
             }
         }
 
@@ -357,7 +342,19 @@ class MainActivity : BaseActivity() {
         Glide.with(this).load(EventUtil.getBandPic(event))
             .into(binding.eventCard.eventBand)
         //刷新活动图片
-        viewModel.getEventPicture(EventUtil.eventIdFormat(event.id.toInt()))
+        val eventId = EventUtil.eventIdFormat(event.id.toInt())
+        val uri = Uri.parse("https://www.mxmnb.cn/bangcalendar/" +
+                "event/banner_memorial_event$eventId.png")
+        Glide.with(this).load(uri).apply(viewModel.glideOptions)
+            .into(object : CustomTarget<Drawable>() {
+            override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
+                binding.eventCard.eventBackground.background = resource
+            }
+
+            override fun onLoadCleared(placeholder: Drawable?) {
+                //
+            }
+        })
     }
 
     private fun refreshEventStatus(event: Event, binding: ActivityMainBinding) {
@@ -585,6 +582,11 @@ class MainActivity : BaseActivity() {
             adapter.notifyDataSetChanged()
         }
         return CalendarScrollView(recyclerView, lastPosition)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Glide.get(this).clearMemory()
     }
 
 }

@@ -8,6 +8,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.request.RequestOptions
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Event
@@ -17,13 +19,18 @@ import com.mty.bangcalendar.util.CalendarUtil
 class MainViewModel : ViewModel() {
 
     var calendarCurrentPosition = 1 //当前view在viewPager中的位置
-    val systemDate = CalendarUtil()
-
+    val systemDate = CalendarUtil() //系统时间
     var birthdayAway: Int? = null //关注角色生日还有多少天
+
     //活动起始/终止时间
     var eventStartTime: Long? = null
     var eventEndTime: Long? = null
-    //刷新用户昵称
+
+    val glideOptions = RequestOptions()
+        .skipMemoryCache(false)
+        .diskCacheStrategy(DiskCacheStrategy.ALL)
+
+    //应用设置更改
     private val refreshSettingsReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val settingsCategory = intent
@@ -89,14 +96,6 @@ class MainViewModel : ViewModel() {
     }
     fun getEventByDate(date: Int) {
         searchDateLiveData.value = date
-    }
-
-    private val getEventPictureLiveData = MutableLiveData<String>()
-    val eventPicture = Transformations.switchMap(getEventPictureLiveData) {
-        Repository.getEventPicture(it)
-    }
-    fun getEventPicture(id: String) {
-        getEventPictureLiveData.value = id
     }
 
     private val getCharacterByMonthLiveData = MutableLiveData<Int>()

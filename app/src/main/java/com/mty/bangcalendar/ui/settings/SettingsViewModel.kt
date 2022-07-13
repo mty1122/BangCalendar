@@ -10,6 +10,7 @@ import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.logic.Repository
+import com.mty.bangcalendar.logic.model.LoginRequest
 import com.mty.bangcalendar.logic.model.UserPreference
 import com.mty.bangcalendar.service.CharacterRefreshService
 import com.mty.bangcalendar.service.EventRefreshService
@@ -51,16 +52,16 @@ class SettingsViewModel : ViewModel() {
     }
 
     //登录
-    private val loginLiveData = MutableLiveData<String>()
+    private val loginLiveData = MutableLiveData<LoginRequest>()
     val loginResponse = Transformations.switchMap(loginLiveData) {
         Repository.login(it)
     }
-    fun login(phone: String) {
-        loginLiveData.value = phone
-        LogUtil.d("Repository", "login request $phone")
+    fun login(request: LoginRequest) {
+        loginLiveData.value = request
+        LogUtil.d("Repository", "login request ${request.phone}")
     }
     fun loginFinished() {
-        loginLiveData.value = "1"
+        loginLiveData.value = LoginRequest("1", "1")
     }
 
     private val phoneNumLiveData = MutableLiveData<String?>()
@@ -78,12 +79,12 @@ class SettingsViewModel : ViewModel() {
     }
 
     //同步偏好
-    private val downloadPreferenceLiveData = MutableLiveData<String>()
+    private val downloadPreferenceLiveData = MutableLiveData<LoginRequest>()
     val downloadPreference = Transformations.switchMap(downloadPreferenceLiveData) {
         Repository.downloadUserPreference(it)
     }
-    fun downloadUserPreference(phone: String) {
-        downloadPreferenceLiveData.value = phone
+    fun downloadUserPreference(loginRequest: LoginRequest) {
+        downloadPreferenceLiveData.value = loginRequest
     }
 
     private val uploadPreferenceLiveData = MutableLiveData<UserPreference>()

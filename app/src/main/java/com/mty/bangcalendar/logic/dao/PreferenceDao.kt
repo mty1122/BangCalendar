@@ -5,6 +5,7 @@ import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.logic.model.UserPreference
+import com.mty.bangcalendar.util.SecurityUtil
 
 object PreferenceDao {
 
@@ -50,7 +51,8 @@ object PreferenceDao {
         Integer.parseInt(defaultPreference().getString("character", "0")!!)
 
     fun getUserPreference(): UserPreference = UserPreference(getPhoneNum(), getUserName()
-        , getTheme(), getPreferenceBand(), getPreferenceCharacter().toString())
+        , getTheme(), getPreferenceBand(), getPreferenceCharacter().toString(),
+        SecurityUtil.getRequestCode())
 
     fun setUserPreference(userPreference: UserPreference) {
         defaultPreference().edit {

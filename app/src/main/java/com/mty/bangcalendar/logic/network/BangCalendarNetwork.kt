@@ -1,5 +1,6 @@
 package com.mty.bangcalendar.logic.network
 
+import com.mty.bangcalendar.logic.model.LoginRequest
 import com.mty.bangcalendar.logic.model.UserPreference
 import retrofit2.Call
 import retrofit2.Callback
@@ -31,13 +32,13 @@ object BangCalendarNetwork {
         }
     }
 
-    suspend fun login(phone: String) = userService.login(phone).await()
+    suspend fun login(request: LoginRequest) = userService.login(request).await()
 
     suspend fun setUserPreference(userPreference: UserPreference) =
         userService.setPreference(userPreference).await()
 
-    suspend fun getUserPreference(phone: String) =
-        userService.getPreference(phone).await()
+    suspend fun getUserPreference(request: LoginRequest) =
+        userService.getPreference(request).await()
 
     fun getCharacterList() = databaseRefreshService.getCharacterList()
 

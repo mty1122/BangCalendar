@@ -6,10 +6,7 @@ import androidx.lifecycle.liveData
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.logic.dao.AppDatabase
 import com.mty.bangcalendar.logic.dao.PreferenceDao
-import com.mty.bangcalendar.logic.model.Character
-import com.mty.bangcalendar.logic.model.Event
-import com.mty.bangcalendar.logic.model.GuideInitData
-import com.mty.bangcalendar.logic.model.UserPreference
+import com.mty.bangcalendar.logic.model.*
 import com.mty.bangcalendar.logic.network.BangCalendarNetwork
 import kotlinx.coroutines.Dispatchers
 import java.lang.Exception
@@ -144,13 +141,13 @@ object Repository {
 
     fun getEventListFromInternet() = BangCalendarNetwork.getEventList()
 
-    fun login(phone: String) = liveData(Dispatchers.IO) {
+    fun login(request: LoginRequest) = liveData(Dispatchers.IO) {
         val result =
-            if (phone == "1")
+            if (request.phone == "1")
                 Result.success(null) //登陆完成
             else {
                 try {
-                    val loginResponse = BangCalendarNetwork.login(phone)
+                    val loginResponse = BangCalendarNetwork.login(request)
                     Result.success(loginResponse) //发起登录请求成功
                 } catch (e: Exception) {
                     Result.failure(e) //登录请求失败
@@ -176,9 +173,9 @@ object Repository {
         return liveData
     }
 
-    fun downloadUserPreference(phone: String) = liveData(Dispatchers.IO) {
+    fun downloadUserPreference(request: LoginRequest) = liveData(Dispatchers.IO) {
         val result = try {
-            val getResponse = BangCalendarNetwork.getUserPreference(phone)
+            val getResponse = BangCalendarNetwork.getUserPreference(request)
             Result.success(getResponse)
         } catch (e: Exception) {
             Result.failure(e)

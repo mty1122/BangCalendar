@@ -16,10 +16,12 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.R
+import com.mty.bangcalendar.logic.model.LoginRequest
 import com.mty.bangcalendar.ui.ActivityCollector
 import com.mty.bangcalendar.ui.BaseActivity
 import com.mty.bangcalendar.ui.guide.GuideActivity
 import com.mty.bangcalendar.util.LogUtil
+import com.mty.bangcalendar.util.SecurityUtil
 import java.util.regex.Pattern
 
 class SettingsActivity : BaseActivity() {
@@ -184,7 +186,8 @@ class SettingsActivity : BaseActivity() {
                             return@setOnPreferenceClickListener true
                         }
                     }
-                    viewModel.downloadUserPreference(viewModel.phoneNum.value!!)
+                    viewModel.downloadUserPreference(LoginRequest(viewModel.phoneNum.value!!,
+                        SecurityUtil.getRequestCode()))
                     return@setOnPreferenceClickListener true
                 }
             }
@@ -259,7 +262,8 @@ class SettingsActivity : BaseActivity() {
 
             view.findViewById<Button>(R.id.send_sms_button).setOnClickListener {
                 if (checkPhoneNum(phoneText.text.toString())) {
-                    viewModel.login(phoneText.text.toString())
+                    viewModel.login(LoginRequest(phoneText.text.toString(),
+                        SecurityUtil.getRequestCode()))
                     val button = it as Button
                     button.isEnabled = false
                     button.text = getString(R.string.sms_send_success)
@@ -273,7 +277,8 @@ class SettingsActivity : BaseActivity() {
                 viewModel.loginResponse.value?.let {
                     val loginResponse = it.getOrNull()
                     if (loginResponse != null && loginResponse.phone == phoneText.text.toString()
-                        && loginResponse.smsCode == codeText.text.toString()) {
+                        && SecurityUtil.decrypt(loginResponse.smsCode) == codeText.text.toString())
+                    {
                         viewModel.setPhoneNum(loginResponse.phone)
                         dialog.hide()
                         viewModel.loginFinished()

@@ -1,5 +1,6 @@
 package com.mty.bangcalendar.ui.search
 
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.net.Uri
@@ -21,6 +22,7 @@ import com.mty.bangcalendar.databinding.ActivitySearchBinding
 import com.mty.bangcalendar.logic.model.Character
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.ui.BaseActivity
+import com.mty.bangcalendar.ui.main.MainActivity
 import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.LogUtil
 import com.mty.bangcalendar.util.ThemeUtil
@@ -198,6 +200,15 @@ class SearchActivity : BaseActivity() {
                     //
                 }
             })
+        binding.searchEventCard.eventButton.setOnClickListener {
+            val intent = Intent("com.mty.bangcalendar.JUMP_DATE")
+            intent.setPackage(packageName)
+            intent.putExtra("current_start_date", event.startDate)
+            sendBroadcast(intent)
+
+            val activityIntent = Intent(this, MainActivity::class.java)
+            startActivity(activityIntent)
+        }
         binding.searchEventCard.eventCardItem.visibility = View.VISIBLE
     }
 

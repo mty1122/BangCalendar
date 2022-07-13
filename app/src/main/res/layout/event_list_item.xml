@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <!--
+    <TextView
+        android:id="@+id/eventListNum"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:textColor="?attr/colorPrimary"
+        android:textSize="17sp"
+        android:text="@string/event_list_activity"
+        android:visibility="gone"/>
+    -->
+
+    <include
+        android:id="@+id/listEventCard"
+        layout="@layout/event_card"/>
+
+</LinearLayout>

@@ -29,6 +29,7 @@ import com.mty.bangcalendar.databinding.ActivityMainBinding
 import com.mty.bangcalendar.logic.model.CalendarScrollView
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.ui.BaseActivity
+import com.mty.bangcalendar.ui.list.EventListActivity
 import com.mty.bangcalendar.ui.search.SearchActivity
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.*
@@ -184,6 +185,10 @@ class MainActivity : BaseActivity() {
         //额外的提醒按钮
         mainBinding.floatButton.setOnClickListener {
             addAdditionalTip()
+        }
+
+        viewModel.jumpDate.observe(this) {
+            jumpDate(mainBinding.viewPager, CalendarUtil.dateToCalendarUtil(it))
         }
 
     }
@@ -355,6 +360,11 @@ class MainActivity : BaseActivity() {
                 //
             }
         })
+        binding.eventCard.eventButton.setOnClickListener {
+            val intent = Intent(this, EventListActivity::class.java)
+            intent.putExtra("current_id", event.id.toInt())
+            startActivity(intent)
+        }
     }
 
     private fun refreshEventStatus(event: Event, binding: ActivityMainBinding) {

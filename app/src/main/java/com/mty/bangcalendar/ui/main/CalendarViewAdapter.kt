@@ -29,7 +29,8 @@ class CalendarViewAdapter(private val context: Context, var dateList: List<Strin
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(context).inflate(R.layout.date_item, parent, false)
+        val view = LayoutInflater.from(context)
+            .inflate(R.layout.date_item, parent, false)
         val holder = ViewHolder(view)
         holder.itemView.setOnClickListener {
             val day = holder.date.text.toString()

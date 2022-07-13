@@ -13,6 +13,9 @@
         android:supportsRtl="true"
         android:theme="@style/theme_ppp">
         <activity
+            android:name=".ui.list.EventListActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.search.SearchActivity"
             android:exported="false" />
         <activity
@@ -40,7 +43,8 @@
 
         <activity
             android:name=".ui.main.MainActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTask" />
     </application>
 
 </manifest>

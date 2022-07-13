@@ -23,4 +23,7 @@ interface EventDao {
     @Query("select * from Event where id = :id")
     fun getEventById(id: Int): Event?
 
+    @Query("select * from Event")
+    fun getEventList(): List<Event>
+
 }

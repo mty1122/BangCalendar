@@ -7,6 +7,7 @@
     <string name="search">搜索</string>
     <string name="jump">日期跳转</string>
     <string name="search_activity">数据库检索</string>
+    <string name="event_list_activity">活动列表</string>
     <string name="DailyTag">DailyTag</string>
     <string name="plusButton">添加功能</string>
     <string name="todayButton">返回今天</string>
@@ -69,7 +70,7 @@
     <string name="download_user_preference_summary">从云端恢复昵称、乐队等偏好</string>
     <string name="about_header">关于</string>
     <string name="version_title">版本</string>
-    <string name="version">1.4.1</string>
+    <string name="version">1.4.2</string>
     <string name="program_title">项目地址</string>
     <string name="program_url">https://github.com/mty1122/BangCalendar</string>
     <string name="material_title">素材来源</string>

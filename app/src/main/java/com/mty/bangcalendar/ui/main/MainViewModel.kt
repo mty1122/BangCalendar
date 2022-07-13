@@ -15,6 +15,7 @@ import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.CalendarUtil
+import com.mty.bangcalendar.util.LogUtil
 
 class MainViewModel : ViewModel() {
 
@@ -40,6 +41,15 @@ class MainViewModel : ViewModel() {
                 SettingsActivity.REFRESH_BAND -> getPreferenceBand()
                 SettingsActivity.REFRESH_CHARACTER -> getPreferenceCharacterId()
             }
+        }
+    }
+
+    //跳转日期
+    private val jumpDateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val startDate = intent.getIntExtra("current_start_date", -1)
+            if (startDate != -1)
+                setJumpDate(startDate)
         }
     }
 
@@ -73,6 +83,16 @@ class MainViewModel : ViewModel() {
         _birthdayCard.value = id
     }
 
+    //跳转日期
+    val jumpDate: LiveData<Int>
+        get() = _jumpDate
+
+    private val _jumpDate = MutableLiveData<Int>()
+
+    fun setJumpDate(startDate: Int) {
+        _jumpDate.value = startDate
+    }
+
     init {
         _currentDate.value = CalendarUtil()
         _selectedItem.value = systemDate.day
@@ -80,6 +100,10 @@ class MainViewModel : ViewModel() {
         val intentFilter = IntentFilter()
         intentFilter.addAction("com.mty.bangcalendar.SETTINGS_CHANGE")
         BangCalendarApplication.context.registerReceiver(refreshSettingsReceiver, intentFilter)
+
+        val intentFilter2 = IntentFilter()
+        intentFilter2.addAction("com.mty.bangcalendar.JUMP_DATE")
+        BangCalendarApplication.context.registerReceiver(jumpDateReceiver, intentFilter2)
     }
 
     private val todayEventLiveData = MutableLiveData<Any>()
@@ -166,6 +190,7 @@ class MainViewModel : ViewModel() {
     override fun onCleared() {
         super.onCleared()
         BangCalendarApplication.context.unregisterReceiver(refreshSettingsReceiver)
+        BangCalendarApplication.context.unregisterReceiver(jumpDateReceiver)
     }
 
 }

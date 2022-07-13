@@ -210,4 +210,13 @@ object Repository {
         return liveData
     }
 
+    fun getEventList(): LiveData<List<Event>> {
+        val liveData = MutableLiveData<List<Event>>()
+        thread {
+            val eventList = AppDatabase.getDatabase().eventDao().getEventList()
+            liveData.postValue(eventList)
+        }
+        return liveData
+    }
+
 }

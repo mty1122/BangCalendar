@@ -10,29 +10,29 @@ import androidx.core.view.updatePadding
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mty.bangcalendar.R
-import com.mty.bangcalendar.databinding.ActivityEventListBinding
+import com.mty.bangcalendar.databinding.ActivityCharacterListBinding
 import com.mty.bangcalendar.ui.BaseActivity
 
-class EventListActivity : BaseActivity() {
+class CharacterListActivity : BaseActivity() {
 
     private val viewModel by lazy {
-        ViewModelProvider(this).get(EventListViewModel::class.java)
+        ViewModelProvider(this).get(CharacterListViewModel::class.java)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val binding = ActivityEventListBinding.inflate(layoutInflater)
+        val binding = ActivityCharacterListBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val toolbar: Toolbar = findViewById(R.id.eventListToolBar)
+        val toolbar: Toolbar = findViewById(R.id.characterListToolBar)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         //小白条沉浸
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.setDecorFitsSystemWindows(false)
-            findViewById<LinearLayout>(R.id.eventListActivity)
+            findViewById<LinearLayout>(R.id.characterListActivity)
                 .setOnApplyWindowInsetsListener { view, insets ->
                     val top = WindowInsetsCompat.toWindowInsetsCompat(insets, view)
                         .getInsets(WindowInsetsCompat.Type.statusBars()).top
@@ -43,15 +43,15 @@ class EventListActivity : BaseActivity() {
 
         //配置adapter
         val layoutManager = LinearLayoutManager(this)
-        binding.eventList.layoutManager = layoutManager
-        viewModel.eventList.observe(this) {
-            val adapter = EventListAdapter(it, this)
-            binding.eventList.adapter = adapter
+        binding.characterList.layoutManager = layoutManager
+        viewModel.characterList.observe(this) {
+            val adapter = CharacterListAdapter(it, this)
+            binding.characterList.adapter = adapter
             val id = intent.getIntExtra("current_id", 1)
-            (binding.eventList.layoutManager as LinearLayoutManager)
+            (binding.characterList.layoutManager as LinearLayoutManager)
                 .scrollToPosition(id - 1)
         }
-        viewModel.getEventList()
+        viewModel.getCharacterList()
 
     }
 

@@ -29,6 +29,7 @@ import com.mty.bangcalendar.databinding.ActivityMainBinding
 import com.mty.bangcalendar.logic.model.CalendarScrollView
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.ui.BaseActivity
+import com.mty.bangcalendar.ui.list.CharacterListActivity
 import com.mty.bangcalendar.ui.list.EventListActivity
 import com.mty.bangcalendar.ui.search.SearchActivity
 import com.mty.bangcalendar.ui.settings.SettingsActivity
@@ -308,11 +309,23 @@ class MainActivity : BaseActivity() {
                 .into(binding.birChar1)
             Glide.with(this).load(CharacterUtil.matchCharacter(17))
                 .into(binding.birChar2)
+            binding.birChar1.setOnClickListener {
+                startCharacterListActivity(12)
+            }
+            binding.birChar2.setOnClickListener {
+                startCharacterListActivity(17)
+            }
             binding.birChar2.visibility = View.VISIBLE
         }else {
             binding.birChar2.visibility = View.GONE
             Glide.with(this).load(CharacterUtil.matchCharacter(id))
                 .into(binding.birChar1)
+            binding.birChar1.setOnClickListener {
+                startCharacterListActivity(id)
+            }
+            binding.birChar2.setOnClickListener {
+                startCharacterListActivity(id)
+            }
         }
         binding.birCard.visibility = View.VISIBLE
     }
@@ -332,14 +345,33 @@ class MainActivity : BaseActivity() {
         //刷新活动角色
         Glide.with(this).load(EventUtil.matchCharacter(event.character1))
             .into(binding.eventCard.char1)
+        binding.eventCard.char1.setOnClickListener {
+            startCharacterListActivity(event.character1)
+        }
         Glide.with(this).load(EventUtil.matchCharacter(event.character2))
             .into(binding.eventCard.char2)
+        binding.eventCard.char2.setOnClickListener {
+            startCharacterListActivity(event.character2)
+        }
         Glide.with(this).load(EventUtil.matchCharacter(event.character3))
             .into(binding.eventCard.char3)
+        binding.eventCard.char3.setOnClickListener {
+            startCharacterListActivity(event.character3)
+        }
         Glide.with(this).load(EventUtil.matchCharacter(event.character4))
             .into(binding.eventCard.char4)
+        if (event.character4 != -1) {
+            binding.eventCard.char4.setOnClickListener {
+                startCharacterListActivity(event.character4)
+            }
+        }
         Glide.with(this).load(EventUtil.matchCharacter(event.character5))
             .into(binding.eventCard.char5)
+        if (event.character5 != -1) {
+            binding.eventCard.char5.setOnClickListener {
+                startCharacterListActivity(event.character5)
+            }
+        }
         //刷新活动属性
         Glide.with(this).load(EventUtil.matchAttrs(event.attrs))
             .into(binding.eventCard.eventAttrs)
@@ -592,6 +624,13 @@ class MainActivity : BaseActivity() {
             adapter.notifyDataSetChanged()
         }
         return CalendarScrollView(recyclerView, lastPosition)
+    }
+
+    private fun startCharacterListActivity(id: Int) {
+        val intent =
+            Intent(this, CharacterListActivity::class.java)
+        intent.putExtra("current_id", id)
+        startActivity(intent)
     }
 
     override fun onDestroy() {

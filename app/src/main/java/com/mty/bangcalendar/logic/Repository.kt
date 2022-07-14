@@ -219,4 +219,13 @@ object Repository {
         return liveData
     }
 
+    fun getCharacterList(): LiveData<List<Character>> {
+        val liveData = MutableLiveData<List<Character>>()
+        thread {
+            val characterList = AppDatabase.getDatabase().characterDao().getCharacterList()
+            liveData.postValue(characterList)
+        }
+        return liveData
+    }
+
 }

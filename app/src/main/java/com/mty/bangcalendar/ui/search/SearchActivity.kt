@@ -22,7 +22,8 @@ import com.mty.bangcalendar.databinding.ActivitySearchBinding
 import com.mty.bangcalendar.logic.model.Character
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.ui.BaseActivity
-import com.mty.bangcalendar.ui.main.MainActivity
+import com.mty.bangcalendar.ui.list.CharacterListActivity
+import com.mty.bangcalendar.ui.list.EventListActivity
 import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.LogUtil
 import com.mty.bangcalendar.util.ThemeUtil
@@ -155,6 +156,12 @@ class SearchActivity : BaseActivity() {
             }
             Glide.with(this@SearchActivity)
                 .load(EventUtil.matchCharacter(character.id.toInt())).into(charImage)
+            characterButton.setOnClickListener {
+                val intent =
+                    Intent(this@SearchActivity, CharacterListActivity::class.java)
+                intent.putExtra("current_id", character.id.toInt())
+                startActivity(intent)
+            }
             characterCardItem.visibility = View.VISIBLE
         }
     }
@@ -201,13 +208,9 @@ class SearchActivity : BaseActivity() {
                 }
             })
         binding.searchEventCard.eventButton.setOnClickListener {
-            val intent = Intent("com.mty.bangcalendar.JUMP_DATE")
-            intent.setPackage(packageName)
-            intent.putExtra("current_start_date", event.startDate)
-            sendBroadcast(intent)
-
-            val activityIntent = Intent(this, MainActivity::class.java)
-            startActivity(activityIntent)
+            val intent = Intent(this, EventListActivity::class.java)
+            intent.putExtra("current_id", event.id.toInt())
+            startActivity(intent)
         }
         binding.searchEventCard.eventCardItem.visibility = View.VISIBLE
     }

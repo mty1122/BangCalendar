@@ -11,73 +11,85 @@
     app:cardCornerRadius="15dp"
     android:visibility="visible">
 
-    <LinearLayout
-        android:orientation="vertical"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent" >
 
-        <TextView
-            android:id="@+id/characterName"
+        <LinearLayout
+            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="30dp"
-            android:gravity="center"
-            android:textColor="@color/white"
-            android:text="@string/character_title"
-            android:background="?attr/card_bar_color" />
+            android:layout_height="match_parent">
 
-        <RelativeLayout
+            <TextView
+                android:id="@+id/characterName"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:text="@string/character_title"
+                android:background="?attr/card_bar_color" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="10dp">
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_alignParentStart="true"
+                    tools:ignore="RelativeOverlap">
+
+                    <TextView
+                        android:id="@+id/char_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:textColor="?attr/app_text_color"/>
+
+                    <TextView
+                        android:id="@+id/char_bir"
+                        android:layout_width="wrap_content"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:textColor="?attr/app_text_color"/>
+
+                    <TextView
+                        android:id="@+id/char_color"
+                        android:layout_width="wrap_content"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:textColor="?attr/app_text_color"/>
+
+                    <TextView
+                        android:id="@+id/char_band"
+                        android:layout_width="wrap_content"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:textColor="?attr/app_text_color"/>
+
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/char_image"
+                    android:layout_width="65dp"
+                    android:layout_height="65dp"
+                    android:layout_marginEnd="5dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:contentDescription="@string/character_pic" />
+
+            </RelativeLayout>
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/characterButton"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_margin="10dp">
+            android:background="@android:color/transparent" />
 
-            <LinearLayout
-                android:orientation="vertical"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_alignParentStart="true"
-                tools:ignore="RelativeOverlap">
-
-                <TextView
-                    android:id="@+id/char_name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:textColor="?attr/app_text_color"/>
-
-                <TextView
-                    android:id="@+id/char_bir"
-                    android:layout_width="wrap_content"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:textColor="?attr/app_text_color"/>
-
-                <TextView
-                    android:id="@+id/char_color"
-                    android:layout_width="wrap_content"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:textColor="?attr/app_text_color"/>
-
-                <TextView
-                    android:id="@+id/char_band"
-                    android:layout_width="wrap_content"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:textColor="?attr/app_text_color"/>
-
-            </LinearLayout>
-
-            <ImageView
-                android:id="@+id/char_image"
-                android:layout_width="65dp"
-                android:layout_height="65dp"
-                android:layout_marginEnd="5dp"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:contentDescription="@string/character_pic" />
-
-        </RelativeLayout>
-
-    </LinearLayout>
+    </FrameLayout>
 
 </com.google.android.material.card.MaterialCardView>

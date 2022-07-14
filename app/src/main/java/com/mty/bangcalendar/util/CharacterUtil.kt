@@ -18,21 +18,28 @@ object CharacterUtil {
 
     fun birthdayToMonth(birthday: String) = Integer.parseInt(birthday) / 100
 
-    fun birthdayAway(birthday: String, systemDate: CalendarUtil): Int {
+    fun getNextBirthdayDate(birthday: String, systemDate: CalendarUtil): Array<Int> {
+        val dateArray = Array<Int>(2) { 0 }
         val intBirthday = Integer.parseInt(birthday)
         val month = intBirthday / 100
         val day = intBirthday % 100
         val year = if (month > systemDate.month) systemDate.year
         else if (month < systemDate.month) systemDate.year + 1
         else {
-            if (day > systemDate.day) systemDate.year
-            else if (day < systemDate.day) systemDate.year + 1
-            else 0
+            if (day < systemDate.day) systemDate.year + 1
+            else systemDate.year
         }
         val dateLater = CalendarUtil.getDate(year, month, day)
-        val calendarUtilLater = CalendarUtil.dateToCalendarUtil(dateLater)
+        dateArray[0] = dateLater
         val dateEarlier = CalendarUtil.getDate(systemDate.year,systemDate.month,systemDate.day)
-        val calendarUtilEarlier = CalendarUtil.dateToCalendarUtil(dateEarlier)
+        dateArray[1] = dateEarlier
+        return dateArray
+    }
+
+    fun birthdayAway(birthday: String, systemDate: CalendarUtil): Int {
+        val dateArray = getNextBirthdayDate(birthday, systemDate)
+        val calendarUtilLater = CalendarUtil.dateToCalendarUtil(dateArray[0])
+        val calendarUtilEarlier = CalendarUtil.dateToCalendarUtil(dateArray[1])
         return (calendarUtilLater - calendarUtilEarlier).toInt()
     }
 

@@ -24,4 +24,7 @@ interface CharacterDao {
     @Query("select * from Character where name like '%' || :name")
     fun getCharacterByName(name: String): Character?
 
+    @Query("select * from Character")
+    fun getCharacterList(): List<Character>
+
 }

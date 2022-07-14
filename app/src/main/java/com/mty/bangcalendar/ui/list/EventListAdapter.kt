@@ -54,9 +54,7 @@ class EventListAdapter(private val eventList: List<Event> , private val context:
         viewHolder.itemView.setOnClickListener {
             startMainActivity(viewHolder)
         }
-        viewHolder.eventButton.setOnClickListener {
-            startMainActivity(viewHolder)
-        }
+        viewHolder.eventButton.visibility = View.GONE
         return viewHolder
     }
 

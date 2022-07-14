@@ -2,6 +2,7 @@ package com.mty.bangcalendar.ui
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.bumptech.glide.Glide
 import com.mty.bangcalendar.util.ThemeUtil
 
 open class BaseActivity : AppCompatActivity() {
@@ -17,6 +18,7 @@ open class BaseActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         ActivityCollector.removeActivity(this)
+        Glide.get(this).clearMemory()
     }
 
 }

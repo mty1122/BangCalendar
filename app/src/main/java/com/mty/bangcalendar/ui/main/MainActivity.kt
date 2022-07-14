@@ -633,9 +633,4 @@ class MainActivity : BaseActivity() {
         startActivity(intent)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        Glide.get(this).clearMemory()
-    }
-
 }

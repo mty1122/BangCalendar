@@ -80,29 +80,29 @@ object EventUtil {
             else -> -1
         }
 
-    fun getBandName(event: Event) =
+    fun getBand(event: Event) =
         if (event.character1 + 4 == event.character5)
             when (event.character1) {
-                1 -> "ppp"
-                6 -> "ag"
-                11 -> "pp"
-                16 -> "r"
-                21 -> "hhw"
-                26 -> "m"
-                31 -> "ras"
-                else -> "other"
+                1 -> EventConstant.PPP
+                6 -> EventConstant.AG
+                11 -> EventConstant.PP
+                16 -> EventConstant.R
+                21 -> EventConstant.HHW
+                26 -> EventConstant.M
+                31 -> EventConstant.RAS
+                else -> EventConstant.OTHER
             }
-        else "other"
+        else EventConstant.OTHER
 
     fun bandNameToCharacter1(bandName: String) =
         when (bandName) {
-            "ppp" -> 1
-            "ag" -> 6
-            "pp" -> 11
-            "r" -> 16
-            "hhw" -> 21
-            "m" -> 26
-            "ras" -> 31
+            EventConstant.PPP.describe -> 1
+            EventConstant.AG.describe -> 6
+            EventConstant.PP.describe -> 11
+            EventConstant.R.describe -> 16
+            EventConstant.HHW.describe -> 21
+            EventConstant.M.describe -> 26
+            EventConstant.RAS.describe -> 31
             else -> -1
         }
 

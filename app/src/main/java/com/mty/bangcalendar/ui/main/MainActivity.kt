@@ -26,6 +26,7 @@ import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivityMainBinding
+import com.mty.bangcalendar.enum.EventConstant
 import com.mty.bangcalendar.logic.model.CalendarScrollView
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.ui.BaseActivity
@@ -149,7 +150,8 @@ class MainActivity : BaseActivity() {
 
         viewModel.preferenceBand.observe(this) { bandName ->
             bandName?.let {
-                if (it == "other" || it == EventUtil.getBandName(viewModel.todayEvent.value!!)) {
+                if (it == EventConstant.OTHER.describe
+                    || it == EventUtil.getBand(viewModel.todayEvent.value!!).describe) {
                     refreshDailyTag(mainBinding)
                 } else {
                     viewModel.getPreferenceNearlyBandEvent(EventUtil.bandNameToCharacter1(it))
@@ -260,8 +262,8 @@ class MainActivity : BaseActivity() {
                 stringBuilder.append("距离${it}的生日还有${birthdayAway}天。")
             else stringBuilder.append("")
         }
-        if (bandName != null && bandName != "other" && todayEvent != null) {
-            if (bandName == EventUtil.getBandName(todayEvent)) {
+        if (bandName != null && bandName != EventConstant.OTHER.describe && todayEvent != null) {
+            if (bandName == EventUtil.getBand(todayEvent).describe) {
                 stringBuilder.append("这期活动是${bandName}活哦，快去冲榜吧。")
             } else if (nearlyBandEvent != null) {
                 stringBuilder.append("距离下次${bandName}活还有" +
@@ -378,6 +380,12 @@ class MainActivity : BaseActivity() {
         //刷新乐队图片
         Glide.with(this).load(EventUtil.getBandPic(event))
             .into(binding.eventCard.eventBand)
+        binding.eventCard.eventBand.setOnClickListener {
+            val intent = Intent(this, EventListActivity::class.java)
+            intent.putExtra("current_id", event.id.toInt())
+            intent.putExtra("band_id", EventUtil.getBand(event).id)
+            startActivity(intent)
+        }
         //刷新活动图片
         val eventId = EventUtil.eventIdFormat(event.id.toInt())
         val uri = Uri.parse("https://www.mxmnb.cn/bangcalendar/" +

@@ -15,7 +15,6 @@ import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.CalendarUtil
-import com.mty.bangcalendar.util.LogUtil
 
 class MainViewModel : ViewModel() {
 

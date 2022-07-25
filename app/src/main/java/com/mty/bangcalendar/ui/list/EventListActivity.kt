@@ -11,7 +11,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivityEventListBinding
+import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.ui.BaseActivity
+import com.mty.bangcalendar.util.EventUtil
 
 class EventListActivity : BaseActivity() {
 
@@ -45,11 +47,17 @@ class EventListActivity : BaseActivity() {
         val layoutManager = LinearLayoutManager(this)
         binding.eventList.layoutManager = layoutManager
         viewModel.eventList.observe(this) {
-            val adapter = EventListAdapter(it, this)
+            val bandId = intent.getIntExtra("band_id", -1)
+            var startEventId = intent.getIntExtra("current_id", 1)
+            val eventList = it as ArrayList<Event>
+            //对乐队进行过滤
+            if (bandId != -1)
+                startEventId = eventListCutter(eventList, bandId, startEventId)
+            val adapter = EventListAdapter(eventList, this)
             binding.eventList.adapter = adapter
-            val id = intent.getIntExtra("current_id", 1)
+            //设置起始位置
             (binding.eventList.layoutManager as LinearLayoutManager)
-                .scrollToPosition(id - 1)
+                .scrollToPosition(startEventId - 1)
         }
         viewModel.getEventList()
 
@@ -60,6 +68,19 @@ class EventListActivity : BaseActivity() {
             android.R.id.home -> finish()
         }
         return true
+    }
+
+    private fun eventListCutter(eventList: ArrayList<Event>, bandId: Int, startEventId: Int): Int {
+        var startEvent: Event? = null
+        val iterator = eventList.iterator()
+        while (iterator.hasNext()) {
+            val event = iterator.next()
+            if (EventUtil.getBand(event).id != bandId)
+                iterator.remove()
+            else if (event.id.toInt() == startEventId)
+                startEvent = event
+        }
+        return eventList.indexOf(startEvent) + 1
     }
 
 }

@@ -2,7 +2,6 @@
     <!-- app -->
     <string name="app_name">BangCalendar</string>
     <string name="band">乐队</string>
-    <string name="ppp">"Poppin'Party"</string>
     <string name="settings">设置</string>
     <string name="search">搜索</string>
     <string name="jump">日期跳转</string>
@@ -52,6 +51,15 @@
     <!-- character -->
     <string name="bir_char">角色生日</string>
     <string name="happy_birthday">生日快乐</string>
+    <!-- band -->
+    <string name="ppp">ppp</string>
+    <string name="ag">ag</string>
+    <string name="pp">pp</string>
+    <string name="r">r</string>
+    <string name="hhw">hhw</string>
+    <string name="m">m</string>
+    <string name="ras">ras</string>
+    <string name="other">other</string>
     <!-- settings -->
     <string name="title_activity_settings">SettingsActivity</string>
     <string name="preference_header">用户偏好</string>
@@ -71,7 +79,7 @@
     <string name="download_user_preference_summary">从云端恢复昵称、乐队等偏好</string>
     <string name="about_header">关于</string>
     <string name="version_title">版本</string>
-    <string name="version">1.5.1</string>
+    <string name="version">1.5.2</string>
     <string name="program_title">项目地址</string>
     <string name="program_url">https://github.com/mty1122/BangCalendar</string>
     <string name="material_title">素材来源</string>

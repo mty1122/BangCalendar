@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModel
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.mty.bangcalendar.BangCalendarApplication
+import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.ui.settings.SettingsActivity
@@ -19,7 +20,6 @@ import com.mty.bangcalendar.util.CalendarUtil
 class MainViewModel : ViewModel() {
 
     var calendarCurrentPosition = 1 //当前view在viewPager中的位置
-    val systemDate = CalendarUtil() //系统时间
     var birthdayAway: Int? = null //关注角色生日还有多少天
 
     //活动起始/终止时间

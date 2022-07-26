@@ -2,10 +2,10 @@ package com.mty.bangcalendar.util
 
 import java.util.Calendar
 
-operator fun CalendarUtil.minus(calendarUtil: CalendarUtil): Long =
-    (this.getTimeInMillis() - calendarUtil.getTimeInMillis()) / (1000 * 3600 * 24)
-
 class CalendarUtil {
+
+    operator fun minus(calendarUtil: CalendarUtil): Long =
+        (this.getTimeInMillis() - calendarUtil.getTimeInMillis()) / (1000 * 3600 * 24)
 
     companion object {
 
@@ -55,7 +55,7 @@ class CalendarUtil {
         return calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
     }
 
-    private fun getDayOfWeak(): Int {
+    fun getDayOfWeak(): Int {
         return calendar.get(Calendar.DAY_OF_WEEK)
     }
 

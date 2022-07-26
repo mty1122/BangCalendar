@@ -22,6 +22,14 @@ object PreferenceDao {
         isFirstStart
     }
 
+    fun getLastRefreshDay(): Int = sharedPreference().getInt("lastRefreshDay", 0)
+
+    fun setLastRefreshDay(day: Int) {
+        sharedPreference().edit {
+            putInt("lastRefreshDay", day)
+        }
+    }
+
     fun getAdditionalTip(): String = sharedPreference().getString("additionalTip", "")!!
 
     fun setAdditionalTip(additionalTip: String) {

@@ -83,6 +83,10 @@ android {
     }
 }
 
+apply plugin: 'com.android.application'
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.crashlytics'
+
 dependencies {
 
     implementation 'androidx.core:core-ktx:1.7.0'
@@ -101,6 +105,9 @@ dependencies {
     implementation 'de.hdodenhof:circleimageview:3.0.1'
     implementation 'androidx.preference:preference:1.1.1'
     implementation 'com.tomergoldst.android:progress-circle:1.0.2'
+    implementation platform('com.google.firebase:firebase-bom:30.3.1')
+    implementation 'com.google.firebase:firebase-crashlytics-ktx'
+    implementation 'com.google.firebase:firebase-analytics-ktx'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.13.0'
     kapt 'androidx.room:room-compiler:2.4.2'
     testImplementation 'junit:junit:4.13.2'

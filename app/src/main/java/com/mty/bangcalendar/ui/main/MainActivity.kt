@@ -24,6 +24,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivityMainBinding
 import com.mty.bangcalendar.enum.EventConstant
@@ -87,8 +88,8 @@ class MainActivity : BaseActivity() {
                 toString()
             }
             //返回今天浮窗
-            if (it.year == viewModel.systemDate.year && it.month == viewModel.systemDate.month
-                && it.day== viewModel.systemDate.day) {
+            if (it.year == systemDate.year && it.month == systemDate.month
+                && it.day== systemDate.day) {
                 mainBinding.goBackFloatButton.visibility = View.GONE
             } else {
                 mainBinding.goBackFloatButton.visibility = View.VISIBLE
@@ -112,7 +113,7 @@ class MainActivity : BaseActivity() {
             }
         }
 
-        viewModel.getCharacterByMonth(viewModel.systemDate.month) //首次启动刷新当前月的生日角色
+        viewModel.getCharacterByMonth(systemDate.month) //首次启动刷新当前月的生日角色
 
         viewModel.birthdayCard.observe(this) {
             when (it) {
@@ -135,7 +136,7 @@ class MainActivity : BaseActivity() {
         viewModel.preferenceCharacter.observe(this) { character ->
             viewModel.birthdayAway = null
             character?.let {
-                val birthdayAway = CharacterUtil.birthdayAway(it.birthday, viewModel.systemDate)
+                val birthdayAway = CharacterUtil.birthdayAway(it.birthday, systemDate)
                 viewModel.birthdayAway = birthdayAway
             }
             refreshDailyTag(mainBinding)
@@ -251,9 +252,9 @@ class MainActivity : BaseActivity() {
         val additionalTip = viewModel.additionalTip.value
 
         if(userName == "") {
-            stringBuilder.append("${viewModel.systemDate.getTimeName()}好，邦邦人。")
+            stringBuilder.append("${systemDate.getTimeName()}好，邦邦人。")
         } else {
-            stringBuilder.append("${viewModel.systemDate.getTimeName()}好，$userName。")
+            stringBuilder.append("${systemDate.getTimeName()}好，$userName。")
         }
         stringBuilder.append(getString(R.string.defaultTag))
         characterName?.let {
@@ -267,7 +268,7 @@ class MainActivity : BaseActivity() {
                 stringBuilder.append("这期活动是${bandName}活哦，快去冲榜吧。")
             } else if (nearlyBandEvent != null) {
                 stringBuilder.append("距离下次${bandName}活还有" +
-                        "${CalendarUtil.differentOfTwoDates(viewModel.systemDate.getDate(), 
+                        "${CalendarUtil.differentOfTwoDates(systemDate.getDate(), 
                             nearlyBandEvent.startDate)}天，活动编号为${nearlyBandEvent.id}，" +
                         "活动属性为${EventUtil.getAttrsName(nearlyBandEvent.attrs)}。")
             }
@@ -280,7 +281,7 @@ class MainActivity : BaseActivity() {
                 val matcher = pattern.matcher(strs[1])
                 //输入正确再进行对比
                 if (matcher.find()) {
-                    val systemDate = viewModel.systemDate.getDate()
+                    val systemDate = systemDate.getDate()
                     val targetDate = Integer.parseInt(strs[1])
                     val differentOfTwoDates = CalendarUtil
                         .differentOfTwoDates(systemDate, targetDate).toInt()
@@ -418,7 +419,7 @@ class MainActivity : BaseActivity() {
                     binding.eventCard.eventProgress.progress = 100
                 }
                 (eventId == todayEventId) -> {
-                    val systemTime = viewModel.systemDate.getTimeInMillis()
+                    val systemTime = systemDate.getTimeInMillis()
                     val eventStartTime = viewModel.eventStartTime
                     val eventEndTime = viewModel.eventEndTime
                     if (eventStartTime != null && eventEndTime != null) {
@@ -472,7 +473,7 @@ class MainActivity : BaseActivity() {
     }
 
     private fun goBackToSystemDate(mainBinding: ActivityMainBinding) {
-        jumpDate(mainBinding.viewPager, viewModel.systemDate)
+        jumpDate(mainBinding.viewPager, systemDate)
     }
 
     @SuppressLint("NotifyDataSetChanged")

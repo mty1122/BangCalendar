@@ -33,7 +33,8 @@ object Repository {
         thread {
             val isFirstStart = PreferenceDao.isFirstStart()
             val theme = PreferenceDao.getTheme()
-            liveData.postValue(GuideInitData(isFirstStart, theme))
+            val lastRefreshDay = PreferenceDao.getLastRefreshDay()
+            liveData.postValue(GuideInitData(isFirstStart, theme, lastRefreshDay))
         }
         return liveData
     }
@@ -226,6 +227,10 @@ object Repository {
             liveData.postValue(characterList)
         }
         return liveData
+    }
+
+    fun setLastRefreshDay(day: Int) {
+        PreferenceDao.setLastRefreshDay(day)
     }
 
 }

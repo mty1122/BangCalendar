@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.IBinder
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.ui.settings.SettingsActivity
@@ -72,6 +73,7 @@ class EventRefreshService : Service() {
                 LogUtil.d("Database", "向数据库加入活动：$event")
             }
             sendMessage(SettingsActivity.REFRESH_EVENT_SUCCESS)
+            Repository.setLastRefreshDay(BangCalendarApplication.systemDate.day)
             stopSelf()
         }
     }

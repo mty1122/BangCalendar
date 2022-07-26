@@ -19,7 +19,7 @@ object CharacterUtil {
     fun birthdayToMonth(birthday: String) = Integer.parseInt(birthday) / 100
 
     fun getNextBirthdayDate(birthday: String, systemDate: CalendarUtil): Array<Int> {
-        val dateArray = Array<Int>(2) { 0 }
+        val dateArray = Array(2) { 0 }
         val intBirthday = Integer.parseInt(birthday)
         val month = intBirthday / 100
         val day = intBirthday % 100

@@ -4,7 +4,9 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.lifecycle.ViewModelProvider
+import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.R
+import com.mty.bangcalendar.service.EventRefreshService
 import com.mty.bangcalendar.util.LogUtil
 import com.mty.bangcalendar.ui.main.MainActivity
 import com.mty.bangcalendar.ui.settings.SettingsActivity
@@ -24,7 +26,7 @@ class GuideActivity : AppCompatActivity() {
     private fun appStartInit() {
         viewModel.initData.observe(this) { initData ->
             ThemeUtil.setCurrentTheme(initData.theme)
-            if (initData.isFirstStart) {
+            if (initData.isFirstStart) {  /* 首次启动 */
                 LogUtil.d("AppInit", "App is first start")
                 viewModel.refreshDataProgress.observe(this) { progress ->
                     if (progress == 100) {
@@ -33,6 +35,12 @@ class GuideActivity : AppCompatActivity() {
                 }
                 //初始化数据库
                 viewModel.initDataBase(this)
+            } else if (systemDate.getDayOfWeak() == 4
+                && initData.lastRefreshDay != systemDate.day) {  /* 每周一自动更新数据库 */
+                val intent = Intent(this, EventRefreshService::class.java)
+                intent.putExtra("isInit", false)
+                startService(intent)
+                startMainActivity()
             } else {
                 LogUtil.d("AppInit", "App is not first start")
                 startMainActivity()

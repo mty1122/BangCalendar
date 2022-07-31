@@ -15,6 +15,9 @@
     <string name="select_bg">选中项背景</string>
     <string name="birthday">生日</string>
     <string name="defaultTag">"欢迎使用BangCalendar，DailyTag将为您提供每日资讯以及订阅提醒。"</string>
+    <string name="welcome">"欢迎使用\nBangCalendar"</string>
+    <string name="welcome_button">"开始使用"</string>
+    <string name="init_complete">"初始化完成，请点击按钮进入应用"</string>
     <!-- week -->
     <string name="mon">一</string>
     <string name="tue">二</string>
@@ -79,7 +82,7 @@
     <string name="download_user_preference_summary">从云端恢复昵称、乐队等偏好</string>
     <string name="about_header">关于</string>
     <string name="version_title">版本</string>
-    <string name="version">1.5.2</string>
+    <string name="version">1.5.3</string>
     <string name="program_title">项目地址</string>
     <string name="program_url">https://github.com/mty1122/BangCalendar</string>
     <string name="material_title">素材来源</string>

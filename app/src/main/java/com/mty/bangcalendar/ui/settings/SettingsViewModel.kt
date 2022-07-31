@@ -41,13 +41,11 @@ class SettingsViewModel : ViewModel() {
     //更新数据库数据
     private fun refreshCharacter(context: Context) {
         val intent = Intent(context, CharacterRefreshService::class.java)
-        intent.putExtra("isInit", false)
         context.startService(intent)
     }
 
     private fun refreshEvent(context: Context) {
         val intent = Intent(context, EventRefreshService::class.java)
-        intent.putExtra("isInit", false)
         context.startService(intent)
     }
 

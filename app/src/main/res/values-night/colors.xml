@@ -2,13 +2,12 @@
 <resources>
     <color name="ppp_bar">#302f30</color>
     <color name="ppp_text">#fff</color>
-    <color name="ppp_select">#302f30</color>
     <color name="ppp_date_text">#fff</color>
     <color name="ppp_background">#FF000000</color>
     <color name="ppp_card_background">#292829</color>
     <color name="transparent">#00FFFFFF</color>
     <color name="ppp_card_bar">#302f30</color>
-    <color name="progress_color">#FF03DAC5</color>
     <color name="single">#08b6f7</color>
     <color name="powerful">#ff345a</color>
+    <color name="start">#FF000000</color>
 </resources>

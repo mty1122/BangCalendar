@@ -11,8 +11,6 @@ import androidx.lifecycle.ViewModel
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.GuideInitData
-import com.mty.bangcalendar.service.CharacterRefreshService
-import com.mty.bangcalendar.service.EventRefreshService
 
 class GuideViewModel : ViewModel() {
 
@@ -37,25 +35,6 @@ class GuideViewModel : ViewModel() {
         get() = _refreshDataProgress
 
     private val _refreshDataProgress = MutableLiveData<Int>()
-
-    //初始化（更新）数据库
-    fun initDataBase(context: Context) {
-        addCharacter(context)
-        addEvent(context)
-    }
-
-    //初始化应用
-    private fun addCharacter(context: Context) {
-        val intent = Intent(context, CharacterRefreshService::class.java)
-        intent.putExtra("isInit", true)
-        context.startService(intent)
-    }
-
-    private fun addEvent(context: Context) {
-        val intent = Intent(context, EventRefreshService::class.java)
-        intent.putExtra("isInit", true)
-        context.startService(intent)
-    }
 
     init {
         _refreshDataProgress.value = 0

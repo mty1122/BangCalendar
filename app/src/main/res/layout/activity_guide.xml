@@ -1,9 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/guideActivity"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.guide.GuideActivity">
+    android:visibility="gone">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="150dp"
+        android:layout_marginBottom="300dp"
+        android:textSize="32sp"
+        android:gravity="center"
+        android:textColor="?attr/colorPrimary"
+        android:text="@string/welcome" />
+
+    <TextView
+        android:id="@+id/refreshText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textColor="?attr/colorPrimary"/>
+
+    <ProgressBar
+        android:id="@+id/refreshProgress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="5dp" />
+
+    <Button
+        android:id="@+id/refreshButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/welcome_button"
+        android:enabled="false"
+        android:layout_margin="10dp" />
+
+</LinearLayout>

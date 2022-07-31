@@ -10,6 +10,7 @@
     <color name="transparent">#00FFFFFF</color>
     <color name="single">#08b6f7</color>
     <color name="powerful">#ff345a</color>
+    <color name="start">#FFFFFFFF</color>
     <!-- theme_ppp -->
     <color name="ppp_bar">#f7a6de</color>
     <color name="ppp_card_bar">#f79ab5</color>

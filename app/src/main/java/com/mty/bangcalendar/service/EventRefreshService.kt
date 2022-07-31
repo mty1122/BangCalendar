@@ -2,7 +2,10 @@ package com.mty.bangcalendar.service
 
 import android.app.Service
 import android.content.Intent
+import android.os.Binder
 import android.os.IBinder
+import android.widget.ProgressBar
+import android.widget.TextView
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.mty.bangcalendar.BangCalendarApplication
@@ -10,60 +13,90 @@ import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.LogUtil
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.lang.StringBuilder
 import kotlin.concurrent.thread
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class EventRefreshService : Service() {
 
-    override fun onBind(intent: Intent): IBinder? {
-        //暂时无需与activity绑定，待完善
-        return null
+    companion object {
+
+        fun sendMessage(result: Int) {
+            val context = BangCalendarApplication.context
+            val intent = Intent("com.mty.bangcalendar.REFRESH_DATABASE_FINISH")
+            intent.setPackage(context.packageName)
+            intent.putExtra("result", result)
+            context.sendBroadcast(intent)
+        }
+
     }
 
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-            val isInit = intent.getBooleanExtra("isInit", true)
-            if (isInit) {
-                val gson = Gson()
-                val typeOf = object : TypeToken<List<Event>>() {}.type
-                val eventReader = BufferedReader(
-                    InputStreamReader(
-                    Repository.getEventJSONStreamFromAssets())
-                )
-                val eventList = gson.fromJson<List<Event>>(eventReader, typeOf)
-                addEventToDatabase(eventList)
-            } else {
-                Repository.getEventListFromInternet().enqueue(object :
-                    Callback<List<Event>> {
-                    override fun onResponse(call: Call<List<Event>>,
-                    response: Response<List<Event>>) {
-                        val eventList = response.body()
-                        if (eventList != null) {
-                            addEventToDatabase(eventList)
-                        } else {
-                            sendMessage(SettingsActivity.REFRESH_EVENT_FAILURE)
-                            stopSelf()
+    private val refreshBinder = RefreshBinder()
+
+    class RefreshBinder : Binder() {
+
+        fun refresh(progressBar: ProgressBar, textView: TextView) {
+            val gson = Gson()
+            val typeOf = object : TypeToken<List<Event>>() {}.type
+            val eventReader = BufferedReader(InputStreamReader
+                (Repository.getEventJSONStreamFromAssets()))
+            val eventList = gson.fromJson<List<Event>>(eventReader, typeOf)
+            LogUtil.d("event", "${eventList.size}")
+            val coroutineScope = CoroutineScope(Dispatchers.Main)
+            coroutineScope.launch {
+                for (event in eventList) {
+                    suspendCoroutine {
+                        thread {
+                            Repository.addEventToDatabase(event)
+                            it.resume(Unit)
                         }
                     }
-
-                    override fun onFailure(call: Call<List<Event>>, t: Throwable) {
-                        t.printStackTrace()
-                        sendMessage(SettingsActivity.REFRESH_EVENT_FAILURE)
-                        stopSelf()
+                    textView.text = StringBuilder().run {
+                        append("载入活动：")
+                        append(event.id)
                     }
-                })
+                    progressBar.progress = event.id.toInt() / eventList.size * 50
+                }
+                sendMessage(SettingsActivity.REFRESH_EVENT_SUCCESS)
+                coroutineScope.cancel()
             }
-        return super.onStartCommand(intent, flags, startId)
+        }
+
     }
 
-    private fun sendMessage(result: Int) {
-        val intent = Intent("com.mty.bangcalendar.REFRESH_DATABASE_FINISH")
-        intent.setPackage(packageName)
-        intent.putExtra("result", result)
-        sendBroadcast(intent)
+    override fun onBind(intent: Intent): IBinder = refreshBinder
+
+    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        Repository.getEventListFromInternet().enqueue(object :
+            Callback<List<Event>> {
+            override fun onResponse(call: Call<List<Event>>,
+                                    response: Response<List<Event>>) {
+                val eventList = response.body()
+                if (eventList != null) {
+                    addEventToDatabase(eventList)
+                } else {
+                    sendMessage(SettingsActivity.REFRESH_EVENT_FAILURE)
+                    stopSelf()
+                }
+            }
+
+            override fun onFailure(call: Call<List<Event>>, t: Throwable) {
+                t.printStackTrace()
+                sendMessage(SettingsActivity.REFRESH_EVENT_FAILURE)
+                stopSelf()
+            }
+        })
+        return super.onStartCommand(intent, flags, startId)
     }
 
     private fun addEventToDatabase(eventList: List<Event>) {

@@ -74,6 +74,7 @@ class GuideActivity : AppCompatActivity() {
                             val button = findViewById<Button>(R.id.refreshButton)
                             button.setOnClickListener {
                                 startMainActivity()
+                                overridePendingTransition(0, android.R.anim.fade_out)
                             }
                             findViewById<TextView>(R.id.refreshText)
                                 .text = getString(R.string.init_complete)
@@ -88,10 +89,12 @@ class GuideActivity : AppCompatActivity() {
                 val intent = Intent(this, EventRefreshService::class.java)
                 startService(intent)
                 startMainActivity()
+                overridePendingTransition(0, 0)
             } else {
                 LogUtil.d("AppInit", "App is not first start")
                 LogUtil.d("AppInit", "Day of week ${systemDate.getDayOfWeak()}")
                 startMainActivity()
+                overridePendingTransition(0, 0)
             }
         }
         viewModel.getInitData()

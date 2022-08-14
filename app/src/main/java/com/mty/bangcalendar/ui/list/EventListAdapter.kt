@@ -19,6 +19,7 @@ import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.card.MaterialCardView
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.logic.model.Event
+import com.mty.bangcalendar.logic.network.ServiceCreator
 import com.mty.bangcalendar.ui.main.MainActivity
 import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.ThemeUtil
@@ -87,7 +88,7 @@ class EventListAdapter(private val eventList: List<Event> , private val context:
             Glide.with(context).load(EventUtil.getBandPic(event)).into(eventBand)
             //刷新活动图片
             val eventId = EventUtil.eventIdFormat(event.id.toInt())
-            val uri = Uri.parse("https://www.mxmnb.cn/bangcalendar/" +
+            val uri = Uri.parse(ServiceCreator.BASE_URL +
                     "event/banner_memorial_event$eventId.png")
             Glide.with(context).load(uri).apply(glideOptions)
                 .into(object : CustomTarget<Drawable>() {

@@ -30,6 +30,7 @@ import com.mty.bangcalendar.databinding.ActivityMainBinding
 import com.mty.bangcalendar.enum.EventConstant
 import com.mty.bangcalendar.logic.model.CalendarScrollView
 import com.mty.bangcalendar.logic.model.Event
+import com.mty.bangcalendar.logic.network.ServiceCreator
 import com.mty.bangcalendar.ui.BaseActivity
 import com.mty.bangcalendar.ui.list.CharacterListActivity
 import com.mty.bangcalendar.ui.list.EventListActivity
@@ -389,7 +390,7 @@ class MainActivity : BaseActivity() {
         }
         //刷新活动图片
         val eventId = EventUtil.eventIdFormat(event.id.toInt())
-        val uri = Uri.parse("https://www.mxmnb.cn/bangcalendar/" +
+        val uri = Uri.parse(ServiceCreator.BASE_URL +
                 "event/banner_memorial_event$eventId.png")
         Glide.with(this).load(uri).apply(viewModel.glideOptions)
             .into(object : CustomTarget<Drawable>() {
@@ -492,7 +493,6 @@ class MainActivity : BaseActivity() {
             calendarUtil.month = target.month
             calendarUtil.rows = target.rows
             calendarUtil.setRelativeMonth(relativeMonth++)
-            calendarUtil.refreshRows()
             viewAdapter.dateList.run {
                 this as ArrayList
                 clear()
@@ -615,7 +615,6 @@ class MainActivity : BaseActivity() {
         val calendar = CalendarUtil()
         calendar.clearDays()
         calendar.setRelativeMonth(relativeMonth)
-        calendar.refreshRows()
         val dateList = calendar.getDateList()
         //创建日历recyclerView
         val layoutManager = object : GridLayoutManager(this, 7) {

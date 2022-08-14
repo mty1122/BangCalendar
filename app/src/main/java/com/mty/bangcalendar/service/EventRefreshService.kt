@@ -45,17 +45,17 @@ class EventRefreshService : Service() {
 
     class RefreshBinder : Binder() {
 
+        @Deprecated("基于View的刷新组件")
         fun refresh(progressBar: ProgressBar, textView: TextView) {
             val gson = Gson()
             val typeOf = object : TypeToken<List<Event>>() {}.type
             val eventReader = BufferedReader(InputStreamReader
                 (Repository.getEventJSONStreamFromAssets()))
             val eventList = gson.fromJson<List<Event>>(eventReader, typeOf)
-            LogUtil.d("event", "${eventList.size}")
             val coroutineScope = CoroutineScope(Dispatchers.Main)
             coroutineScope.launch {
                 for (event in eventList) {
-                    suspendCoroutine {
+                    suspendCoroutine<Unit> {
                         thread {
                             Repository.addEventToDatabase(event)
                             it.resume(Unit)
@@ -68,6 +68,29 @@ class EventRefreshService : Service() {
                     progressBar.progress = event.id.toInt() / eventList.size * 50
                 }
                 sendMessage(SettingsActivity.REFRESH_EVENT_SUCCESS)
+                coroutineScope.cancel()
+            }
+        }
+
+        fun refresh2(onItemAddFinished: (Int, String) -> Unit) {
+            val gson = Gson()
+            val typeOf = object : TypeToken<List<Event>>() {}.type
+            val eventReader = BufferedReader(InputStreamReader
+                (Repository.getEventJSONStreamFromAssets()))
+            val eventList = gson.fromJson<List<Event>>(eventReader, typeOf)
+            val coroutineScope = CoroutineScope(Dispatchers.Main)
+            coroutineScope.launch {
+                for (event in eventList) {
+                    suspendCoroutine<Unit> {
+                        thread {
+                            Repository.addEventToDatabase(event)
+                            it.resume(Unit)
+                        }
+                        val progress = event.id.toInt() * 50 / eventList.size
+                        val details = "载入活动：${event.id}"
+                        onItemAddFinished(progress, details)
+                    }
+                }
                 coroutineScope.cancel()
             }
         }

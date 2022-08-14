@@ -105,4 +105,5 @@
     <string name="login_tip">Tip：点击发送验证码按钮后，您会收到一条来自“淡定的个人博客”的验证码，该网站为我的个人网站，请放心登录。</string>
     <string name="cancel">取消</string>
     <string name="logout">您已登录，是否退出登录？</string>
+    <string name="title_activity_guide2">GuideActivity2</string>
 </resources>

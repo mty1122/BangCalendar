@@ -106,6 +106,7 @@ class CalendarUtil {
 
     fun setRelativeMonth(month: Int) {
         calendar.add(Calendar.MONTH, month)
+        refreshRows()
     }
 
     fun getDate(): Int {

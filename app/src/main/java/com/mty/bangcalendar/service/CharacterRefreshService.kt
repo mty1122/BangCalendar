@@ -8,9 +8,9 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Character
+import com.mty.bangcalendar.service.EventRefreshService.Companion.sendMessage
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.LogUtil
 import kotlinx.coroutines.CoroutineScope
@@ -22,29 +22,17 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.lang.StringBuilder
 import kotlin.concurrent.thread
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 class CharacterRefreshService : Service(){
 
-    companion object {
-
-        fun sendMessage(result: Int) {
-            val context = BangCalendarApplication.context
-            val intent = Intent("com.mty.bangcalendar.REFRESH_DATABASE_FINISH")
-            intent.setPackage(context.packageName)
-            intent.putExtra("result", result)
-            context.sendBroadcast(intent)
-        }
-
-    }
-
     private val refreshBinder = RefreshBinder()
 
     class RefreshBinder : Binder() {
 
+        @Deprecated("基于View的刷新组件")
         fun refresh(progressBar: ProgressBar, textView: TextView) {
             val gson = Gson()
             val typeOf = object : TypeToken<List<Character>>() {}.type
@@ -54,7 +42,7 @@ class CharacterRefreshService : Service(){
             val coroutineScope = CoroutineScope(Dispatchers.Main)
             coroutineScope.launch {
                 for (character in characterList) {
-                    suspendCoroutine {
+                    suspendCoroutine<Unit> {
                         thread {
                             Repository.addCharacterToDatabase(character)
                             it.resume(Unit)
@@ -67,6 +55,29 @@ class CharacterRefreshService : Service(){
                     progressBar.progress = 50 + character.id.toInt() / characterList.size * 50
                 }
                 sendMessage(SettingsActivity.REFRESH_CHARACTER_SUCCESS)
+                coroutineScope.cancel()
+            }
+        }
+
+        fun refresh2(onItemAddFinished: (Int, String) -> Unit) {
+            val gson = Gson()
+            val typeOf = object : TypeToken<List<Character>>() {}.type
+            val characterReader = BufferedReader(InputStreamReader(
+                Repository.getCharacterJSONStreamFromAssets()))
+            val characterList = gson.fromJson<List<Character>>(characterReader, typeOf)
+            val coroutineScope = CoroutineScope(Dispatchers.Main)
+            coroutineScope.launch {
+                for (character in characterList) {
+                    suspendCoroutine<Unit> {
+                        thread {
+                            Repository.addCharacterToDatabase(character)
+                            it.resume(Unit)
+                        }
+                        val progress = 50 + character.id.toInt() * 50 / characterList.size
+                        val details = "载入角色：${character.name}"
+                        onItemAddFinished(progress, details)
+                    }
+                }
                 coroutineScope.cancel()
             }
         }

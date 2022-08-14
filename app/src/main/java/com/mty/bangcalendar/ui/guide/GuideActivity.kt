@@ -21,6 +21,7 @@ import com.mty.bangcalendar.ui.main.MainActivity
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.ThemeUtil
 
+@Deprecated("基于View实现的引导界面")
 class GuideActivity : AppCompatActivity() {
 
     private val viewModel by lazy { ViewModelProvider(this).get(GuideViewModel::class.java) }

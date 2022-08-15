@@ -14,6 +14,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
@@ -28,6 +29,8 @@ import com.mty.bangcalendar.ui.list.EventListActivity
 import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.LogUtil
 import com.mty.bangcalendar.util.ThemeUtil
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import java.util.regex.Pattern
 
 class SearchActivity : BaseActivity() {
@@ -195,19 +198,12 @@ class SearchActivity : BaseActivity() {
             .into(binding.searchEventCard.eventBand)
         //刷新活动图片
         val eventId = EventUtil.eventIdFormat(event.id.toInt())
-        val uri = Uri.parse(ServiceCreator.BASE_URL +
-                "event/banner_memorial_event$eventId.png")
-        Glide.with(this).load(uri).apply(viewModel.glideOptions)
-            .into(object : CustomTarget<Drawable>() {
-                override fun onResourceReady(resource: Drawable
-                                             , transition: Transition<in Drawable>?) {
-                    binding.searchEventCard.eventBackground.background = resource
-                }
-
-                override fun onLoadCleared(placeholder: Drawable?) {
-                    //
-                }
-            })
+        lifecycleScope.launch{
+            viewModel.getEventPic(eventId) {
+                binding.searchEventCard.eventBackground.background = it
+            }
+            cancel()
+        }
         binding.searchEventCard.eventButton.setOnClickListener {
             val intent = Intent(this, EventListActivity::class.java)
             intent.putExtra("current_id", event.id.toInt())

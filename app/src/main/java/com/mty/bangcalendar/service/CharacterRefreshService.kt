@@ -4,8 +4,6 @@ import android.app.Service
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
-import android.widget.ProgressBar
-import android.widget.TextView
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.mty.bangcalendar.logic.Repository
@@ -32,34 +30,7 @@ class CharacterRefreshService : Service(){
 
     class RefreshBinder : Binder() {
 
-        @Deprecated("基于View的刷新组件")
-        fun refresh(progressBar: ProgressBar, textView: TextView) {
-            val gson = Gson()
-            val typeOf = object : TypeToken<List<Character>>() {}.type
-            val characterReader = BufferedReader(InputStreamReader(
-                Repository.getCharacterJSONStreamFromAssets()))
-            val characterList = gson.fromJson<List<Character>>(characterReader, typeOf)
-            val coroutineScope = CoroutineScope(Dispatchers.Main)
-            coroutineScope.launch {
-                for (character in characterList) {
-                    suspendCoroutine<Unit> {
-                        thread {
-                            Repository.addCharacterToDatabase(character)
-                            it.resume(Unit)
-                        }
-                    }
-                    textView.text = StringBuilder().run {
-                        append("载入角色：")
-                        append(character.name)
-                    }
-                    progressBar.progress = 50 + character.id.toInt() / characterList.size * 50
-                }
-                sendMessage(SettingsActivity.REFRESH_CHARACTER_SUCCESS)
-                coroutineScope.cancel()
-            }
-        }
-
-        fun refresh2(onItemAddFinished: (Int, String) -> Unit) {
+        fun refresh(onItemAddFinished: (Int, String) -> Unit) {
             val gson = Gson()
             val typeOf = object : TypeToken<List<Character>>() {}.type
             val characterReader = BufferedReader(InputStreamReader(

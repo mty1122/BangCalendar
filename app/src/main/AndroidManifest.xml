@@ -14,10 +14,8 @@
         android:supportsRtl="true"
         android:theme="@style/theme_ppp">
         <activity
-            android:name=".ui.guide.GuideActivity2"
-            android:exported="true"
-            android:label="@string/title_activity_guide2"
-            android:theme="@style/theme_ppp" >
+            android:name=".ui.guide.GuideActivity"
+            android:exported="true" >
         <intent-filter>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
@@ -37,10 +35,6 @@
             android:name=".ui.settings.SettingsActivity"
             android:exported="false"
             android:label="@string/title_activity_settings" />
-        <activity
-            android:name=".ui.guide.GuideActivity"
-            android:exported="true">
-        </activity>
 
         <service
             android:name=".service.EventRefreshService"

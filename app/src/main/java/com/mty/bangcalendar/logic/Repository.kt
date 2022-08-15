@@ -1,18 +1,32 @@
 package com.mty.bangcalendar.logic
 
+import android.graphics.drawable.Drawable
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.logic.dao.AppDatabase
 import com.mty.bangcalendar.logic.dao.PreferenceDao
 import com.mty.bangcalendar.logic.model.*
 import com.mty.bangcalendar.logic.network.BangCalendarNetwork
+import com.mty.bangcalendar.logic.network.ServiceCreator
 import kotlinx.coroutines.Dispatchers
 import java.lang.Exception
 import kotlin.concurrent.thread
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 object Repository {
+
+    private val glideOptions = RequestOptions()
+        .skipMemoryCache(false)
+        .diskCacheStrategy(DiskCacheStrategy.ALL)
 
     fun getCharacterJSONStreamFromAssets() =
         BangCalendarApplication.context.assets.open("Character.json")
@@ -231,6 +245,21 @@ object Repository {
 
     fun setLastRefreshDay(day: Int) {
         PreferenceDao.setLastRefreshDay(day)
+    }
+
+    suspend fun getEventPic(eventId: String) = suspendCoroutine<Drawable?> {
+        val uri = Uri.parse(
+            ServiceCreator.BASE_URL + "event/banner_memorial_event$eventId.png")
+        Glide.with(BangCalendarApplication.context).load(uri).apply(glideOptions)
+            .into(object : CustomTarget<Drawable>() {
+                override fun onResourceReady(resource: Drawable,
+                                             transition: Transition<in Drawable>?) {
+                    it.resume(resource)
+                }
+                override fun onLoadCleared(placeholder: Drawable?) {
+                    it.resume(null)
+                }
+            })
     }
 
 }

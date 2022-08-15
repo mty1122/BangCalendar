@@ -4,33 +4,43 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.IBinder
-import android.view.View
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.TextView
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
-import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
+import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.service.CharacterRefreshService
 import com.mty.bangcalendar.service.EventRefreshService
-import com.mty.bangcalendar.util.LogUtil
 import com.mty.bangcalendar.ui.main.MainActivity
 import com.mty.bangcalendar.ui.settings.SettingsActivity
+import com.mty.bangcalendar.ui.theme.BangCalendarTheme
 import com.mty.bangcalendar.util.ThemeUtil
 
-@Deprecated("基于View实现的引导界面")
-class GuideActivity : AppCompatActivity() {
+class GuideActivity : ComponentActivity() {
 
     private val viewModel by lazy { ViewModelProvider(this).get(GuideViewModel::class.java) }
 
     private val eventConnection = object : ServiceConnection {
         override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
             val refreshBinder = p1 as EventRefreshService.RefreshBinder
-            refreshBinder
-                .refresh(findViewById(R.id.refreshProgress), findViewById(R.id.refreshText))
+            refreshBinder.refresh { progress, details ->
+                viewModel.refreshDetails(details)
+                viewModel.refreshDataProgress(progress)
+            }
         }
 
         override fun onServiceDisconnected(p0: ComponentName?) {
@@ -40,8 +50,10 @@ class GuideActivity : AppCompatActivity() {
     private val characterConnection = object : ServiceConnection {
         override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
             val refreshBinder = p1 as CharacterRefreshService.RefreshBinder
-            refreshBinder
-                .refresh(findViewById(R.id.refreshProgress), findViewById(R.id.refreshText))
+            refreshBinder.refresh { progress, details ->
+                viewModel.refreshDetails(details)
+                viewModel.refreshDataProgress(progress)
+            }
         }
 
         override fun onServiceDisconnected(p0: ComponentName?) {
@@ -50,8 +62,6 @@ class GuideActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_guide)
-        supportActionBar?.hide()
         window.statusBarColor = getColor(R.color.start)
         appStartInit()
     }
@@ -59,9 +69,9 @@ class GuideActivity : AppCompatActivity() {
     private fun appStartInit() {
         viewModel.initData.observe(this) { initData ->
             ThemeUtil.setCurrentTheme(initData.theme)
-            if (initData.isFirstStart) {  /* 首次启动 */
-                LogUtil.d("AppInit", "App is first start")
-                findViewById<LinearLayout>(R.id.guideActivity).visibility = View.VISIBLE
+            if (initData.isFirstStart) {
+                /* 首次启动 */
+                setContent { ShowContent() }
                 viewModel.refreshDataProgress.observe(this) { progress ->
                     when (progress) {
                         50 -> {
@@ -72,33 +82,63 @@ class GuideActivity : AppCompatActivity() {
                         100 -> {
                             unbindService(eventConnection)
                             unbindService(characterConnection)
-                            val button = findViewById<Button>(R.id.refreshButton)
-                            button.setOnClickListener {
-                                startMainActivity()
-                                overridePendingTransition(0, android.R.anim.fade_out)
-                            }
-                            findViewById<TextView>(R.id.refreshText)
-                                .text = getString(R.string.init_complete)
-                            button.isEnabled = true
+                            viewModel.setLaunchButtonEnabled(true)
+                            viewModel.refreshDetails(getString(R.string.init_complete))
                         }
                     }
                 }
                 val intent = Intent(this, EventRefreshService::class.java)
                 bindService(intent, eventConnection, Context.BIND_AUTO_CREATE)
-            } else if (systemDate.getDayOfWeak() == 2
-                && initData.lastRefreshDay != systemDate.day) {  /* 每周一自动更新数据库 */
+            } else if (BangCalendarApplication.systemDate.getDayOfWeak() == 2
+                && initData.lastRefreshDay != BangCalendarApplication.systemDate.day) {
+                /* 每周一自动更新数据库 */
+                setContent { ShowBackground() }
                 val intent = Intent(this, EventRefreshService::class.java)
                 startService(intent)
                 startMainActivity()
                 overridePendingTransition(0, 0)
             } else {
-                LogUtil.d("AppInit", "App is not first start")
-                LogUtil.d("AppInit", "Day of week ${systemDate.getDayOfWeak()}")
+                setContent { ShowBackground() }
                 startMainActivity()
                 overridePendingTransition(0, 0)
             }
         }
         viewModel.getInitData()
+    }
+
+    @Composable
+    private fun ShowContent() {
+        val progress by viewModel.refreshDataProgress.observeAsState(0)
+        val progressDetails by viewModel.refreshDetails.observeAsState("")
+        val buttonEnabled by viewModel.launchButtonEnabled.observeAsState(false)
+        BangCalendarTheme {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colors.background
+            ) {
+                GuideView(
+                    title = stringResource(id = R.string.welcome),
+                    progress = progress.toFloat() / 100,
+                    progressDetails = progressDetails,
+                    buttonText = stringResource(id = R.string.welcome_button),
+                    onClickListener = {
+                        startMainActivity()
+                        overridePendingTransition(0, android.R.anim.fade_out)
+                    },
+                    buttonEnabled = buttonEnabled
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun ShowBackground() {
+        BangCalendarTheme {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colors.background
+            ) {}
+        }
     }
 
     private fun startMainActivity() {
@@ -110,6 +150,69 @@ class GuideActivity : AppCompatActivity() {
             startActivity(settingsIntent)
         }
         finish()
+    }
+
+}
+
+@Composable
+fun GuideView(title: String, progress: Float, progressDetails: String, buttonText: String,
+              buttonEnabled: Boolean, onClickListener: () -> Unit) {
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
+    )
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Spacer(Modifier.weight(3f))
+        Text(
+            text = title,
+            color = MaterialTheme.colors.primaryVariant,
+            fontSize = 32.sp,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.weight(3.8f))
+        Text(
+            text = progressDetails,
+            color = MaterialTheme.colors.primaryVariant,
+        )
+        LinearProgressIndicator(
+            progress = animatedProgress,
+            modifier = Modifier
+                .fillMaxWidth(0.95f)
+                .padding(top = 5.dp, bottom = 10.dp)
+        )
+        Button(
+            onClick = onClickListener,
+            modifier = Modifier.fillMaxWidth(0.95f),
+            enabled = buttonEnabled
+        ) {
+            Text(text = buttonText)
+        }
+        Spacer(Modifier.weight(2f))
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun GuideViewPreview() {
+    var progress by remember { mutableStateOf(0f) }
+    var progressDetails by remember { mutableStateOf("") }
+    BangCalendarTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colors.background
+        ) {
+            GuideView(
+                title = stringResource(id = R.string.welcome),
+                progress = progress,
+                progressDetails = progressDetails,
+                buttonText = stringResource(id = R.string.welcome_button),
+                buttonEnabled = true,
+                onClickListener = {
+                    progress += 0.1f
+                    progressDetails = progress.toString()
+                }
+            )
+        }
     }
 
 }

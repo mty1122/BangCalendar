@@ -2,8 +2,6 @@ package com.mty.bangcalendar.ui.list
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.drawable.Drawable
-import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,25 +10,17 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.request.RequestOptions
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.card.MaterialCardView
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.logic.model.Event
-import com.mty.bangcalendar.logic.network.ServiceCreator
 import com.mty.bangcalendar.ui.main.MainActivity
 import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.ThemeUtil
 import com.tomergoldst.progress_circle.ProgressCircle
 
-class EventListAdapter(private val eventList: List<Event> , private val context: Context) :
+class EventListAdapter(private val eventList: List<Event> , private val context: Context,
+    private val viewModel: EventListViewModel) :
     RecyclerView.Adapter<EventListAdapter.ViewHolder>(){
-
-    private val glideOptions = RequestOptions()
-        .skipMemoryCache(false)
-        .diskCacheStrategy(DiskCacheStrategy.ALL)
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         private val eventCard: MaterialCardView = view.findViewById(R.id.listEventCard)
@@ -88,19 +78,9 @@ class EventListAdapter(private val eventList: List<Event> , private val context:
             Glide.with(context).load(EventUtil.getBandPic(event)).into(eventBand)
             //刷新活动图片
             val eventId = EventUtil.eventIdFormat(event.id.toInt())
-            val uri = Uri.parse(ServiceCreator.BASE_URL +
-                    "event/banner_memorial_event$eventId.png")
-            Glide.with(context).load(uri).apply(glideOptions)
-                .into(object : CustomTarget<Drawable>() {
-                    override fun onResourceReady(resource: Drawable
-                                                 , transition: Transition<in Drawable>?) {
-                        eventBackground.background = resource
-                    }
-
-                    override fun onLoadCleared(placeholder: Drawable?) {
-                        //
-                    }
-                })
+            viewModel.getEventPic(eventId) {
+                eventBackground.background = it
+            }
         }
     }
 

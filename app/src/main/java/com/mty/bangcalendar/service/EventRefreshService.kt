@@ -4,8 +4,6 @@ import android.app.Service
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
-import android.widget.ProgressBar
-import android.widget.TextView
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.mty.bangcalendar.BangCalendarApplication
@@ -22,7 +20,6 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.lang.StringBuilder
 import kotlin.concurrent.thread
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -45,34 +42,7 @@ class EventRefreshService : Service() {
 
     class RefreshBinder : Binder() {
 
-        @Deprecated("基于View的刷新组件")
-        fun refresh(progressBar: ProgressBar, textView: TextView) {
-            val gson = Gson()
-            val typeOf = object : TypeToken<List<Event>>() {}.type
-            val eventReader = BufferedReader(InputStreamReader
-                (Repository.getEventJSONStreamFromAssets()))
-            val eventList = gson.fromJson<List<Event>>(eventReader, typeOf)
-            val coroutineScope = CoroutineScope(Dispatchers.Main)
-            coroutineScope.launch {
-                for (event in eventList) {
-                    suspendCoroutine<Unit> {
-                        thread {
-                            Repository.addEventToDatabase(event)
-                            it.resume(Unit)
-                        }
-                    }
-                    textView.text = StringBuilder().run {
-                        append("载入活动：")
-                        append(event.id)
-                    }
-                    progressBar.progress = event.id.toInt() / eventList.size * 50
-                }
-                sendMessage(SettingsActivity.REFRESH_EVENT_SUCCESS)
-                coroutineScope.cancel()
-            }
-        }
-
-        fun refresh2(onItemAddFinished: (Int, String) -> Unit) {
+        fun refresh(onItemAddFinished: (Int, String) -> Unit) {
             val gson = Gson()
             val typeOf = object : TypeToken<List<Event>>() {}.type
             val eventReader = BufferedReader(InputStreamReader

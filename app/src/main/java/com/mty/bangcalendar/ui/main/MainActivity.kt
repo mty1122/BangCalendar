@@ -2,8 +2,6 @@ package com.mty.bangcalendar.ui.main
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.graphics.drawable.Drawable
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -17,12 +15,11 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.ViewPager
 import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.R
@@ -30,13 +27,14 @@ import com.mty.bangcalendar.databinding.ActivityMainBinding
 import com.mty.bangcalendar.enum.EventConstant
 import com.mty.bangcalendar.logic.model.CalendarScrollView
 import com.mty.bangcalendar.logic.model.Event
-import com.mty.bangcalendar.logic.network.ServiceCreator
 import com.mty.bangcalendar.ui.BaseActivity
 import com.mty.bangcalendar.ui.list.CharacterListActivity
 import com.mty.bangcalendar.ui.list.EventListActivity
 import com.mty.bangcalendar.ui.search.SearchActivity
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.*
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import java.util.regex.Pattern
 
 class MainActivity : BaseActivity() {
@@ -390,18 +388,12 @@ class MainActivity : BaseActivity() {
         }
         //刷新活动图片
         val eventId = EventUtil.eventIdFormat(event.id.toInt())
-        val uri = Uri.parse(ServiceCreator.BASE_URL +
-                "event/banner_memorial_event$eventId.png")
-        Glide.with(this).load(uri).apply(viewModel.glideOptions)
-            .into(object : CustomTarget<Drawable>() {
-            override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
-                binding.eventCard.eventBackground.background = resource
+        lifecycleScope.launch {
+            viewModel.getEventPic(eventId) {
+                binding.eventCard.eventBackground.background = it
             }
-
-            override fun onLoadCleared(placeholder: Drawable?) {
-                //
-            }
-        })
+            cancel()
+        }
         binding.eventCard.eventButton.setOnClickListener {
             val intent = Intent(this, EventListActivity::class.java)
             intent.putExtra("current_id", event.id.toInt())

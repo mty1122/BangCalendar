@@ -1,18 +1,14 @@
 package com.mty.bangcalendar.ui.search
 
+import android.graphics.drawable.Drawable
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.request.RequestOptions
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Event
 
 class SearchViewModel : ViewModel() {
-    val glideOptions = RequestOptions()
-        .skipMemoryCache(false)
-        .diskCacheStrategy(DiskCacheStrategy.ALL)
 
     private val searchEventLiveData = MutableLiveData<Int>()
     val event: LiveData<Event?> = Transformations.switchMap(searchEventLiveData) {
@@ -29,4 +25,11 @@ class SearchViewModel : ViewModel() {
     fun getCharacterByName(name: String) {
         searchCharacterLiveData.value = name
     }
+
+    suspend fun getEventPic(eventId: String, onPicReady: (Drawable) -> Unit) {
+        Repository.getEventPic(eventId)?.let {
+            onPicReady(it)
+        }
+    }
+
 }

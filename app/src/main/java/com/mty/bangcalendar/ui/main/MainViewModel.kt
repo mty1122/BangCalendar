@@ -4,12 +4,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.drawable.Drawable
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.request.RequestOptions
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.logic.Repository
@@ -25,10 +24,6 @@ class MainViewModel : ViewModel() {
     //活动起始/终止时间
     var eventStartTime: Long? = null
     var eventEndTime: Long? = null
-
-    val glideOptions = RequestOptions()
-        .skipMemoryCache(false)
-        .diskCacheStrategy(DiskCacheStrategy.ALL)
 
     //应用设置更改
     private val refreshSettingsReceiver = object : BroadcastReceiver() {
@@ -183,6 +178,12 @@ class MainViewModel : ViewModel() {
     }
     fun setAdditionalTip(additionalTip: String) {
         additionalTipLiveData.value = additionalTip
+    }
+
+    suspend fun getEventPic(eventId: String, onPicReady: (Drawable) -> Unit) {
+        Repository.getEventPic(eventId)?.let {
+            onPicReady(it)
+        }
     }
 
     //取消注册Broadcast

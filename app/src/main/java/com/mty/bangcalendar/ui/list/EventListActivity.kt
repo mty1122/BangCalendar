@@ -53,7 +53,7 @@ class EventListActivity : BaseActivity() {
             //对乐队进行过滤
             if (bandId != -1)
                 startEventId = eventListCutter(eventList, bandId, startEventId)
-            val adapter = EventListAdapter(eventList, this)
+            val adapter = EventListAdapter(eventList, this, viewModel)
             binding.eventList.adapter = adapter
             //设置起始位置
             (binding.eventList.layoutManager as LinearLayoutManager)

@@ -24,13 +24,6 @@ class GuideViewModel : ViewModel() {
         initDataLiveData.value = initDataLiveData.value
     }
 
-    //接收service发来的更新进度
-    private val refreshDataProgressReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            _refreshDataProgress.value = _refreshDataProgress.value?.plus(50)
-        }
-    }
-
     //传递更新进度
     val refreshDataProgress: LiveData<Int>
         get() = _refreshDataProgress
@@ -64,15 +57,6 @@ class GuideViewModel : ViewModel() {
 
     init {
         _refreshDataProgress.value = 0
-        val intentFilter = IntentFilter()
-        intentFilter.addAction("com.mty.bangcalendar.REFRESH_DATABASE_FINISH")
-        BangCalendarApplication.context.registerReceiver(refreshDataProgressReceiver, intentFilter)
-    }
-
-    //取消注册Broadcast
-    override fun onCleared() {
-        super.onCleared()
-        BangCalendarApplication.context.unregisterReceiver(refreshDataProgressReceiver)
     }
 
 }

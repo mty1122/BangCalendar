@@ -11,18 +11,13 @@ import com.mty.bangcalendar.logic.model.Character
 import com.mty.bangcalendar.service.EventRefreshService.Companion.sendMessage
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.LogUtil
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import kotlin.concurrent.thread
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class CharacterRefreshService : Service(){
 
@@ -39,15 +34,12 @@ class CharacterRefreshService : Service(){
             val coroutineScope = CoroutineScope(Dispatchers.Main)
             coroutineScope.launch {
                 for (character in characterList) {
-                    suspendCoroutine<Unit> {
-                        thread {
-                            Repository.addCharacterToDatabase(character)
-                            it.resume(Unit)
-                        }
-                        val progress = 50 + character.id.toInt() * 50 / characterList.size
-                        val details = "载入角色：${character.name}"
-                        onItemAddFinished(progress, details)
+                    withContext(Dispatchers.IO) {
+                        Repository.addCharacterToDatabase(character)
                     }
+                    val progress = 50 + character.id.toInt() * 50 / characterList.size
+                    val details = "载入角色：${character.name}"
+                    onItemAddFinished(progress, details)
                 }
                 coroutineScope.cancel()
             }

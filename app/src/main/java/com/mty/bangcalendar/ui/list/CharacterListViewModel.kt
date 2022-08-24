@@ -1,19 +1,18 @@
 package com.mty.bangcalendar.ui.list
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.*
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Character
+import kotlinx.coroutines.launch
 
 class CharacterListViewModel : ViewModel() {
 
-    private val getCharacterListLiveData = MutableLiveData<Any?>()
-    val characterList: LiveData<List<Character>> = Transformations.switchMap(getCharacterListLiveData) {
-        Repository.getCharacterList()
-    }
+    private val _characterList = MutableLiveData<List<Character>>()
+    val characterList: LiveData<List<Character>>
+        get() = _characterList
     fun getCharacterList() {
-        getCharacterListLiveData.value = getCharacterListLiveData.value
+        viewModelScope.launch {
+            _characterList.value = Repository.getCharacterList()
+        }
     }
 }

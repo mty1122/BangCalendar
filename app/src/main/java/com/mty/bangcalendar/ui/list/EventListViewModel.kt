@@ -4,17 +4,17 @@ import android.graphics.drawable.Drawable
 import androidx.lifecycle.*
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Event
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 class EventListViewModel : ViewModel() {
 
-    private val getEventListLiveData = MutableLiveData<Any?>()
-    val eventList: LiveData<List<Event>> = Transformations.switchMap(getEventListLiveData) {
-        Repository.getEventList()
-    }
+    private val _eventList = MutableLiveData<List<Event>>()
+    val eventList: LiveData<List<Event>>
+        get() = _eventList
     fun getEventList() {
-        getEventListLiveData.value = getEventListLiveData.value
+        viewModelScope.launch {
+           _eventList.value = Repository.getEventList()
+        }
     }
 
     fun getEventPic(eventId: String, onPicReady: (Drawable) -> Unit) {
@@ -22,7 +22,6 @@ class EventListViewModel : ViewModel() {
             Repository.getEventPic(eventId)?.let {
                 onPicReady(it)
             }
-            cancel()
         }
     }
 

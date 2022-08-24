@@ -11,18 +11,13 @@ import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.LogUtil
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import kotlin.concurrent.thread
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class EventRefreshService : Service() {
 
@@ -51,15 +46,12 @@ class EventRefreshService : Service() {
             val coroutineScope = CoroutineScope(Dispatchers.Main)
             coroutineScope.launch {
                 for (event in eventList) {
-                    suspendCoroutine<Unit> {
-                        thread {
-                            Repository.addEventToDatabase(event)
-                            it.resume(Unit)
-                        }
-                        val progress = event.id.toInt() * 50 / eventList.size
-                        val details = "载入活动：${event.id}"
-                        onItemAddFinished(progress, details)
+                    withContext(Dispatchers.IO) {
+                        Repository.addEventToDatabase(event)
                     }
+                    val progress = event.id.toInt() * 50 / eventList.size
+                    val details = "载入活动：${event.id}"
+                    onItemAddFinished(progress, details)
                 }
                 coroutineScope.cancel()
             }

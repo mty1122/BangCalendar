@@ -1,27 +1,21 @@
 package com.mty.bangcalendar.ui.guide
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
-import com.mty.bangcalendar.BangCalendarApplication
+import androidx.lifecycle.viewModelScope
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.GuideInitData
 import com.mty.bangcalendar.util.LogUtil
+import kotlinx.coroutines.launch
 
 class GuideViewModel : ViewModel() {
 
     //载入GuideInitData，包括判断是否初次启动和获取主题
-    private val initDataLiveData = MutableLiveData<Any?>()
-    val initData: LiveData<GuideInitData> = Transformations.switchMap(initDataLiveData) {
-        Repository.getGuideInitData()
-    }
-    fun getInitData() {
-        initDataLiveData.value = initDataLiveData.value
+    fun getInitData(onDataReady: (GuideInitData) -> Unit) {
+        viewModelScope.launch {
+            onDataReady(Repository.getGuideInitData())
+        }
     }
 
     //传递更新进度

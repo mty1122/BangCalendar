@@ -17,6 +17,7 @@ import com.mty.bangcalendar.logic.model.*
 import com.mty.bangcalendar.logic.network.BangCalendarNetwork
 import com.mty.bangcalendar.logic.network.ServiceCreator
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.lang.Exception
 import kotlin.concurrent.thread
 import kotlin.coroutines.resume
@@ -42,65 +43,36 @@ object Repository {
         AppDatabase.getDatabase().eventDao().insertEvent(event)
     }
 
-    fun getGuideInitData(): LiveData<GuideInitData> {
-        val liveData = MutableLiveData<GuideInitData>()
-        thread {
-            val isFirstStart = PreferenceDao.isFirstStart()
-            val theme = PreferenceDao.getTheme()
-            val lastRefreshDay = PreferenceDao.getLastRefreshDay()
-            liveData.postValue(GuideInitData(isFirstStart, theme, lastRefreshDay))
-        }
-        return liveData
+    suspend fun getGuideInitData() = withContext(Dispatchers.IO) {
+        val isFirstStart = PreferenceDao.isFirstStart()
+        val theme = PreferenceDao.getTheme()
+        val lastRefreshDay = PreferenceDao.getLastRefreshDay()
+        GuideInitData(isFirstStart, theme, lastRefreshDay)
     }
 
-    fun getAdditionalTip(): LiveData<String> {
-        val liveData = MutableLiveData<String>()
-        thread {
-            liveData.postValue(PreferenceDao.getAdditionalTip())
-        }
-        return liveData
+    suspend fun getAdditionalTip() = withContext(Dispatchers.IO) {
+        PreferenceDao.getAdditionalTip()
     }
 
-    fun setAdditionalTip(additionalTip: String): LiveData<String> {
-        val liveData = MutableLiveData<String>()
-        thread {
-            PreferenceDao.setAdditionalTip(additionalTip)
-            liveData.postValue(PreferenceDao.getAdditionalTip())
-        }
-        return liveData
+    suspend fun setAdditionalTip(additionalTip: String) = withContext(Dispatchers.IO) {
+        PreferenceDao.setAdditionalTip(additionalTip)
+        PreferenceDao.getAdditionalTip()
     }
 
-    fun getUserName(): LiveData<String> {
-        val liveData = MutableLiveData<String>()
-        thread {
-            liveData.postValue(PreferenceDao.getUserName())
-        }
-        return liveData
+    suspend fun getUserName() = withContext(Dispatchers.IO) {
+        PreferenceDao.getUserName()
     }
 
-    fun getPreferenceBand(): LiveData<String> {
-        val liveData = MutableLiveData<String>()
-        thread {
-            liveData.postValue(PreferenceDao.getPreferenceBand())
-        }
-        return liveData
+    suspend fun getPreferenceBand() = withContext(Dispatchers.IO) {
+        PreferenceDao.getPreferenceBand()
     }
 
-    fun getPreferenceCharacter(): LiveData<Int> {
-        val liveData = MutableLiveData<Int>()
-        thread {
-            liveData.postValue(PreferenceDao.getPreferenceCharacter())
-        }
-        return liveData
+    suspend fun getPreferenceCharacter() = withContext(Dispatchers.IO) {
+        PreferenceDao.getPreferenceCharacter()
     }
 
-    fun getEventByDate(date: Int): LiveData<Event?> {
-        val liveData = MutableLiveData<Event?>()
-        thread {
-            val event = AppDatabase.getDatabase().eventDao().getNearlyEventByDate(date)
-            liveData.postValue(event)
-        }
-        return liveData
+    suspend fun getEventByDate(date: Int) = withContext(Dispatchers.IO) {
+        AppDatabase.getDatabase().eventDao().getNearlyEventByDate(date)
     }
 
     fun getEventById(id: Int): LiveData<Event?> {
@@ -112,35 +84,18 @@ object Repository {
         return liveData
     }
 
-    fun getBandEventByDate(date: Int, character1Id: Int): LiveData<Event?> {
-        val liveData = MutableLiveData<Event?>()
-        thread {
-            val event = AppDatabase.getDatabase().eventDao()
-                .getNearlyBandEventByDate(date, character1Id)
-            liveData.postValue(event)
-        }
-        return liveData
+    suspend fun getBandEventByDate(date: Int, character1Id: Int) = withContext(Dispatchers.IO) {
+        AppDatabase.getDatabase().eventDao().getNearlyBandEventByDate(date, character1Id)
     }
 
-    fun getCharacterByMonth(month: Int): LiveData<List<Character>> {
+   suspend fun getCharacterByMonth(month: Int) = withContext(Dispatchers.IO) {
         val formatMonth = if (month < 10) "0$month"
                           else month.toString()
-        val liveData = MutableLiveData<List<Character>>()
-        thread {
-            val characterList = AppDatabase.getDatabase().characterDao()
-                .getCharacterByMonth(formatMonth)
-            liveData.postValue(characterList)
-        }
-        return liveData
+       AppDatabase.getDatabase().characterDao().getCharacterByMonth(formatMonth)
     }
 
-    fun getCharacterById(id: Int): LiveData<Character> {
-        val liveData = MutableLiveData<Character>()
-        thread {
-            val character = AppDatabase.getDatabase().characterDao().getCharacterById(id)
-            liveData.postValue(character)
-        }
-        return liveData
+    suspend fun getCharacterById(id: Int) = withContext(Dispatchers.IO) {
+        AppDatabase.getDatabase().characterDao().getCharacterById(id)
     }
 
     fun getCharacterByName(name: String): LiveData<Character?> {
@@ -225,22 +180,12 @@ object Repository {
         return liveData
     }
 
-    fun getEventList(): LiveData<List<Event>> {
-        val liveData = MutableLiveData<List<Event>>()
-        thread {
-            val eventList = AppDatabase.getDatabase().eventDao().getEventList()
-            liveData.postValue(eventList)
-        }
-        return liveData
+    suspend fun getEventList() = withContext(Dispatchers.IO) {
+        AppDatabase.getDatabase().eventDao().getEventList()
     }
 
-    fun getCharacterList(): LiveData<List<Character>> {
-        val liveData = MutableLiveData<List<Character>>()
-        thread {
-            val characterList = AppDatabase.getDatabase().characterDao().getCharacterList()
-            liveData.postValue(characterList)
-        }
-        return liveData
+    suspend fun getCharacterList() = withContext(Dispatchers.IO) {
+        AppDatabase.getDatabase().characterDao().getCharacterList()
     }
 
     fun setLastRefreshDay(day: Int) {

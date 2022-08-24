@@ -33,7 +33,6 @@ import com.mty.bangcalendar.ui.list.EventListActivity
 import com.mty.bangcalendar.ui.search.SearchActivity
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.*
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.util.regex.Pattern
 
@@ -392,7 +391,6 @@ class MainActivity : BaseActivity() {
             viewModel.getEventPic(eventId) {
                 binding.eventCard.eventBackground.background = it
             }
-            cancel()
         }
         binding.eventCard.eventButton.setOnClickListener {
             val intent = Intent(this, EventListActivity::class.java)

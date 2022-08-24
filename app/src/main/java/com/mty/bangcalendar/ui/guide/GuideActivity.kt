@@ -63,11 +63,8 @@ class GuideActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.statusBarColor = getColor(R.color.start)
-        appStartInit()
-    }
-
-    private fun appStartInit() {
-        viewModel.initData.observe(this) { initData ->
+        //初始化App
+        viewModel.getInitData { initData ->
             ThemeUtil.setCurrentTheme(initData.theme)
             if (initData.isFirstStart) {
                 /* 首次启动 */
@@ -92,18 +89,15 @@ class GuideActivity : ComponentActivity() {
             } else if (BangCalendarApplication.systemDate.getDayOfWeak() == 2
                 && initData.lastRefreshDay != BangCalendarApplication.systemDate.day) {
                 /* 每周一自动更新数据库 */
-                setContent { ShowBackground() }
                 val intent = Intent(this, EventRefreshService::class.java)
                 startService(intent)
                 startMainActivity()
                 overridePendingTransition(0, 0)
             } else {
-                setContent { ShowBackground() }
                 startMainActivity()
                 overridePendingTransition(0, 0)
             }
         }
-        viewModel.getInitData()
     }
 
     @Composable
@@ -128,16 +122,6 @@ class GuideActivity : ComponentActivity() {
                     buttonEnabled = buttonEnabled
                 )
             }
-        }
-    }
-
-    @Composable
-    private fun ShowBackground() {
-        BangCalendarTheme {
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-                color = MaterialTheme.colors.background
-            ) {}
         }
     }
 

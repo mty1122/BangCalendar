@@ -2,8 +2,6 @@ package com.mty.bangcalendar.ui.search
 
 import android.content.Intent
 import android.graphics.Color
-import android.graphics.drawable.Drawable
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.MenuItem
@@ -16,20 +14,16 @@ import androidx.core.view.updatePadding
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivitySearchBinding
 import com.mty.bangcalendar.logic.model.Character
 import com.mty.bangcalendar.logic.model.Event
-import com.mty.bangcalendar.logic.network.ServiceCreator
 import com.mty.bangcalendar.ui.BaseActivity
 import com.mty.bangcalendar.ui.list.CharacterListActivity
 import com.mty.bangcalendar.ui.list.EventListActivity
 import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.LogUtil
 import com.mty.bangcalendar.util.ThemeUtil
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.util.regex.Pattern
 
@@ -202,7 +196,6 @@ class SearchActivity : BaseActivity() {
             viewModel.getEventPic(eventId) {
                 binding.searchEventCard.eventBackground.background = it
             }
-            cancel()
         }
         binding.searchEventCard.eventButton.setOnClickListener {
             val intent = Intent(this, EventListActivity::class.java)

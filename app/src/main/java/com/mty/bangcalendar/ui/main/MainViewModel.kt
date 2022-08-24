@@ -5,16 +5,15 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.drawable.Drawable
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.*
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.logic.Repository
+import com.mty.bangcalendar.logic.model.Character
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.CalendarUtil
+import kotlinx.coroutines.launch
 
 class MainViewModel : ViewModel() {
 
@@ -49,7 +48,7 @@ class MainViewModel : ViewModel() {
 
     //当前选中的日期
     val currentDate: LiveData<CalendarUtil>
-    get() = _currentDate
+        get() = _currentDate
 
     private val _currentDate = MutableLiveData<CalendarUtil>()
 
@@ -59,7 +58,7 @@ class MainViewModel : ViewModel() {
 
     //当前选中item
     val selectedItem: LiveData<Int>
-    get() = _selectedItem
+        get() = _selectedItem
 
     private val _selectedItem = MutableLiveData<Int>()
 
@@ -69,7 +68,7 @@ class MainViewModel : ViewModel() {
 
     //生日卡片
     val birthdayCard: LiveData<Int>
-    get() = _birthdayCard
+        get() = _birthdayCard
 
     private val _birthdayCard = MutableLiveData<Int>()
 
@@ -100,84 +99,93 @@ class MainViewModel : ViewModel() {
         BangCalendarApplication.context.registerReceiver(jumpDateReceiver, intentFilter2)
     }
 
-    private val todayEventLiveData = MutableLiveData<Any>()
-    val todayEvent: LiveData<Event?> = Transformations.switchMap(todayEventLiveData) {
-        Repository.getEventByDate(systemDate.getDate())
-    }
+    private val _todayEvent = MutableLiveData<Event?>()
+    val todayEvent: LiveData<Event?>
+        get() = _todayEvent
     fun getTodayEvent() {
-        todayEventLiveData.value = todayEventLiveData.value
+        viewModelScope.launch {
+            _todayEvent.value = Repository.getEventByDate(systemDate.getDate())
+        }
     }
 
-    private val searchDateLiveData = MutableLiveData<Int>()
-    val event: LiveData<Event?> = Transformations.switchMap(searchDateLiveData) {
-        Repository.getEventByDate(it)
-    }
+    private val _event = MutableLiveData<Event?>()
+    val event: LiveData<Event?>
+        get() = _event
     fun getEventByDate(date: Int) {
-        searchDateLiveData.value = date
+        viewModelScope.launch {
+            _event.value = Repository.getEventByDate(date)
+        }
     }
 
-    private val getCharacterByMonthLiveData = MutableLiveData<Int>()
-    val characterInMonth = Transformations.switchMap(getCharacterByMonthLiveData) {
-        Repository.getCharacterByMonth(it)
-    }
+    private val _characterInMonth = MutableLiveData<List<Character>>()
+    val characterInMonth: LiveData<List<Character>>
+        get() = _characterInMonth
     fun getCharacterByMonth(month: Int) {
-        getCharacterByMonthLiveData.value = month
+        viewModelScope.launch {
+            _characterInMonth.value = Repository.getCharacterByMonth(month)
+        }
     }
 
     //dailyTag服务
-    private val userNameLiveData = MutableLiveData<String>()
-    val userName = Transformations.switchMap(userNameLiveData) {
-        Repository.getUserName()
-    }
+    private val _userName = MutableLiveData<String>()
+    val userName: LiveData<String>
+        get() = _userName
     fun getUserName() {
-        userNameLiveData.value = userNameLiveData.value
+        viewModelScope.launch {
+           _userName.value = Repository.getUserName()
+        }
     }
 
-    private val preferenceBandLiveData = MutableLiveData<String>()
-    val preferenceBand = Transformations.switchMap(preferenceBandLiveData) {
-        Repository.getPreferenceBand()
-    }
+    private val _preferenceBand = MutableLiveData<String>()
+    val preferenceBand: LiveData<String>
+        get() = _preferenceBand
     fun getPreferenceBand() {
-        preferenceBandLiveData.value = preferenceBandLiveData.value
+        viewModelScope.launch {
+            _preferenceBand.value = Repository.getPreferenceBand()
+        }
     }
 
-    private val preferenceNearlyBandEventLiveData = MutableLiveData<Int>()
-    val preferenceNearlyBandEvent = Transformations.switchMap(preferenceNearlyBandEventLiveData) {
-        Repository.getBandEventByDate(systemDate.getDate(), it)
-    }
+    private val _preferenceNearlyBandEvent = MutableLiveData<Event?>()
+    val preferenceNearlyBandEvent: LiveData<Event?>
+        get() = _preferenceNearlyBandEvent
     fun getPreferenceNearlyBandEvent(character1Id: Int) {
-        preferenceNearlyBandEventLiveData.value = character1Id
+        viewModelScope.launch {
+            _preferenceNearlyBandEvent.value =
+                Repository.getBandEventByDate(systemDate.getDate(), character1Id)
+        }
     }
 
-    private val preferenceCharacterIdLiveData = MutableLiveData<Int>()
-    val preferenceCharacterId = Transformations.switchMap(preferenceCharacterIdLiveData) {
-        Repository.getPreferenceCharacter()
-    }
+    private val _preferenceCharacterId = MutableLiveData<Int>()
+    val preferenceCharacterId: LiveData<Int>
+        get() = _preferenceCharacterId
     fun getPreferenceCharacterId() {
-        preferenceCharacterIdLiveData.value = preferenceCharacterIdLiveData.value
+        viewModelScope.launch {
+            _preferenceCharacterId.value =  Repository.getPreferenceCharacter()
+        }
     }
 
-    private val preferenceCharacterLiveData = MutableLiveData<Int>()
-    val preferenceCharacter = Transformations.switchMap(preferenceCharacterLiveData) {
-        Repository.getCharacterById(it)
-    }
+    private val _preferenceCharacter = MutableLiveData<Character>()
+    val preferenceCharacter: LiveData<Character>
+        get() = _preferenceCharacter
     fun getPreferenceCharacter(id: Int) {
-        preferenceCharacterLiveData.value = id
+        viewModelScope.launch {
+            _preferenceCharacter.value = Repository.getCharacterById(id)
+        }
     }
 
     //附加提醒
-    private val additionalTipLiveData = MutableLiveData<String?>()
-    val additionalTip = Transformations.switchMap(additionalTipLiveData) {
-        if (it != null)
-            Repository.setAdditionalTip(it)
-        else
-            Repository.getAdditionalTip()
-    }
+    private val _additionalTip = MutableLiveData<String>()
+    val additionalTip: LiveData<String>
+        get() = _additionalTip
     fun getAdditionalTip() {
-        additionalTipLiveData.value = null
+        viewModelScope.launch {
+            _additionalTip.value = Repository.getAdditionalTip()
+        }
     }
     fun setAdditionalTip(additionalTip: String) {
-        additionalTipLiveData.value = additionalTip
+        viewModelScope.launch {
+            _additionalTip.value = Repository.setAdditionalTip(additionalTip)
+        }
     }
 
     suspend fun getEventPic(eventId: String, onPicReady: (Drawable) -> Unit) {

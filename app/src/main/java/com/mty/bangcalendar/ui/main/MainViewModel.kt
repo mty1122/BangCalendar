@@ -13,6 +13,7 @@ import com.mty.bangcalendar.logic.model.Character
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.CalendarUtil
+import com.mty.bangcalendar.logic.model.IntDate
 import kotlinx.coroutines.launch
 
 class MainViewModel : ViewModel() {
@@ -42,7 +43,7 @@ class MainViewModel : ViewModel() {
         override fun onReceive(context: Context, intent: Intent) {
             val startDate = intent.getIntExtra("current_start_date", -1)
             if (startDate != -1)
-                setJumpDate(startDate)
+                setJumpDate(IntDate(startDate))
         }
     }
 
@@ -77,12 +78,12 @@ class MainViewModel : ViewModel() {
     }
 
     //跳转日期
-    val jumpDate: LiveData<Int>
+    val jumpDate: LiveData<IntDate>
         get() = _jumpDate
 
-    private val _jumpDate = MutableLiveData<Int>()
+    private val _jumpDate = MutableLiveData<IntDate>()
 
-    fun setJumpDate(startDate: Int) {
+    fun setJumpDate(startDate: IntDate) {
         _jumpDate.value = startDate
     }
 
@@ -104,14 +105,14 @@ class MainViewModel : ViewModel() {
         get() = _todayEvent
     fun getTodayEvent() {
         viewModelScope.launch {
-            _todayEvent.value = Repository.getEventByDate(systemDate.getDate())
+            _todayEvent.value = Repository.getEventByDate(systemDate.toDate())
         }
     }
 
     private val _event = MutableLiveData<Event?>()
     val event: LiveData<Event?>
         get() = _event
-    fun getEventByDate(date: Int) {
+    fun getEventByDate(date: IntDate) {
         viewModelScope.launch {
             _event.value = Repository.getEventByDate(date)
         }
@@ -151,7 +152,7 @@ class MainViewModel : ViewModel() {
     fun getPreferenceNearlyBandEvent(character1Id: Int) {
         viewModelScope.launch {
             _preferenceNearlyBandEvent.value =
-                Repository.getBandEventByDate(systemDate.getDate(), character1Id)
+                Repository.getBandEventByDate(systemDate.toDate(), character1Id)
         }
     }
 

@@ -27,6 +27,7 @@ import com.mty.bangcalendar.databinding.ActivityMainBinding
 import com.mty.bangcalendar.enum.EventConstant
 import com.mty.bangcalendar.logic.model.CalendarScrollView
 import com.mty.bangcalendar.logic.model.Event
+import com.mty.bangcalendar.logic.model.IntDate
 import com.mty.bangcalendar.ui.BaseActivity
 import com.mty.bangcalendar.ui.list.CharacterListActivity
 import com.mty.bangcalendar.ui.list.EventListActivity
@@ -74,7 +75,7 @@ class MainActivity : BaseActivity() {
 
         //观察当前日期变化，及时刷新活动信息
         viewModel.currentDate.observe(this) {
-            val date = it.getDate()
+            val date = it.toDate()
             LogUtil.d("MainActivity", "日期发生变化 $date")
             viewModel.getEventByDate(date) //刷新活动
             //顶部日期刷新
@@ -96,9 +97,10 @@ class MainActivity : BaseActivity() {
 
         //观察活动变化，刷新活动组件内容
         viewModel.event.observe(this) {
-            val currentDate = viewModel.currentDate.value!!.getDate()
+            val currentDate = viewModel.currentDate.value!!.toDate()
             //活动小于第一期或者大于最后一期时，隐藏活动卡片
-            if (it == null || CalendarUtil.differentOfTwoDates(it.startDate, currentDate) >= 7) {
+            if (it == null ||
+                CalendarUtil.differentOfTwoDates(IntDate(it.startDate), currentDate) >= 7) {
                 LogUtil.d("Event", "currentDate $currentDate startDate ${it?.startDate}")
                 mainBinding.eventCard.eventCardItem.visibility = View.GONE
             } else {
@@ -190,7 +192,7 @@ class MainActivity : BaseActivity() {
         }
 
         viewModel.jumpDate.observe(this) {
-            jumpDate(mainBinding.viewPager, CalendarUtil.dateToCalendarUtil(it))
+            jumpDate(mainBinding.viewPager, CalendarUtil(it))
         }
 
     }
@@ -266,9 +268,10 @@ class MainActivity : BaseActivity() {
                 stringBuilder.append("这期活动是${bandName}活哦，快去冲榜吧。")
             } else if (nearlyBandEvent != null) {
                 stringBuilder.append("距离下次${bandName}活还有" +
-                        "${CalendarUtil.differentOfTwoDates(systemDate.getDate(), 
-                            nearlyBandEvent.startDate)}天，活动编号为${nearlyBandEvent.id}，" +
-                        "活动属性为${EventUtil.getAttrsName(nearlyBandEvent.attrs)}。")
+                        "${CalendarUtil.differentOfTwoDates(systemDate.toDate(), 
+                            IntDate(nearlyBandEvent.startDate)
+                        )}天，活动编号为${nearlyBandEvent.id}，"
+                        + "活动属性为${EventUtil.getAttrsName(nearlyBandEvent.attrs)}。")
             }
         }
         if (additionalTip != null && additionalTip != "") {
@@ -279,10 +282,10 @@ class MainActivity : BaseActivity() {
                 val matcher = pattern.matcher(strs[1])
                 //输入正确再进行对比
                 if (matcher.find()) {
-                    val systemDate = systemDate.getDate()
+                    val systemDate = systemDate.toDate()
                     val targetDate = Integer.parseInt(strs[1])
                     val differentOfTwoDates = CalendarUtil
-                        .differentOfTwoDates(systemDate, targetDate).toInt()
+                        .differentOfTwoDates(systemDate, IntDate(targetDate))
                     when (true) {
                         (differentOfTwoDates > 0) -> {
                             stringBuilder.append("距离${strs[0]}还有${differentOfTwoDates}天。")
@@ -380,10 +383,10 @@ class MainActivity : BaseActivity() {
         Glide.with(this).load(EventUtil.getBandPic(event))
             .into(binding.eventCard.eventBand)
         binding.eventCard.eventBand.setOnClickListener {
-            val intent = Intent(this, EventListActivity::class.java)
-            intent.putExtra("current_id", event.id.toInt())
-            intent.putExtra("band_id", EventUtil.getBand(event).id)
-            startActivity(intent)
+            startActivity<EventListActivity>(
+                "current_id" to event.id.toInt(),
+                "band_id" to EventUtil.getBand(event).id
+            )
         }
         //刷新活动图片
         val eventId = EventUtil.eventIdFormat(event.id.toInt())
@@ -393,9 +396,7 @@ class MainActivity : BaseActivity() {
             }
         }
         binding.eventCard.eventButton.setOnClickListener {
-            val intent = Intent(this, EventListActivity::class.java)
-            intent.putExtra("current_id", event.id.toInt())
-            startActivity(intent)
+            startActivity<EventListActivity>("current_id" to event.id.toInt())
         }
     }
 
@@ -625,10 +626,7 @@ class MainActivity : BaseActivity() {
     }
 
     private fun startCharacterListActivity(id: Int) {
-        val intent =
-            Intent(this, CharacterListActivity::class.java)
-        intent.putExtra("current_id", id)
-        startActivity(intent)
+        startActivity<CharacterListActivity>("current_id" to id)
     }
 
 }

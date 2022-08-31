@@ -16,6 +16,7 @@ import com.mty.bangcalendar.logic.dao.PreferenceDao
 import com.mty.bangcalendar.logic.model.*
 import com.mty.bangcalendar.logic.network.BangCalendarNetwork
 import com.mty.bangcalendar.logic.network.ServiceCreator
+import com.mty.bangcalendar.logic.model.IntDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.lang.Exception
@@ -30,10 +31,10 @@ object Repository {
         .diskCacheStrategy(DiskCacheStrategy.ALL)
 
     fun getCharacterJSONStreamFromAssets() =
-        BangCalendarApplication.context.assets.open("Character.json")
+        BangCalendarApplication.context.assets.open("character.json")
 
     fun getEventJSONStreamFromAssets() =
-        BangCalendarApplication.context.assets.open("Event.json")
+        BangCalendarApplication.context.assets.open("event.json")
 
     fun addCharacterToDatabase(character: Character) {
         AppDatabase.getDatabase().characterDao().insertCharacter(character)
@@ -71,8 +72,8 @@ object Repository {
         PreferenceDao.getPreferenceCharacter()
     }
 
-    suspend fun getEventByDate(date: Int) = withContext(Dispatchers.IO) {
-        AppDatabase.getDatabase().eventDao().getNearlyEventByDate(date)
+    suspend fun getEventByDate(date: IntDate) = withContext(Dispatchers.IO) {
+        AppDatabase.getDatabase().eventDao().getNearlyEventByDate(date.date)
     }
 
     fun getEventById(id: Int): LiveData<Event?> {
@@ -84,8 +85,8 @@ object Repository {
         return liveData
     }
 
-    suspend fun getBandEventByDate(date: Int, character1Id: Int) = withContext(Dispatchers.IO) {
-        AppDatabase.getDatabase().eventDao().getNearlyBandEventByDate(date, character1Id)
+    suspend fun getBandEventByDate(date: IntDate, character1Id: Int) = withContext(Dispatchers.IO) {
+        AppDatabase.getDatabase().eventDao().getNearlyBandEventByDate(date.date, character1Id)
     }
 
    suspend fun getCharacterByMonth(month: Int) = withContext(Dispatchers.IO) {

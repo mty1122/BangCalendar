@@ -4,6 +4,7 @@ import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivityMainBinding
 import com.mty.bangcalendar.enum.EventConstant
 import com.mty.bangcalendar.logic.model.Event
+import com.mty.bangcalendar.logic.model.IntDate
 import java.util.regex.Pattern
 
 object EventUtil {
@@ -144,7 +145,7 @@ object EventUtil {
 
     fun getEventStartTime(event: Event?): Long? =
         if (event != null)
-            CalendarUtil.dateToCalendarUtil(event.startDate).run {
+            CalendarUtil(IntDate(event.startDate)).run {
                 hour = 15
                 getTimeInMillis()
             }
@@ -153,7 +154,7 @@ object EventUtil {
 
     fun getEventEndTime(event: Event?): Long? =
         if (event != null)
-            CalendarUtil.dateToCalendarUtil(event.startDate).run {
+            CalendarUtil(IntDate(event.startDate)).run {
                 day += 5
                 hour = 23
                 getTimeInMillis()

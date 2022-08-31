@@ -14,7 +14,9 @@ object LogUtil {
 
     private const val ERROR = 5
 
-    private var level = ERROR
+    private const val level = ERROR
+
+    private const val DEFAULT_TAG = "LogUtil"
 
     fun v(tag: String, msg: String) {
         if (level <= VERBOSE) {
@@ -25,6 +27,21 @@ object LogUtil {
     fun d(tag: String, msg: String) {
         if (level <= DEBUG) {
             Log.d(tag, msg)
+        }
+    }
+
+    /**
+     * 本函数将类名作为Log的Tag，只需传入msg即可
+     * @param obj 一般情况下传入this即可，若this为匿名类，则采用LogUtil作为Tag
+     */
+    fun <T> d(obj: T, msg: String) {
+        if (level <= DEBUG) {
+            val tag = obj!!::class.simpleName
+            if (tag != null) {
+                Log.d(tag, msg)
+            } else {
+                Log.d(DEFAULT_TAG, msg)
+            }
         }
     }
 

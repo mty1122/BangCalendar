@@ -2,6 +2,7 @@ package com.mty.bangcalendar.util
 
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.logic.model.Character
+import com.mty.bangcalendar.logic.model.IntDate
 import java.util.TreeMap
 
 object CharacterUtil {
@@ -18,8 +19,7 @@ object CharacterUtil {
 
     fun birthdayToMonth(birthday: String) = Integer.parseInt(birthday) / 100
 
-    fun getNextBirthdayDate(birthday: String, systemDate: CalendarUtil): Array<Int> {
-        val dateArray = Array(2) { 0 }
+    fun getNextBirthdayDate(birthday: String, systemDate: CalendarUtil): IntDate {
         val intBirthday = Integer.parseInt(birthday)
         val month = intBirthday / 100
         val day = intBirthday % 100
@@ -29,18 +29,13 @@ object CharacterUtil {
             if (day < systemDate.day) systemDate.year + 1
             else systemDate.year
         }
-        val dateLater = CalendarUtil.getDate(year, month, day)
-        dateArray[0] = dateLater
-        val dateEarlier = CalendarUtil.getDate(systemDate.year,systemDate.month,systemDate.day)
-        dateArray[1] = dateEarlier
-        return dateArray
+        return CalendarUtil.getDate(year, month, day)
     }
 
     fun birthdayAway(birthday: String, systemDate: CalendarUtil): Int {
-        val dateArray = getNextBirthdayDate(birthday, systemDate)
-        val calendarUtilLater = CalendarUtil.dateToCalendarUtil(dateArray[0])
-        val calendarUtilEarlier = CalendarUtil.dateToCalendarUtil(dateArray[1])
-        return (calendarUtilLater - calendarUtilEarlier).toInt()
+        val birthdayDate = getNextBirthdayDate(birthday, systemDate)
+        val calendarUtilLater = CalendarUtil(birthdayDate)
+        return (calendarUtilLater - systemDate)
     }
 
     fun matchCharacter(id: Int) =

@@ -4,19 +4,18 @@ import android.app.Service
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.LogUtil
 import kotlinx.coroutines.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromStream
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import kotlin.concurrent.thread
 
 class EventRefreshService : Service() {
@@ -37,12 +36,10 @@ class EventRefreshService : Service() {
 
     class RefreshBinder : Binder() {
 
+        @OptIn(ExperimentalSerializationApi::class)
         fun refresh(onItemAddFinished: (Int, String) -> Unit) {
-            val gson = Gson()
-            val typeOf = object : TypeToken<List<Event>>() {}.type
-            val eventReader = BufferedReader(InputStreamReader
-                (Repository.getEventJSONStreamFromAssets()))
-            val eventList = gson.fromJson<List<Event>>(eventReader, typeOf)
+            val eventReader = Repository.getEventJSONStreamFromAssets()
+            val eventList = Json.decodeFromStream<List<Event>>(eventReader)
             val coroutineScope = CoroutineScope(Dispatchers.Main)
             coroutineScope.launch {
                 for (event in eventList) {

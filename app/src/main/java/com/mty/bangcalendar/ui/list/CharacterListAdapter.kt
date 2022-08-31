@@ -11,10 +11,10 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.logic.model.Character
 import com.mty.bangcalendar.ui.main.MainActivity
-import com.mty.bangcalendar.util.CalendarUtil
 import com.mty.bangcalendar.util.CharacterUtil
 import com.mty.bangcalendar.util.EventUtil
 
@@ -73,11 +73,11 @@ class CharacterListAdapter(private val characterList: List<Character>, private v
     private fun startMainActivity(viewHolder: ViewHolder) {
         val position = viewHolder.adapterPosition
         val jumpDate =
-            CharacterUtil.getNextBirthdayDate(characterList[position].birthday, CalendarUtil())[0]
+            CharacterUtil.getNextBirthdayDate(characterList[position].birthday, systemDate)
 
         val intent = Intent("com.mty.bangcalendar.JUMP_DATE")
         intent.setPackage(context.packageName)
-        intent.putExtra("current_start_date", jumpDate)
+        intent.putExtra("current_start_date", jumpDate.date)
         context.sendBroadcast(intent)
 
         val activityIntent = Intent(context, MainActivity::class.java)

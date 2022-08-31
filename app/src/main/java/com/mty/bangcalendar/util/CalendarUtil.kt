@@ -1,28 +1,23 @@
 package com.mty.bangcalendar.util
 
+import com.mty.bangcalendar.logic.model.IntDate
 import java.util.Calendar
 
-class CalendarUtil {
+class CalendarUtil(val date: IntDate? = null) {
 
-    operator fun minus(calendarUtil: CalendarUtil): Long =
-        (this.getTimeInMillis() - calendarUtil.getTimeInMillis()) / (1000 * 3600 * 24)
+    operator fun minus(calendarUtil: CalendarUtil): Int =
+        ( (this.getTimeInMillis() - calendarUtil.getTimeInMillis()) / (1000 * 3600 * 24) ).toInt()
 
     companion object {
 
         const val FIVE_ROWS = 5
         const val SIX_ROWS = 6
 
-        fun getDate(year: Int, month: Int, day: Int) = year * 10000 + month * 100 + day
+        fun getDate(year: Int, month: Int, day: Int) =
+            IntDate(year * 10000 + month * 100 + day)
 
-        fun dateToCalendarUtil(date: Int) = CalendarUtil().apply {
-            clear()
-            year = date / 10000
-            month = date % 10000 / 100
-            day = date % 100
-        }
-
-        fun differentOfTwoDates(dateStart: Int, dateEnd: Int): Long =
-            dateToCalendarUtil(dateEnd) - dateToCalendarUtil(dateStart)
+        fun differentOfTwoDates(dateStart: IntDate, dateEnd: IntDate): Int =
+            CalendarUtil(dateEnd) - CalendarUtil(dateStart)
 
     }
 
@@ -31,23 +26,30 @@ class CalendarUtil {
     var rows: Int = FIVE_ROWS
 
     var year: Int
-    get() = calendar.get(Calendar.YEAR)
-    set(value) = calendar.set(Calendar.YEAR, value)
+        get() = calendar.get(Calendar.YEAR)
+        set(value) = calendar.set(Calendar.YEAR, value)
 
     //月默认从0开始
     var month: Int
-    get() = calendar.get(Calendar.MONTH) + 1
-    set(value) = calendar.set(Calendar.MONTH, value - 1)
+        get() = calendar.get(Calendar.MONTH) + 1
+        set(value) = calendar.set(Calendar.MONTH, value - 1)
 
     var day: Int
-    get() = calendar.get(Calendar.DATE)
-    set(value) = calendar.set(Calendar.DATE, value)
+        get() = calendar.get(Calendar.DATE)
+        set(value) = calendar.set(Calendar.DATE, value)
 
     var hour: Int
-    get() = calendar.get(Calendar.HOUR_OF_DAY)
-    set(value) = calendar.set(Calendar.HOUR_OF_DAY, value)
+        get() = calendar.get(Calendar.HOUR_OF_DAY)
+        set(value) = calendar.set(Calendar.HOUR_OF_DAY, value)
 
     init {
+        //采用date初始化CalendarUtil(有参)
+        date?.let {
+            clear()
+            year = it.date / 10000
+            month = it.date % 10000 / 100
+            day = it.date % 100
+        }
         calendar.firstDayOfWeek = Calendar.SUNDAY
     }
 
@@ -92,7 +94,7 @@ class CalendarUtil {
         return dateList
     }
 
-    fun refreshRows() {
+    private fun refreshRows() {
         val maxDays = getMaximumDaysInMonth()
         val dayOfWeak = getDayOfWeak()
         rows = if (maxDays + dayOfWeak < 37) {
@@ -100,8 +102,7 @@ class CalendarUtil {
         } else {
             SIX_ROWS
         }
-        LogUtil.d("CalendarUtil",
-            "maxDays = $maxDays  dayOfWeek = $dayOfWeak rows = $rows")
+        LogUtil.d(this, "maxDays = $maxDays  dayOfWeek = $dayOfWeak rows = $rows")
     }
 
     fun setRelativeMonth(month: Int) {
@@ -109,12 +110,7 @@ class CalendarUtil {
         refreshRows()
     }
 
-    fun getDate(): Int {
-        val year = year * 10000
-        val month = month * 100
-        val day = day
-        return year + month + day
-    }
+    fun toDate() = getDate(year, month, day)
 
     fun getTimeName(): String {
         val time = calendar.get(Calendar.HOUR_OF_DAY)

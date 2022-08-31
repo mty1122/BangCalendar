@@ -7,10 +7,10 @@ import retrofit2.http.GET
 
 interface DatabaseRefreshService {
 
-    @GET("data/Character.json")
+    @GET("data/character.json")
     fun getCharacterList(): Call<List<Character>>
 
-    @GET("data/Event.json")
+    @GET("data/event.json")
     fun getEventList(): Call<List<Event>>
 
 }

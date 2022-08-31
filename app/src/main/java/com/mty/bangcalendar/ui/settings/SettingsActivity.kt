@@ -20,8 +20,10 @@ import com.mty.bangcalendar.logic.model.LoginRequest
 import com.mty.bangcalendar.ui.ActivityCollector
 import com.mty.bangcalendar.ui.BaseActivity
 import com.mty.bangcalendar.ui.guide.GuideActivity
+import com.mty.bangcalendar.util.GenericUtil
 import com.mty.bangcalendar.util.LogUtil
 import com.mty.bangcalendar.util.SecurityUtil
+import com.mty.bangcalendar.util.toast
 import java.util.regex.Pattern
 
 class SettingsActivity : BaseActivity() {
@@ -83,26 +85,11 @@ class SettingsActivity : BaseActivity() {
             //监听数据库刷新结果
             viewModel.refreshDataResult.observe(this) { result ->
                 when (result) {
-                    REFRESH_CHARACTER_FAILURE -> {
-                        Toast.makeText(activity, "角色数据更新失败，请检查网络",
-                            Toast.LENGTH_SHORT).show()
-                    }
-                    REFRESH_CHARACTER_SUCCESS -> {
-                        Toast.makeText(activity, "角色数据更新成功",
-                            Toast.LENGTH_SHORT).show()
-                    }
-                    REFRESH_EVENT_FAILURE -> {
-                        Toast.makeText(activity, "活动数据更新失败，请检查网络",
-                            Toast.LENGTH_SHORT).show()
-                    }
-                    REFRESH_EVENT_SUCCESS -> {
-                        Toast.makeText(activity, "活动数据更新成功",
-                            Toast.LENGTH_SHORT).show()
-                    }
-                    else -> {
-                        Toast.makeText(activity, "系统错误，请联系作者",
-                            Toast.LENGTH_SHORT).show()
-                    }
+                    REFRESH_CHARACTER_FAILURE -> toast("角色数据更新失败，请检查网络")
+                    REFRESH_CHARACTER_SUCCESS -> toast("角色数据更新成功")
+                    REFRESH_EVENT_FAILURE -> toast("活动数据更新失败，请检查网络")
+                    REFRESH_EVENT_SUCCESS -> toast("活动数据更新成功")
+                    else -> toast("系统错误，请联系作者")
                 }
             }
 
@@ -197,6 +184,13 @@ class SettingsActivity : BaseActivity() {
                     val intent = Intent(Intent.ACTION_VIEW)
                     intent.data = Uri.parse("https://github.com/mty1122/BangCalendar")
                     startActivity(intent)
+                    return@setOnPreferenceClickListener true
+                }
+            }
+
+            findPreference<Preference>("author")?.let {
+                it.setOnPreferenceClickListener { preference ->
+                    GenericUtil.copyToClipboard(preference.summary.toString())
                     return@setOnPreferenceClickListener true
                 }
             }

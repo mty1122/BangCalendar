@@ -29,10 +29,7 @@ import com.mty.bangcalendar.logic.model.LoginRequest
 import com.mty.bangcalendar.ui.ActivityCollector
 import com.mty.bangcalendar.ui.BaseActivity
 import com.mty.bangcalendar.ui.guide.GuideActivity
-import com.mty.bangcalendar.util.GenericUtil
-import com.mty.bangcalendar.util.LogUtil
-import com.mty.bangcalendar.util.SecurityUtil
-import com.mty.bangcalendar.util.toast
+import com.mty.bangcalendar.util.*
 import java.util.regex.Pattern
 
 class SettingsActivity : BaseActivity() {
@@ -272,6 +269,7 @@ class SettingsActivity : BaseActivity() {
                 .setTitle("登录")
                 .setIcon(R.mipmap.ic_launcher)
                 .setView(view)
+                .setCancelable(false)
                 .create()
 
             view.findViewById<Button>(R.id.send_sms_button).setOnClickListener {
@@ -340,8 +338,7 @@ class SettingsActivity : BaseActivity() {
                         toast("开启成功")
                         preference.isChecked = true
                     } else {
-                        googleApiAvailability
-                            .getErrorDialog(this, result, 2404)?.show()
+                        toast("开启失败，GMS服务不可用")
                     }
                 }
                 .create()

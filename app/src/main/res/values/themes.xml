@@ -19,6 +19,8 @@
         <item name="card_bar_color">@color/ppp_card_bar</item>
         <item name="card_background_color">@color/ppp_card_background</item>
         <item name="date_text_color">@color/ppp_date_text</item>
+        <item name="android:alertDialogTheme">@style/alert_dialog</item>
+        <item name="alertDialogTheme">@style/alert_dialog</item>
     </style>
     <!-- theme_r -->
     <style name="theme_r" parent="Theme.MaterialComponents.Light.NoActionBar">
@@ -40,5 +42,17 @@
         <item name="card_bar_color">@color/r_card_bar</item>
         <item name="card_background_color">@color/r_card_background</item>
         <item name="date_text_color">@color/r_date_text</item>
+        <item name="alertDialogTheme">@style/alert_dialog</item>
     </style>
+    <!-- alert_dialog -->
+    <style name="alert_dialog" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="colorPrimary">?attr/colorPrimaryVariant</item>
+        <item name="colorAccent">?attr/colorPrimary</item>
+        <item name="android:windowBackground">@drawable/round_edge</item>
+        <item name="buttonBarButtonStyle">@style/alert_button</item>
+    </style>
+    <style name="alert_button" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+        <item name="android:textColor">?attr/colorPrimary</item>
+    </style>
+
 </resources>

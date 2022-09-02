@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="alert_dialog" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="colorPrimary">?attr/colorPrimaryVariant</item>
+        <item name="colorAccent">?attr/colorPrimary</item>
+        <item name="android:windowBackground">@drawable/round_edge</item>
+        <item name="buttonBarButtonStyle">@style/alert_button</item>
+        <item name="android:windowBlurBehindEnabled">true</item>
+        <item name="android:windowBlurBehindRadius">21dp</item>
+    </style>
+</resources>

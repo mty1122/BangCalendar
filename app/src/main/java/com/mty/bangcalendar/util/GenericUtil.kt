@@ -45,10 +45,16 @@ object GenericUtil {
         context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     }
 
-    fun copyToClipboard(content: String, makeToast: Boolean = true) {
+    /**
+     * 复制文本到剪贴板
+     * @param content 需要复制到剪贴板的文本内容
+     * @param toast 弹出toast提示复制成功，本参数的默认值为“已复制到剪贴板”，如不想弹出toast，请传入null
+     */
+    fun copyToClipboard(content: String, toast: String? = "已复制到剪贴板") {
         clipboardManager.setPrimaryClip(ClipData.newPlainText(null, content))
-        if (makeToast)
-            toast("已复制到剪贴板")
+        toast?.let {
+            toast(it)
+        }
     }
 
 }

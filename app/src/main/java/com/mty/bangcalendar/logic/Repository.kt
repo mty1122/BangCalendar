@@ -208,4 +208,8 @@ object Repository {
             })
     }
 
+    fun setFcmToken(token: String) {
+        PreferenceDao.setFcmToken(token)
+    }
+
 }

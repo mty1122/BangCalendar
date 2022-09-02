@@ -6,7 +6,10 @@ import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
-import android.widget.*
+import android.widget.Button
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.WindowInsetsCompat
@@ -14,6 +17,12 @@ import androidx.core.view.updatePadding
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.SwitchPreference
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.ktx.messaging
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.logic.model.LoginRequest
@@ -195,6 +204,17 @@ class SettingsActivity : BaseActivity() {
                 }
             }
 
+            findPreference<Preference>("notification")?.let {
+                it.setOnPreferenceChangeListener { preference, newValue ->
+                    if (newValue as Boolean) {
+                        startPush(preference as SwitchPreference)
+                    } else {
+                        getDeviceCode()
+                    }
+                    return@setOnPreferenceChangeListener false
+                }
+            }
+
             findPreference<Preference>("signature")?.let {
                 it.setOnPreferenceChangeListener { _, _ ->
                     val intent = Intent("com.mty.bangcalendar.SETTINGS_CHANGE")
@@ -302,6 +322,46 @@ class SettingsActivity : BaseActivity() {
                 }
                 .create()
             dialog.show()
+        }
+
+        private fun startPush(preference: SwitchPreference) {
+            val dialog = AlertDialog.Builder(requireActivity())
+                .setTitle("启用FCM推送服务")
+                .setIcon(R.mipmap.ic_launcher)
+                .setMessage(getString(R.string.notification_text))
+                .setNegativeButton("取消") { _, _ ->
+                }
+                .setPositiveButton("启用") { _, _ ->
+                    val googleApiAvailability = GoogleApiAvailability.getInstance()
+                    val result = googleApiAvailability
+                        .isGooglePlayServicesAvailable(BangCalendarApplication.context)
+                    if (result == ConnectionResult.SUCCESS) {
+                        fcmInit()
+                        toast("开启成功")
+                        preference.isChecked = true
+                    } else {
+                        googleApiAvailability
+                            .getErrorDialog(this, result, 2404)?.show()
+                    }
+                }
+                .create()
+            dialog.show()
+        }
+
+        private fun fcmInit() {
+            Firebase.analytics.setAnalyticsCollectionEnabled(true)
+            Firebase.messaging.isAutoInitEnabled = true
+        }
+
+        private fun getDeviceCode() {
+            Firebase.messaging.token.addOnCompleteListener {
+                if (it.isSuccessful) {
+                    val token = it.result
+                    GenericUtil.copyToClipboard(token, "已复制推送token到剪贴板")
+                } else {
+                    LogUtil.w("FCM Warning", it.exception.toString())
+                }
+            }
         }
 
         private fun checkPhoneNum(phone: String?): Boolean {

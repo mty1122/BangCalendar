@@ -61,6 +61,17 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory app:title="@string/notification_head">
+
+        <SwitchPreference
+            app:defaultValue="false"
+            app:key="notification"
+            app:title="@string/notification"
+            app:summary="@string/notification_summary"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
     <PreferenceCategory app:title="@string/about_header">
 
         <Preference

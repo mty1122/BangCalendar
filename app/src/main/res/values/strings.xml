@@ -70,6 +70,10 @@
     <string name="theme_title">主题</string>
     <string name="band_title">关注的乐队</string>
     <string name="char_title">关注的角色</string>
+    <string name="notification">FCM推送</string>
+    <string name="notification_summary">提供活动开始、结束等事件的提醒</string>
+    <string name="notification_text">FCM推送需要GMS支持，由于谷歌并未在国内架设服务器，因此无法保证推送一定可以送达，请勿依赖本功能\n由于国内定制UI可能屏蔽了FCM通知，导致收不到推送，因此建议您使用安卓原生\n注意：本功能开启后将无法关闭</string>
+    <string name="notification_head">通知服务</string>
     <string name="update_header">同步</string>
     <string name="update_database_title">更新本地数据库</string>
     <string name="update_database_summary">更新活动信息与乐队成员信息</string>

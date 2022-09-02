@@ -46,6 +46,12 @@ object PreferenceDao {
         }
     }
 
+    fun setFcmToken(token: String) {
+        sharedPreference().edit {
+            putString("fcm_token", token)
+        }
+    }
+
     private fun defaultPreference() = PreferenceManager
         .getDefaultSharedPreferences(BangCalendarApplication.context)
 

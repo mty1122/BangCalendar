@@ -4,9 +4,6 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.os.Build
-import android.view.Window
-import android.view.WindowManager
 import android.widget.Toast
 import com.mty.bangcalendar.BangCalendarApplication.Companion.context
 
@@ -40,13 +37,6 @@ fun Intent.putExtra(pair: Pair<String, *>) {
 
 fun toast(text: String) {
     Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
-}
-
-fun Window.blurBehind(radius: Int = 50) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
-        attributes?.blurBehindRadius = radius
-    }
 }
 
 object GenericUtil {

@@ -6,7 +6,8 @@ import kotlinx.serialization.Serializable
 
 @Entity
 @Serializable
-data class Event(@PrimaryKey(autoGenerate = true) var id: Long, var name: String, var startDate: Int,
-                 var attrs: Int, var type: Int, var character1: Int, var character2: Int,
-                 var character3: Int, var character4: Int, var character5: Int,
-                 var character6: Int, var character7: Int)
+data class Event(@PrimaryKey(autoGenerate = true) var id: Long, var name: String? = null,
+                 var startDate: Int, var endDate: Int? = null, var attrs: Int, var type: Int,
+                 var character1: Int, var character2: Int, var character3: Int,
+                 var character4: Int? = null, var character5: Int? = null,
+                 var character6: Int? = null, var character7: Int? = null)

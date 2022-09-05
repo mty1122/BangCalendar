@@ -1,7 +1,6 @@
 package com.mty.bangcalendar.util
 
 import com.mty.bangcalendar.R
-import com.mty.bangcalendar.databinding.ActivityMainBinding
 import com.mty.bangcalendar.enum.EventConstant
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.logic.model.IntDate
@@ -9,9 +8,9 @@ import java.util.regex.Pattern
 
 object EventUtil {
 
-    private const val EVENT_LENGTH: Long = 460800000
+    private var eventLength: Long = 633600000
 
-    fun matchCharacter(character: Int) =
+    fun matchCharacter(character: Int?) =
         when (character) {
             1 -> R.drawable.char_1
             2 -> R.drawable.char_2
@@ -48,7 +47,7 @@ object EventUtil {
             33 -> R.drawable.char_33
             34 -> R.drawable.char_34
             35 -> R.drawable.char_35
-            else -> -1
+            else -> null
         }
 
     fun matchType(type: Int) =
@@ -82,7 +81,8 @@ object EventUtil {
         }
 
     fun getBand(event: Event) =
-        if (event.character1 + 4 == event.character5)
+        //角色1 + 2 = 角色5 - 2 若角色5不存在则为 角色1 + 2 = 角色3
+        if (event.character1 + 2 == ((event.character5?.minus(2)) ?: event.character3))
             when (event.character1) {
                 1 -> EventConstant.PPP
                 6 -> EventConstant.AG
@@ -109,7 +109,8 @@ object EventUtil {
 
     fun getBandPic(event: Event) =
         when (event.character7) {
-            -1 -> if (event.character1 + 4 == event.character5) {
+            null -> if (event.character1 + 2 ==
+                ((event.character5?.minus(2)) ?: event.character3)) {
                 when (event.character1) {
                     1 -> R.drawable.logo_ppp
                     6 -> R.drawable.logo_ag
@@ -132,8 +133,7 @@ object EventUtil {
             else -> id.toString()
         }
 
-    fun isSameEvent(binding: ActivityMainBinding, eventId: Int): Boolean {
-        val eventCardTitle = binding.eventCard.eventType.text
+    fun isSameEvent(eventCardTitle: String, eventId: Int): Boolean {
         val regex = "\\d+"
         val pattern = Pattern.compile(regex)
         val matcher = pattern.matcher(eventCardTitle)
@@ -143,29 +143,34 @@ object EventUtil {
         return false
     }
 
-    fun getEventStartTime(event: Event?): Long? =
-        if (event != null)
-            CalendarUtil(IntDate(event.startDate)).run {
-                hour = 15
-                getTimeInMillis()
-            }
-        else null
+    fun getEventStartTime(event: Event): Long =
+        CalendarUtil(IntDate(event.startDate)).run {
+        hour = 15
+        getTimeInMillis()
+        }
 
+    fun getEventEndTime(event: Event): Long =
+        CalendarUtil(IntDate(event.startDate)).run {
+            day += 7
+            hour = 23
+            getTimeInMillis()
+        }
 
-    fun getEventEndTime(event: Event?): Long? =
-        if (event != null)
-            CalendarUtil(IntDate(event.startDate)).run {
-                day += 5
-                hour = 23
-                getTimeInMillis()
-            }
-        else null
+    fun getEventEndTime(date: IntDate): Long =
+        CalendarUtil(date).run {
+            hour = 23
+            getTimeInMillis()
+        }
 
     fun getEventProgress(systemTime: Long, eventStartTime: Long): Int {
         val eventFinishedTimes = (systemTime - eventStartTime).toDouble()
-        val eventProgress = ((eventFinishedTimes / EVENT_LENGTH) * 100).toInt()
+        val eventProgress = ((eventFinishedTimes / eventLength) * 100).toInt()
         LogUtil.d("EventUtil", "eventProgress = $eventProgress")
         return eventProgress
+    }
+
+    fun setEventLength(eventLength: Long) {
+        this.eventLength = eventLength
     }
 
 }

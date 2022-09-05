@@ -73,7 +73,7 @@ class MainActivity : BaseActivity() {
         //观察当前日期变化，及时刷新活动信息
         viewModel.currentDate.observe(this) {
             val date = it.toDate()
-            LogUtil.d("MainActivity", "日期发生变化 $date")
+            LogUtil.d(this, "日期发生变化 $date")
             viewModel.getEventByDate(date) //刷新活动
             //顶部日期刷新
             mainBinding.date.text = StringBuilder().run {
@@ -92,24 +92,6 @@ class MainActivity : BaseActivity() {
             }
         }
 
-        //观察活动变化，刷新活动组件内容
-        viewModel.event.observe(this) {
-            val currentDate = viewModel.currentDate.value!!.toDate()
-            //活动小于第一期或者大于最后一期时，隐藏活动卡片
-            if (it == null ||
-                CalendarUtil.differentOfTwoDates(IntDate(it.startDate), currentDate) >= 7) {
-                LogUtil.d("Event", "currentDate $currentDate startDate ${it?.startDate}")
-                mainBinding.eventCard.eventCardItem.visibility = View.GONE
-            } else {
-                mainBinding.eventCard.eventCardItem.visibility = View.VISIBLE
-                LogUtil.d("Event", "Event id is ${it.id}")
-                //相同活动之间移动，不刷新活动
-                if (!EventUtil.isSameEvent(mainBinding, it.id.toInt())) {
-                    refreshEventComponent(it, mainBinding)
-                }
-            }
-        }
-
         viewModel.getCharacterByMonth(systemDate.month) //首次启动刷新当前月的生日角色
 
         viewModel.birthdayCard.observe(this) {
@@ -125,11 +107,6 @@ class MainActivity : BaseActivity() {
         }
         viewModel.getUserName()
 
-        viewModel.preferenceCharacterId.observe(this) {
-            viewModel.getPreferenceCharacter(it)
-        }
-        viewModel.getPreferenceCharacterId()
-
         viewModel.preferenceCharacter.observe(this) { character ->
             viewModel.birthdayAway = null
             character?.let {
@@ -138,6 +115,7 @@ class MainActivity : BaseActivity() {
             }
             refreshDailyTag(mainBinding)
         }
+        viewModel.getPreferenceCharacter()
 
         viewModel.preferenceNearlyBandEvent.observe(this) { event ->
             event?.let {
@@ -163,15 +141,24 @@ class MainActivity : BaseActivity() {
         }
         viewModel.getAdditionalTip()
 
-        viewModel.todayEvent.observe(this) { event ->
+        viewModel.todayEvent.observe(this) {
             viewModel.run {
-                LogUtil.d("Event", "本期活动序号为：${event?.id}")
-                eventStartTime = EventUtil.getEventStartTime(event)
-                eventEndTime = EventUtil.getEventEndTime(event)
-                event?.let {
+                it?.let { event ->
+                    LogUtil.d("Event", "本期活动序号为：${event.id}")
                     //如果activity意外重启，若当前活动不为当日活动，则不刷新活动状态（说明不是初次启动）
-                    if (EventUtil.isSameEvent(mainBinding, event.id.toInt()))
-                        refreshEventStatus(event, mainBinding) //初次启动刷新活动状态
+                    if (isActivityFirstStart) {
+                        eventStartTime = EventUtil.getEventStartTime(event)
+                        if (event.endDate != null) {
+                            eventEndTime = EventUtil.getEventEndTime(IntDate(event.endDate!!))
+                            EventUtil.setEventLength(eventEndTime!! - eventStartTime!!)
+                        } else {
+                            eventEndTime = EventUtil.getEventEndTime(event)
+                        }
+                        refreshEventComponent(event, mainBinding) //初次启动刷新活动状态
+                        isActivityFirstStart = false
+                    }
+                    //无论是否初次启动，都需要加入观察者
+                    addEventObserver(mainBinding)
                 }
                 getPreferenceBand() //初次启动刷新关注的乐队
             }
@@ -214,6 +201,27 @@ class MainActivity : BaseActivity() {
             }
         }
         return true
+    }
+
+    private fun addEventObserver(mainBinding: ActivityMainBinding) {
+        //观察活动变化，刷新活动组件内容
+        viewModel.event.observe(this) {
+            val currentDate = viewModel.currentDate.value!!.toDate()
+            //活动小于第一期或者大于最后一期时，隐藏活动卡片
+            if (it == null || CalendarUtil.differentOfTwoDates(IntDate(it.startDate),
+                    currentDate) >= 9) {
+                LogUtil.d("Event", "currentDate $currentDate startDate ${it?.startDate}")
+                mainBinding.eventCard.eventCardItem.visibility = View.GONE
+            } else {
+                mainBinding.eventCard.eventCardItem.visibility = View.VISIBLE
+                LogUtil.d("Event", "Event id is ${it.id}")
+                //相同活动之间移动，不刷新活动
+                if (!EventUtil.isSameEvent(mainBinding.eventCard.eventType.text.toString(),
+                        it.id.toInt())) {
+                    refreshEventComponent(it, mainBinding)
+                }
+            }
+        }
     }
 
     private fun addAdditionalTip() {
@@ -304,7 +312,6 @@ class MainActivity : BaseActivity() {
 
     //刷新生日卡片
     private fun refreshBirthdayCard(id: Int, binding: ActivityMainBinding) {
-        LogUtil.d("MainActivity", "生日卡片刷新")
         if (id == 12 || id == 17) {
             Glide.with(this).load(CharacterUtil.matchCharacter(12))
                 .into(binding.birChar1)
@@ -332,7 +339,7 @@ class MainActivity : BaseActivity() {
     }
 
     private fun refreshEventComponent(event: Event, binding: ActivityMainBinding) {
-        LogUtil.d("MainActivity", "刷新活动组件")
+        LogUtil.d(this, "刷新活动组件")
         //刷新活动状态
         refreshEventStatus(event, binding)
         //刷新活动类型
@@ -361,16 +368,16 @@ class MainActivity : BaseActivity() {
         }
         Glide.with(this).load(EventUtil.matchCharacter(event.character4))
             .into(binding.eventCard.char4)
-        if (event.character4 != -1) {
+        event.character4?.let { character4 ->
             binding.eventCard.char4.setOnClickListener {
-                startCharacterListActivity(event.character4)
+                startCharacterListActivity(character4)
             }
         }
         Glide.with(this).load(EventUtil.matchCharacter(event.character5))
             .into(binding.eventCard.char5)
-        if (event.character5 != -1) {
+        event.character5?.let { character5 ->
             binding.eventCard.char5.setOnClickListener {
-                startCharacterListActivity(event.character5)
+                startCharacterListActivity(character5)
             }
         }
         //刷新活动属性
@@ -401,7 +408,7 @@ class MainActivity : BaseActivity() {
         val todayEventId = viewModel.todayEvent.value?.id
         val eventId = event.id
         todayEventId?.let {
-            LogUtil.d("MainActivity", "刷新活动状态")
+            LogUtil.d(this, "刷新活动状态")
             when (true) {
                 (eventId < todayEventId) -> {
                     binding.eventCard.eventProgressName.setText(R.string.finish)

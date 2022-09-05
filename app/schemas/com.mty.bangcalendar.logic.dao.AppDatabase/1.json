@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "61386d6b569e71e0b0656e82fcc429f2",
+    "identityHash": "f7e16e3a021cc132e763312a8fb5fa9f",
     "entities": [
       {
         "tableName": "Character",
@@ -50,7 +50,7 @@
       },
       {
         "tableName": "Event",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `startDate` INTEGER NOT NULL, `type` INTEGER NOT NULL, `attrs` INTEGER NOT NULL, `character1` INTEGER NOT NULL, `character2` INTEGER NOT NULL, `character3` INTEGER NOT NULL, `character4` INTEGER NOT NULL, `character5` INTEGER NOT NULL, `character6` INTEGER NOT NULL, `character7` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT, `startDate` INTEGER NOT NULL, `endDate` INTEGER, `attrs` INTEGER NOT NULL, `type` INTEGER NOT NULL, `character1` INTEGER NOT NULL, `character2` INTEGER NOT NULL, `character3` INTEGER NOT NULL, `character4` INTEGER, `character5` INTEGER, `character6` INTEGER, `character7` INTEGER)",
         "fields": [
           {
             "fieldPath": "id",
@@ -62,7 +62,7 @@
             "fieldPath": "name",
             "columnName": "name",
             "affinity": "TEXT",
-            "notNull": true
+            "notNull": false
           },
           {
             "fieldPath": "startDate",
@@ -71,14 +71,20 @@
             "notNull": true
           },
           {
-            "fieldPath": "type",
-            "columnName": "type",
+            "fieldPath": "endDate",
+            "columnName": "endDate",
             "affinity": "INTEGER",
-            "notNull": true
+            "notNull": false
           },
           {
             "fieldPath": "attrs",
             "columnName": "attrs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -104,25 +110,25 @@
             "fieldPath": "character4",
             "columnName": "character4",
             "affinity": "INTEGER",
-            "notNull": true
+            "notNull": false
           },
           {
             "fieldPath": "character5",
             "columnName": "character5",
             "affinity": "INTEGER",
-            "notNull": true
+            "notNull": false
           },
           {
             "fieldPath": "character6",
             "columnName": "character6",
             "affinity": "INTEGER",
-            "notNull": true
+            "notNull": false
           },
           {
             "fieldPath": "character7",
             "columnName": "character7",
             "affinity": "INTEGER",
-            "notNull": true
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -138,7 +144,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '61386d6b569e71e0b0656e82fcc429f2')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f7e16e3a021cc132e763312a8fb5fa9f')"
     ]
   }
 }

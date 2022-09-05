@@ -1,19 +1,18 @@
 package com.mty.bangcalendar.ui.main
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.graphics.drawable.Drawable
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Character
 import com.mty.bangcalendar.logic.model.Event
-import com.mty.bangcalendar.ui.settings.SettingsActivity
-import com.mty.bangcalendar.util.CalendarUtil
 import com.mty.bangcalendar.logic.model.IntDate
+import com.mty.bangcalendar.util.CalendarUtil
 import kotlinx.coroutines.launch
 
 class MainViewModel : ViewModel() {
@@ -25,16 +24,15 @@ class MainViewModel : ViewModel() {
     var eventStartTime: Long? = null
     var eventEndTime: Long? = null
 
+    var isActivityFirstStart = true
+
     //应用设置更改
-    private val refreshSettingsReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val settingsCategory = intent
-                .getIntExtra("settingsCategory", SettingsActivity.REFRESH_USERNAME)
-            when (settingsCategory) {
-                SettingsActivity.REFRESH_USERNAME -> getUserName()
-                SettingsActivity.REFRESH_BAND -> getPreferenceBand()
-                SettingsActivity.REFRESH_CHARACTER -> getPreferenceCharacterId()
-            }
+    private val onSettingsChangeListener =
+        SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        when (key) {
+            "signature" -> getUserName()
+            "band" -> getPreferenceBand()
+            "character" -> getPreferenceCharacter()
         }
     }
 
@@ -91,13 +89,11 @@ class MainViewModel : ViewModel() {
         _currentDate.value = CalendarUtil()
         _selectedItem.value = systemDate.day
 
-        val intentFilter = IntentFilter()
-        intentFilter.addAction("com.mty.bangcalendar.SETTINGS_CHANGE")
-        BangCalendarApplication.context.registerReceiver(refreshSettingsReceiver, intentFilter)
+        Repository.registerOnDefaultPreferenceChangeListener(onSettingsChangeListener)
 
-        val intentFilter2 = IntentFilter()
-        intentFilter2.addAction("com.mty.bangcalendar.JUMP_DATE")
-        BangCalendarApplication.context.registerReceiver(jumpDateReceiver, intentFilter2)
+        val intentFilter = IntentFilter()
+        intentFilter.addAction("com.mty.bangcalendar.JUMP_DATE")
+        BangCalendarApplication.context.registerReceiver(jumpDateReceiver, intentFilter)
     }
 
     private val _todayEvent = MutableLiveData<Event?>()
@@ -156,21 +152,13 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    private val _preferenceCharacterId = MutableLiveData<Int>()
-    val preferenceCharacterId: LiveData<Int>
-        get() = _preferenceCharacterId
-    fun getPreferenceCharacterId() {
-        viewModelScope.launch {
-            _preferenceCharacterId.value =  Repository.getPreferenceCharacter()
-        }
-    }
-
     private val _preferenceCharacter = MutableLiveData<Character>()
     val preferenceCharacter: LiveData<Character>
         get() = _preferenceCharacter
-    fun getPreferenceCharacter(id: Int) {
+    fun getPreferenceCharacter() {
         viewModelScope.launch {
-            _preferenceCharacter.value = Repository.getCharacterById(id)
+            val characterId = Repository.getPreferenceCharacter()
+            _preferenceCharacter.value = Repository.getCharacterById(characterId)
         }
     }
 
@@ -198,7 +186,7 @@ class MainViewModel : ViewModel() {
     //取消注册Broadcast
     override fun onCleared() {
         super.onCleared()
-        BangCalendarApplication.context.unregisterReceiver(refreshSettingsReceiver)
+        Repository.unregisterOnDefaultPreferenceChangeListener(onSettingsChangeListener)
         BangCalendarApplication.context.unregisterReceiver(jumpDateReceiver)
     }
 

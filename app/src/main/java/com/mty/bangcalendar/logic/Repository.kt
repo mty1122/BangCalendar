@@ -1,5 +1,6 @@
 package com.mty.bangcalendar.logic
 
+import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import androidx.lifecycle.LiveData
@@ -28,7 +29,7 @@ object Repository {
 
     private val glideOptions = RequestOptions()
         .skipMemoryCache(false)
-        .diskCacheStrategy(DiskCacheStrategy.ALL)
+        .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
 
     fun getCharacterJSONStreamFromAssets() =
         BangCalendarApplication.context.assets.open("character.json")
@@ -45,10 +46,14 @@ object Repository {
     }
 
     suspend fun getGuideInitData() = withContext(Dispatchers.IO) {
-        val isFirstStart = PreferenceDao.isFirstStart()
+        val isFirstStart = PreferenceDao.isFirstStart
         val theme = PreferenceDao.getTheme()
         val lastRefreshDay = PreferenceDao.getLastRefreshDay()
         GuideInitData(isFirstStart, theme, lastRefreshDay)
+    }
+
+    suspend fun isNotFirstStart() = withContext(Dispatchers.IO) {
+        PreferenceDao.isFirstStart = false
     }
 
     suspend fun getAdditionalTip() = withContext(Dispatchers.IO) {
@@ -193,7 +198,7 @@ object Repository {
         PreferenceDao.setLastRefreshDay(day)
     }
 
-    suspend fun getEventPic(eventId: String) = suspendCoroutine<Drawable?> {
+    suspend fun getEventPic(eventId: String) = suspendCoroutine {
         val uri = Uri.parse(
             ServiceCreator.BASE_URL + "event/banner_memorial_event$eventId.png")
         Glide.with(BangCalendarApplication.context).load(uri).apply(glideOptions)
@@ -210,6 +215,16 @@ object Repository {
 
     fun setFcmToken(token: String) {
         PreferenceDao.setFcmToken(token)
+    }
+
+    fun registerOnDefaultPreferenceChangeListener(listener:
+        SharedPreferences.OnSharedPreferenceChangeListener) {
+        PreferenceDao.registerOnDefaultPreferenceChangeListener(listener)
+    }
+
+    fun unregisterOnDefaultPreferenceChangeListener(listener:
+        SharedPreferences.OnSharedPreferenceChangeListener) {
+        PreferenceDao.unregisterOnDefaultPreferenceChangeListener(listener)
     }
 
 }

@@ -6,6 +6,6 @@
         <item name="android:windowBackground">@drawable/round_edge</item>
         <item name="buttonBarButtonStyle">@style/alert_button</item>
         <item name="android:windowBlurBehindEnabled">true</item>
-        <item name="android:windowBlurBehindRadius">21dp</item>
+        <item name="android:windowBlurBehindRadius">20dp</item>
     </style>
 </resources>

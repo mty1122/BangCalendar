@@ -408,7 +408,7 @@ class MainActivity : BaseActivity() {
         val todayEventId = viewModel.todayEvent.value?.id
         val eventId = event.id
         todayEventId?.let {
-            LogUtil.d(this, "刷新活动状态")
+            log(this, "刷新活动状态")
             when (true) {
                 (eventId < todayEventId) -> {
                     binding.eventCard.eventProgressName.setText(R.string.finish)
@@ -526,7 +526,6 @@ class MainActivity : BaseActivity() {
         //观察角色集合的变化，刷新当前月过生日的角色
         viewModel.characterInMonth.observe(this) {
             if (it.isNotEmpty()) {
-                val birthdayMap = CharacterUtil.characterListToBirthdayMap(it)
                 for (calendarView in list) {
                     //由于生日角色只在当前页面刷新，故获取当前显示的view信息
                     if (calendarView.lastPosition == viewModel.calendarCurrentPosition) {
@@ -536,7 +535,7 @@ class MainActivity : BaseActivity() {
                         //如果当前view的月份与得到的月份一样，则刷新生日角色
                         if (CharacterUtil.birthdayToMonth(it[0].birthday) == calendarUtil.month) {
                             adapter.birthdayMap.clear()
-                            adapter.birthdayMap.putAll(birthdayMap)
+                            CharacterUtil.characterListToBirthdayMap(it, adapter.birthdayMap)
                             adapter.notifyDataSetChanged()
                             //刷新生日卡片
                             viewModel.refreshBirthdayCard(0)

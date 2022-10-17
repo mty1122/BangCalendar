@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.collection.ArrayMap
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.mty.bangcalendar.R
@@ -14,13 +15,12 @@ import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.LogUtil
 import com.mty.bangcalendar.util.ThemeUtil
 import de.hdodenhof.circleimageview.CircleImageView
-import java.util.TreeMap
 
 class CalendarViewAdapter(private val context: Context, var dateList: List<String>,
     val calendarUtil: CalendarUtil, private val viewModel: MainViewModel)
     : RecyclerView.Adapter<CalendarViewAdapter.ViewHolder>() {
 
-    val birthdayMap = TreeMap<String, Int>()
+    val birthdayMap = ArrayMap<String, Int>()
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val date: TextView = view.findViewById(R.id.dateItem)

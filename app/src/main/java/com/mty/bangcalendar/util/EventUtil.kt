@@ -127,9 +127,9 @@ object EventUtil {
     }
 
     fun eventIdFormat(id: Int) =
-        when (true) {
-            (id < 10) -> "00$id"
-            (id < 100) -> "0$id"
+        when {
+            id < 10 -> "00$id"
+            id < 100 -> "0$id"
             else -> id.toString()
         }
 
@@ -165,7 +165,7 @@ object EventUtil {
     fun getEventProgress(systemTime: Long, eventStartTime: Long): Int {
         val eventFinishedTimes = (systemTime - eventStartTime).toDouble()
         val eventProgress = ((eventFinishedTimes / eventLength) * 100).toInt()
-        LogUtil.d("EventUtil", "eventProgress = $eventProgress")
+        log(this, "eventProgress = $eventProgress")
         return eventProgress
     }
 

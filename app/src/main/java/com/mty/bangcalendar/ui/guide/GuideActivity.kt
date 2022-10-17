@@ -75,31 +75,7 @@ class GuideActivity : ComponentActivity() {
             if (initData.isFirstStart) {
                 /* 首次启动 */
                 setContent { ShowContent() }
-                lifecycleScope.launch {
-                    var isCharacterRefreshServiceNotStart = true
-                    viewModel.refreshDataProgress.collect { progress ->
-                        when (progress) {
-                            50 -> {
-                                if (isCharacterRefreshServiceNotStart) {
-                                    val intent = Intent(this@GuideActivity,
-                                        CharacterRefreshService::class.java)
-                                    bindService(intent, characterConnection,
-                                        Context.BIND_AUTO_CREATE)
-                                    isCharacterRefreshServiceNotStart = false
-                                }
-                            }
-                            100 -> {
-                                viewModel.isNotFirstStart()
-                                unbindService(eventConnection)
-                                unbindService(characterConnection)
-                                viewModel.setLaunchButtonEnabled(true)
-                                viewModel.refreshDetails(getString(R.string.init_complete))
-                            }
-                        }
-                    }
-                }
-                val intent = Intent(this, EventRefreshService::class.java)
-                bindService(intent, eventConnection, Context.BIND_AUTO_CREATE)
+                firstStartInit()
             } else if (BangCalendarApplication.systemDate.getDayOfWeak() == 2
                 && initData.lastRefreshDay != BangCalendarApplication.systemDate.day) {
                 /* 每周一自动更新数据库 */
@@ -146,6 +122,34 @@ class GuideActivity : ComponentActivity() {
             startActivity<SettingsActivity>()
         }
         finish()
+    }
+
+    private fun firstStartInit() {
+        lifecycleScope.launch {
+            var isCharacterRefreshServiceNotStart = true
+            viewModel.refreshDataProgress.collect { progress ->
+                when (progress) {
+                    50 -> {
+                        if (isCharacterRefreshServiceNotStart) {
+                            val intent = Intent(this@GuideActivity,
+                                CharacterRefreshService::class.java)
+                            bindService(intent, characterConnection,
+                                Context.BIND_AUTO_CREATE)
+                            isCharacterRefreshServiceNotStart = false
+                        }
+                    }
+                    100 -> {
+                        viewModel.isNotFirstStart()
+                        unbindService(eventConnection)
+                        unbindService(characterConnection)
+                        viewModel.setLaunchButtonEnabled(true)
+                        viewModel.refreshDetails(getString(R.string.init_complete))
+                    }
+                }
+            }
+        }
+        val intent = Intent(this, EventRefreshService::class.java)
+        bindService(intent, eventConnection, Context.BIND_AUTO_CREATE)
     }
 
 }

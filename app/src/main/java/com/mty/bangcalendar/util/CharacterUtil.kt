@@ -1,16 +1,17 @@
 package com.mty.bangcalendar.util
 
+import androidx.collection.ArrayMap
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.logic.model.Character
 import com.mty.bangcalendar.logic.model.IntDate
-import java.util.TreeMap
 
 object CharacterUtil {
 
     private fun birthdayToDay(birthday: String) = Integer.parseInt(birthday)  % 100
 
-    fun characterListToBirthdayMap(characterList: List<Character>): Map<String, Int> {
-        val map = TreeMap<String, Int>()
+    fun characterListToBirthdayMap(characterList: List<Character>,
+        arrayMap: ArrayMap<String, Int>? = null): ArrayMap<String, Int> {
+        val map = arrayMap ?: ArrayMap<String, Int>()
         for (character in characterList) {
             map[birthdayToDay(character.birthday).toString()] = character.id.toInt()
         }

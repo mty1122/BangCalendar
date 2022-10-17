@@ -227,4 +227,13 @@ object Repository {
         PreferenceDao.unregisterOnDefaultPreferenceChangeListener(listener)
     }
 
+    suspend fun getAppUpdateInfo() = withContext(Dispatchers.IO) {
+        try {
+            val updateInfo = BangCalendarNetwork.getAppUpdateInfo()
+            Result.success(updateInfo)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 }

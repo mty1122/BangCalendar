@@ -16,6 +16,8 @@ object BangCalendarNetwork {
 
     private val userService = ServiceCreator.create<UserService>()
 
+    private val appInfoService = ServiceCreator.create<AppInfoService>()
+
     private suspend fun <T> Call<T>.await(): T {
         return suspendCoroutine {
             enqueue(object : Callback<T> {
@@ -43,5 +45,7 @@ object BangCalendarNetwork {
     fun getCharacterList() = databaseRefreshService.getCharacterList()
 
     fun getEventList() = databaseRefreshService.getEventList()
+
+    suspend fun getAppUpdateInfo() = appInfoService.getUpdateInfo().await()
 
 }

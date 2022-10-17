@@ -12,6 +12,7 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
+import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.ViewModelProvider
@@ -26,6 +27,7 @@ import com.google.firebase.messaging.ktx.messaging
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.logic.model.LoginRequest
+import com.mty.bangcalendar.logic.network.ServiceCreator
 import com.mty.bangcalendar.ui.ActivityCollector
 import com.mty.bangcalendar.ui.BaseActivity
 import com.mty.bangcalendar.ui.guide.GuideActivity
@@ -154,6 +156,20 @@ class SettingsActivity : BaseActivity() {
                     Toast.makeText(activity, "恢复失败", Toast.LENGTH_SHORT).show()
             }
 
+            viewModel.appUpdateInfo.observe(this) {
+                if (it.isFailure) {
+                    toast("检查更新失败，请检查网络连接")
+                } else {
+                    val currentVersionCode = getVersionCode()
+                    val latestVersionCode = it.getOrNull()!!.versionCode
+                    if (currentVersionCode < latestVersionCode) {
+                        updateJump(it.getOrNull()!!.versionName)
+                    } else {
+                        toast("当前版本已是最新版本")
+                    }
+                }
+            }
+
             //设置同步
             findPreference<Preference>("upload_preference")?.let {
                 it.setOnPreferenceClickListener {
@@ -194,6 +210,13 @@ class SettingsActivity : BaseActivity() {
             findPreference<Preference>("author")?.let {
                 it.setOnPreferenceClickListener { preference ->
                     GenericUtil.copyToClipboard(preference.summary.toString())
+                    return@setOnPreferenceClickListener true
+                }
+            }
+
+            findPreference<Preference>("version")?.let {
+                it.setOnPreferenceClickListener {
+                    viewModel.getAppUpdateInfo()
                     return@setOnPreferenceClickListener true
                 }
             }
@@ -284,6 +307,30 @@ class SettingsActivity : BaseActivity() {
                 .setPositiveButton("确认") { _, _ ->
                     viewModel.setPhoneNum("")
                     Toast.makeText(activity, "退出登录成功", Toast.LENGTH_SHORT).show()
+                }
+                .create()
+            dialog.show()
+        }
+
+        private fun getVersionCode(): Long {
+            val packageManager = BangCalendarApplication.context.packageManager
+            val packageInfo = packageManager
+                .getPackageInfo(BangCalendarApplication.context.packageName, 0)
+            return PackageInfoCompat.getLongVersionCode(packageInfo)
+        }
+
+        private fun updateJump(versionName: String) {
+            val dialog = AlertDialog.Builder(requireActivity())
+                .setTitle("发现新版本")
+                .setIcon(R.mipmap.ic_launcher)
+                .setMessage("检测到新版本，版本号$versionName，是否立即更新？")
+                .setNegativeButton("取消") { _, _ ->
+                }
+                .setPositiveButton("确认") { _, _ ->
+                    val intent = Intent(Intent.ACTION_VIEW)
+                    intent.data = Uri.parse(ServiceCreator.BASE_URL +
+                            "app_service/BangCalendar_$versionName.apk")
+                    startActivity(intent)
                 }
                 .create()
             dialog.show()

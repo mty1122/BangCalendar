@@ -4,17 +4,16 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.*
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.LoginRequest
+import com.mty.bangcalendar.logic.model.UpdateResponse
 import com.mty.bangcalendar.logic.model.UserPreference
 import com.mty.bangcalendar.service.CharacterRefreshService
 import com.mty.bangcalendar.service.EventRefreshService
 import com.mty.bangcalendar.util.LogUtil
+import kotlinx.coroutines.launch
 
 class SettingsViewModel : ViewModel() {
 
@@ -107,6 +106,15 @@ class SettingsViewModel : ViewModel() {
     }
     fun setUserPreference(userPreference: UserPreference) {
         setPreferenceLiveData.value = userPreference
+    }
+
+    private val _appUpdateInfo = MutableLiveData<Result<UpdateResponse>>()
+    val appUpdateInfo: LiveData<Result<UpdateResponse>>
+        get() = _appUpdateInfo
+    fun getAppUpdateInfo() {
+        viewModelScope.launch {
+            _appUpdateInfo.value = Repository.getAppUpdateInfo()
+        }
     }
 
     init {

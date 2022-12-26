@@ -1,10 +1,12 @@
 package com.mty.bangcalendar.ui.main
 
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
 import android.widget.DatePicker
 import android.widget.EditText
 import android.widget.FrameLayout
@@ -188,17 +190,9 @@ class MainActivity : BaseActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.menu_settings -> {
-                val intent = Intent(this, SettingsActivity::class.java)
-                startActivity(intent)
-            }
-            R.id.menu_jump -> {
-                chooseDate(findViewById(R.id.viewPager))
-            }
-            R.id.app_bar_search -> {
-                val intent = Intent(this, SearchActivity::class.java)
-                startActivity(intent)
-            }
+            R.id.menu_settings -> startActivity<SettingsActivity>()
+            R.id.menu_jump -> chooseDate(findViewById(R.id.viewPager))
+            R.id.app_bar_search -> startActivity<SearchActivity>()
         }
         return true
     }
@@ -209,7 +203,7 @@ class MainActivity : BaseActivity() {
             val currentDate = viewModel.currentDate.value!!.toDate()
             //活动小于第一期或者大于最后一期时，隐藏活动卡片
             if (it == null || CalendarUtil.differentOfTwoDates(IntDate(it.startDate),
-                    currentDate) >= 9) {
+                    currentDate) >= 13) {
                 LogUtil.d("Event", "currentDate $currentDate startDate ${it?.startDate}")
                 mainBinding.eventCard.eventCardItem.visibility = View.GONE
             } else {

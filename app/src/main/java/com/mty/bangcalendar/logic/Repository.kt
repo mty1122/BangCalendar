@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
+import androidx.room.withTransaction
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
@@ -37,12 +38,26 @@ object Repository {
     fun getEventJSONStreamFromAssets() =
         BangCalendarApplication.context.assets.open("event.json")
 
-    fun addCharacterToDatabase(character: Character) {
+    suspend fun withDatabaseTransaction(block: suspend () -> Unit) {
+        AppDatabase.getDatabase().withTransaction {
+            block()
+        }
+    }
+
+    suspend fun addCharacterToDatabase(character: Character) {
         AppDatabase.getDatabase().characterDao().insertCharacter(character)
     }
 
-    fun addEventToDatabase(event: Event) {
+    suspend fun addEventToDatabase(event: Event) {
         AppDatabase.getDatabase().eventDao().insertEvent(event)
+    }
+
+    suspend fun addCharacterListToDatabase(characterList: List<Character>) {
+        AppDatabase.getDatabase().characterDao().insertAll(characterList)
+    }
+
+    suspend fun addEventListToDatabase(eventList: List<Event>) {
+        AppDatabase.getDatabase().eventDao().insertAll(eventList)
     }
 
     suspend fun getGuideInitData() = withContext(Dispatchers.IO) {

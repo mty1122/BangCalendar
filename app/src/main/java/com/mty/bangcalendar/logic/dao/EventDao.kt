@@ -7,7 +7,10 @@ import com.mty.bangcalendar.logic.model.Event
 interface EventDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertEvent(event: Event): Long
+    suspend fun insertEvent(event: Event)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(eventList: List<Event>)
 
     @Update
     fun updateEvent(event: Event)

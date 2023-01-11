@@ -7,7 +7,10 @@ import com.mty.bangcalendar.logic.model.Character
 interface CharacterDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertCharacter(character: Character): Long
+    suspend fun insertCharacter(character: Character)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(characterList: List<Character>)
 
     @Update
     fun updateCharacter(character: Character)

@@ -8,15 +8,16 @@ import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Character
 import com.mty.bangcalendar.service.EventRefreshService.Companion.sendMessage
 import com.mty.bangcalendar.ui.settings.SettingsActivity
-import com.mty.bangcalendar.util.LogUtil
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import kotlin.concurrent.thread
 
 class CharacterRefreshService : Service(){
 
@@ -30,15 +31,15 @@ class CharacterRefreshService : Service(){
             val characterList = Json.decodeFromStream<List<Character>>(characterReader)
             val coroutineScope = CoroutineScope(Dispatchers.Main)
             coroutineScope.launch {
-                for (character in characterList) {
-                    withContext(Dispatchers.IO) {
+                Repository.withDatabaseTransaction {
+                    for (character in characterList) {
                         Repository.addCharacterToDatabase(character)
+                        val progress = 50 + character.id.toInt() * 50 / characterList.size
+                        val details = "载入角色：${character.name}"
+                        onItemAddFinished(progress, details)
                     }
-                    val progress = 50 + character.id.toInt() * 50 / characterList.size
-                    val details = "载入角色：${character.name}"
-                    onItemAddFinished(progress, details)
+                    coroutineScope.cancel()
                 }
-                coroutineScope.cancel()
             }
         }
 
@@ -70,13 +71,11 @@ class CharacterRefreshService : Service(){
     }
 
     private fun addCharacterToDatabase(characterList: List<Character>) {
-        thread {
-            for (character in characterList) {
-                Repository.addCharacterToDatabase(character)
-                LogUtil.d("Database", "向数据库加入角色：$character")
-            }
+        CoroutineScope(Dispatchers.IO).launch {
+            Repository.addCharacterListToDatabase(characterList)
             sendMessage(SettingsActivity.REFRESH_CHARACTER_SUCCESS)
             stopSelf()
+            cancel()
         }
     }
 

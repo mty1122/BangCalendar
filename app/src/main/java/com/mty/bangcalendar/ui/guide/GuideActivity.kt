@@ -26,7 +26,6 @@ import com.mty.bangcalendar.R
 import com.mty.bangcalendar.service.CharacterRefreshService
 import com.mty.bangcalendar.service.EventRefreshService
 import com.mty.bangcalendar.ui.main.MainActivity
-import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.ui.theme.BangCalendarTheme
 import com.mty.bangcalendar.util.ThemeUtil
 import com.mty.bangcalendar.util.startActivity
@@ -117,10 +116,6 @@ class GuideActivity : ComponentActivity() {
 
     private fun startMainActivity() {
         startActivity<MainActivity>()
-        val isSettingsChange = intent.getBooleanExtra("settings_change", false)
-        if (isSettingsChange) {
-            startActivity<SettingsActivity>()
-        }
         finish()
     }
 

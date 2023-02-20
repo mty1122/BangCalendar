@@ -1,6 +1,7 @@
 package com.mty.bangcalendar.ui
 import android.app.Activity
 
+@Deprecated("采用了新的方案更换主题，暂时不需要收集Activity了")
 object ActivityCollector {
 
     private val activities = ArrayList<Activity>()

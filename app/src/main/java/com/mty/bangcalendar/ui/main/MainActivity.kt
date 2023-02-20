@@ -177,8 +177,20 @@ class MainActivity : BaseActivity() {
             addAdditionalTip()
         }
 
+        //其他activity的跳转请求
         viewModel.jumpDate.observe(this) {
             jumpDate(mainBinding.viewPager, CalendarUtil(it))
+        }
+
+        //切换主题
+        lifecycleScope.launch {
+            //重启activity会导致observer重新注册，由于stateflow replay=1，会导致重复recreate，因此需要加入判定
+            viewModel.activityRecreate.collect {
+                if (!viewModel.isActivityRecreated) {
+                    recreate()
+                    viewModel.isActivityRecreated = true
+                }
+            }
         }
 
     }
@@ -403,22 +415,22 @@ class MainActivity : BaseActivity() {
         val eventId = event.id
         todayEventId?.let {
             log(this, "刷新活动状态")
-            when (true) {
-                (eventId < todayEventId) -> {
+            when {
+                eventId < todayEventId -> {
                     binding.eventCard.eventProgressName.setText(R.string.finish)
                     binding.eventCard.eventProgress.progress = 100
                 }
-                (eventId == todayEventId) -> {
+                eventId == todayEventId -> {
                     val systemTime = systemDate.getTimeInMillis()
                     val eventStartTime = viewModel.eventStartTime
                     val eventEndTime = viewModel.eventEndTime
                     if (eventStartTime != null && eventEndTime != null) {
-                        when (true) {
-                            (systemTime < eventStartTime) -> {
+                        when {
+                            systemTime < eventStartTime -> {
                                 binding.eventCard.eventProgressName.setText(R.string.prepare)
                                 binding.eventCard.eventProgress.progress = 0
                             }
-                            (systemTime >= eventEndTime) -> {
+                            systemTime >= eventEndTime -> {
                                 binding.eventCard.eventProgressName.setText(R.string.finish)
                                 binding.eventCard.eventProgress.progress = 100
                             }

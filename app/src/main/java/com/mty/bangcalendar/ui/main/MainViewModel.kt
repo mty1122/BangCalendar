@@ -13,6 +13,8 @@ import com.mty.bangcalendar.logic.model.Character
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.logic.model.IntDate
 import com.mty.bangcalendar.util.CalendarUtil
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class MainViewModel : ViewModel() {
@@ -25,6 +27,7 @@ class MainViewModel : ViewModel() {
     var eventEndTime: Long? = null
 
     var isActivityFirstStart = true
+    var isActivityRecreated = true
 
     //应用设置更改
     private val onSettingsChangeListener =
@@ -33,6 +36,7 @@ class MainViewModel : ViewModel() {
             "signature" -> getUserName()
             "band" -> getPreferenceBand()
             "character" -> getPreferenceCharacter()
+            "theme" ->recreateActivity()
         }
     }
 
@@ -181,6 +185,15 @@ class MainViewModel : ViewModel() {
         Repository.getEventPic(eventId)?.let {
             onPicReady(it)
         }
+    }
+
+    //更改主题，这里采用flow，因为需要activity在不可见时就进行重启
+    private val _activityRecreate = MutableStateFlow(0)
+    val activityRecreate: StateFlow<Int>
+        get() = _activityRecreate
+    private fun recreateActivity() {
+        isActivityRecreated = false
+        _activityRecreate.value++
     }
 
     //取消注册Broadcast

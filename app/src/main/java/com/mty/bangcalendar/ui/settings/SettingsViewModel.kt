@@ -17,6 +17,8 @@ import kotlinx.coroutines.launch
 
 class SettingsViewModel : ViewModel() {
 
+    var isActivityRecreated = true
+
     //接收service发来的更新进度
     private val refreshDataResultReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -82,6 +84,7 @@ class SettingsViewModel : ViewModel() {
     }
     fun downloadUserPreference(loginRequest: LoginRequest) {
         downloadPreferenceLiveData.value = loginRequest
+        isActivityRecreated = false
     }
 
     private val uploadPreferenceLiveData = MutableLiveData<UserPreference>()

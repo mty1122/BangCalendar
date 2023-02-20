@@ -28,9 +28,7 @@ import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.logic.model.LoginRequest
 import com.mty.bangcalendar.logic.network.ServiceCreator
-import com.mty.bangcalendar.ui.ActivityCollector
 import com.mty.bangcalendar.ui.BaseActivity
-import com.mty.bangcalendar.ui.guide.GuideActivity
 import com.mty.bangcalendar.util.*
 import java.util.regex.Pattern
 
@@ -150,10 +148,14 @@ class SettingsActivity : BaseActivity() {
                         Toast.LENGTH_LONG).show()
             }
             viewModel.setResponse.observe(this) {
-                if (it == 0)
-                    showPreferenceRecoverCompleteDialog()
-                else
+                if (it != 0)
                     Toast.makeText(activity, "恢复失败", Toast.LENGTH_SHORT).show()
+                else if (!viewModel.isActivityRecreated) {
+                    ThemeUtil.setCurrentTheme(findPreference<Preference>("theme")!!
+                        .sharedPreferences!!.getString("theme", "theme_ppp")!!)
+                    requireActivity().recreate()
+                    viewModel.isActivityRecreated = true
+                }
             }
 
             viewModel.appUpdateInfo.observe(this) {
@@ -233,8 +235,9 @@ class SettingsActivity : BaseActivity() {
             }
 
             findPreference<Preference>("theme")?.let {
-                it.setOnPreferenceChangeListener { _, _ ->
-                    restartActivity()
+                it.setOnPreferenceChangeListener { _, newValue ->
+                    ThemeUtil.setCurrentTheme(newValue as String)
+                    requireActivity().recreate()
                     return@setOnPreferenceChangeListener true
                 }
             }
@@ -384,28 +387,6 @@ class SettingsActivity : BaseActivity() {
                     return true
             }
             return false
-        }
-
-        private fun showPreferenceRecoverCompleteDialog() {
-            val dialog = AlertDialog.Builder(requireActivity())
-                .setTitle("恢复完成")
-                .setIcon(R.mipmap.ic_launcher)
-                .setMessage(getString(R.string.recover_complete))
-                .setNegativeButton("稍后重启") { _, _ ->
-                }
-                .setPositiveButton("现在重启") { _, _ ->
-                    restartActivity()
-                    Toast.makeText(activity, "恢复成功", Toast.LENGTH_SHORT).show()
-                }
-                .create()
-            dialog.show()
-        }
-
-        private fun restartActivity() {
-            ActivityCollector.finishAll()
-            val intent = Intent(this@SettingsFragment.context, GuideActivity::class.java)
-            intent.putExtra("settings_change", true)
-            startActivity(intent)
         }
 
     }

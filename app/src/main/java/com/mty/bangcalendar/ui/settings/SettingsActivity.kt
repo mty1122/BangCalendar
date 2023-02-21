@@ -155,6 +155,7 @@ class SettingsActivity : BaseActivity() {
                         .sharedPreferences!!.getString("theme", "theme_ppp")!!)
                     requireActivity().recreate()
                     viewModel.isActivityRecreated = true
+                    toast("恢复成功")
                 }
             }
 

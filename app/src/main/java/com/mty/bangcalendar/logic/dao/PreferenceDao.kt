@@ -59,9 +59,11 @@ object PreferenceDao {
     fun getPreferenceCharacter(): Int =
         Integer.parseInt(defaultPreference().getString("character", "0")!!)
 
-    fun getUserPreference(): UserPreference = UserPreference(getPhoneNum(), getUserName()
-        , getTheme(), getPreferenceBand(), getPreferenceCharacter().toString(),
-        SecurityUtil.getRequestCode())
+    fun getUserPreference(): UserPreference {
+        val requestCode = SecurityUtil.getRequestCode()
+        return UserPreference(getPhoneNum(), getUserName(), getTheme(), getPreferenceBand(),
+            getPreferenceCharacter().toString(), requestCode[0], requestCode[1], requestCode[2])
+    }
 
     fun setUserPreference(userPreference: UserPreference) {
         defaultPreference().edit {

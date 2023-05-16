@@ -1,12 +1,12 @@
 package com.mty.bangcalendar.ui.main
 
 import android.annotation.SuppressLint
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.PagerAdapter
 import com.mty.bangcalendar.logic.model.CalendarScrollView
+import com.mty.bangcalendar.util.LogUtil
 
 class CalendarViewPagerAdapter(val views: List<CalendarScrollView>) : PagerAdapter() {
 
@@ -26,7 +26,7 @@ class CalendarViewPagerAdapter(val views: List<CalendarScrollView>) : PagerAdapt
 
     //实例化item，ViewPager会预加载左右两侧的view
     override fun instantiateItem(container: ViewGroup, position: Int): Any {
-        Log.d("CalendarAdapter", "position = $position")
+        LogUtil.d("CalendarAdapter", "position = $position")
         //根据position动态调整滚动的view
         val index = position % views.size
         val view = views[index].view
@@ -34,7 +34,7 @@ class CalendarViewPagerAdapter(val views: List<CalendarScrollView>) : PagerAdapt
         val lastPosition = views[index].lastPosition
         //更新view在viewPager中的位置
         views[index].lastPosition = position
-        Log.d("CalendarAdapter", "lastPosition = $lastPosition")
+        LogUtil.d("CalendarAdapter", "lastPosition = $lastPosition")
         //若view已存在在viewGroup中则移除（×**）
         if (container.indexOfChild(view) != -1) {
             container.removeView(view)

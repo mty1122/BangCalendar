@@ -60,7 +60,7 @@ class SettingsViewModel : ViewModel() {
         LogUtil.d("Repository", "login request ${request.phone}")
     }
     fun loginFinished() {
-        loginLiveData.value = LoginRequest("1", "1")
+        loginLiveData.value = LoginRequest("1", "1", "1", "1")
     }
 
     private val phoneNumLiveData = MutableLiveData<String?>()

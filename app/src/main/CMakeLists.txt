@@ -4,10 +4,9 @@ project(bangcalendar)
 
 add_library( bangcalendar
              SHARED
-             cpp/security.c cpp/base64.c )
+             cpp/security.cpp cpp/eaes.cpp cpp/base64.cpp)
 
-find_library(
-              log-lib
+find_library( log-lib
               log )
 
 add_library( openssl1
@@ -18,15 +17,14 @@ set_target_properties( openssl1
                        ${PROJECT_SOURCE_DIR}/jniLibs/${CMAKE_ANDROID_ARCH_ABI}/libcrypto.so )
 
 add_library( openssl2
-        STATIC
-        IMPORTED)
+             STATIC
+             IMPORTED)
 set_target_properties( openssl2
-        PROPERTIES IMPORTED_LOCATION
-        ${PROJECT_SOURCE_DIR}/jniLibs/${CMAKE_ANDROID_ARCH_ABI}/libssl.so )
+                       PROPERTIES IMPORTED_LOCATION
+                       ${PROJECT_SOURCE_DIR}/jniLibs/${CMAKE_ANDROID_ARCH_ABI}/libssl.so )
 
 include_directories(cpp)
 
-target_link_libraries(
-                       bangcalendar
+target_link_libraries( bangcalendar
                        ${log-lib} openssl1 openssl2 )
 

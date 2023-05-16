@@ -13,12 +13,13 @@ object SecurityUtil {
         System.loadLibrary("bangcalendar")
     }
 
-    external fun getRequestCode(): String
+    external fun getRequestCode(): Array<String>
 
     external fun decrypt(text: String): String
 
     @SuppressLint("PackageManagerGetSignatures")
     @Suppress("DEPRECATION")
+    @JvmStatic
     fun getSignature(): ByteArray {
         var signatures: Array<Signature>? = null
         try {

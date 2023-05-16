@@ -195,8 +195,9 @@ class SettingsActivity : BaseActivity() {
                             return@setOnPreferenceClickListener true
                         }
                     }
+                    val requestCode = SecurityUtil.getRequestCode()
                     viewModel.downloadUserPreference(LoginRequest(viewModel.phoneNum.value!!,
-                        SecurityUtil.getRequestCode()))
+                        requestCode[0], requestCode[1], requestCode[2]))
                     return@setOnPreferenceClickListener true
                 }
             }
@@ -268,8 +269,9 @@ class SettingsActivity : BaseActivity() {
 
             view.findViewById<Button>(R.id.send_sms_button).setOnClickListener {
                 if (checkPhoneNum(phoneText.text.toString())) {
-                    viewModel.login(LoginRequest(phoneText.text.toString(),
-                        SecurityUtil.getRequestCode()))
+                    val requestCode = SecurityUtil.getRequestCode()
+                    viewModel.login(LoginRequest(phoneText.text.toString(), requestCode[0],
+                                    requestCode[1], requestCode[2]))
                     val button = it as Button
                     button.isEnabled = false
                     button.text = getString(R.string.sms_send_success)

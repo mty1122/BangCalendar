@@ -6,7 +6,6 @@ import retrofit2.converter.scalars.ScalarsConverterFactory
 
 object ServiceCreator {
 
-    //临时使用提供图片的URL
     const val BASE_URL = "https://www.mxmnb.cn/bangcalendar/"
 
     private val retrofit = Retrofit.Builder()

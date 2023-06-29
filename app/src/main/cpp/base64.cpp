@@ -1,6 +1,6 @@
 #include "include/base64.h"
 
-std::unique_ptr<unsigned char[]> base64_decode(const char* in, int& outlen) {
+std::unique_ptr<unsigned char[]> eaes::base64_decode(const char* in, int& outlen) {
     if (in == nullptr)
         return {};
 
@@ -13,13 +13,15 @@ std::unique_ptr<unsigned char[]> base64_decode(const char* in, int& outlen) {
     else
         outlen = inlen / 4 * 3;
 
+    unsigned char outbuff[outlen];
     std::unique_ptr<unsigned char[]> out(new unsigned char[outlen]);
 
-    EVP_DecodeBlock(out.get(), (const unsigned char*)in, inlen);
+    EVP_DecodeBlock(outbuff, (const unsigned char*)in, inlen);
+    memcpy(out.get(), outbuff, outlen);
     return out;
 }
 
-std::unique_ptr<char[]> base64_encode(const unsigned char* in, int inlen) {
+std::unique_ptr<char[]> eaes::base64_encode(const unsigned char* in, int inlen) {
     if (in == nullptr)
         return {};
 
@@ -30,9 +32,11 @@ std::unique_ptr<char[]> base64_encode(const unsigned char* in, int inlen) {
     else
         outlen = (inlen / 3 + 1) * 4;
 
+    unsigned char outbuff[outlen];
     std::unique_ptr<char[]> out(new char[outlen + 1]);
     out[outlen]='\0';
 
-    EVP_EncodeBlock((unsigned char*)out.get(), in, inlen);
+    EVP_EncodeBlock(outbuff, in, inlen);
+    memcpy(out.get(), outbuff, outlen);
     return out;
 }

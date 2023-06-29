@@ -6,7 +6,7 @@ import retrofit2.http.GET
 
 interface AppInfoService {
 
-    @GET("app_service/update.php")
+    @GET("index.php/update")
     fun getUpdateInfo(): Call<UpdateResponse>
 
 }

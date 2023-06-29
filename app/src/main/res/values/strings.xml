@@ -86,7 +86,7 @@
     <string name="download_user_preference_summary">从云端恢复昵称、乐队等偏好</string>
     <string name="about_header">关于</string>
     <string name="version_title">版本</string>
-    <string name="version">1.5.8</string>
+    <string name="version">1.5.9</string>
     <string name="program_title">项目地址</string>
     <string name="program_url">https://github.com/mty1122/BangCalendar</string>
     <string name="material_title">素材来源</string>
@@ -105,8 +105,10 @@
     <string name="sms_code">验证码：</string>
     <string name="sms_code_hint">请输入验证码</string>
     <string name="sms_send">发送验证码</string>
+    <string name="sms_sending">发送中</string>
     <string name="sms_send_success">已发送</string>
     <string name="login_tip">Tip：点击发送验证码按钮后，您会收到一条来自“淡定的个人博客”的验证码，该网站为我的个人网站，请放心登录。</string>
+    <string name="logging">登录中</string>
     <string name="cancel">取消</string>
     <string name="logout">您已登录，是否退出登录？</string>
     <string name="title_activity_guide2">GuideActivity2</string>

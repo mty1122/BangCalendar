@@ -5,17 +5,26 @@ import android.content.pm.PackageManager
 import android.content.pm.Signature
 import android.os.Build
 import com.mty.bangcalendar.BangCalendarApplication.Companion.context
+import com.mty.bangcalendar.logic.Repository
 import java.security.MessageDigest
 
 object SecurityUtil {
+
+    var aesKey: String = Repository.getAesKey()
 
     init {
         System.loadLibrary("bangcalendar")
     }
 
-    external fun getRequestCode(): Array<String>
+    external fun getSmsRequestCode(): Array<String>
 
-    external fun decrypt(text: String): String
+    external fun getRandomKey(): String
+
+    external fun getEncryptedKey(aesKey: String): String
+
+    external fun encrypt(aesKey: String, text: String): String
+
+    external fun decrypt(aesKey: String, text: String): String
 
     @SuppressLint("PackageManagerGetSignatures")
     @Suppress("DEPRECATION")

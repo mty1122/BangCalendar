@@ -17,6 +17,10 @@ object PreferenceDao {
         get() = sharedPreference().getBoolean("isFirstStart", true)
         set(value) = sharedPreference().edit { putBoolean("isFirstStart", value) }
 
+    var aesKey: String
+        get() = sharedPreference().getString("aesKey", "")!!
+        set(value) = sharedPreference().edit { putString("aesKey", value) }
+
     fun getLastRefreshDay(): Int = sharedPreference().getInt("lastRefreshDay", 0)
 
     fun setLastRefreshDay(day: Int) {
@@ -59,11 +63,9 @@ object PreferenceDao {
     fun getPreferenceCharacter(): Int =
         Integer.parseInt(defaultPreference().getString("character", "0")!!)
 
-    fun getUserPreference(): UserPreference {
-        val requestCode = SecurityUtil.getRequestCode()
-        return UserPreference(getPhoneNum(), getUserName(), getTheme(), getPreferenceBand(),
-            getPreferenceCharacter().toString(), requestCode[0], requestCode[1], requestCode[2])
-    }
+    fun getUserPreference(): UserPreference = UserPreference(getPhoneNum(), getUserName(),
+        getTheme(), getPreferenceBand(), getPreferenceCharacter().toString(),
+        SecurityUtil.encrypt(SecurityUtil.aesKey, getPhoneNum()))
 
     fun setUserPreference(userPreference: UserPreference) {
         defaultPreference().edit {

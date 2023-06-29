@@ -4,20 +4,24 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.logic.Repository
-import com.mty.bangcalendar.logic.model.LoginRequest
-import com.mty.bangcalendar.logic.model.UpdateResponse
-import com.mty.bangcalendar.logic.model.UserPreference
+import com.mty.bangcalendar.logic.model.*
 import com.mty.bangcalendar.service.CharacterRefreshService
 import com.mty.bangcalendar.service.EventRefreshService
-import com.mty.bangcalendar.util.LogUtil
+import com.mty.bangcalendar.util.SecurityUtil
+import com.mty.bangcalendar.util.toast
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class SettingsViewModel : ViewModel() {
-
-    var isActivityRecreated = true
 
     //接收service发来的更新进度
     private val refreshDataResultReceiver = object : BroadcastReceiver() {
@@ -50,65 +54,63 @@ class SettingsViewModel : ViewModel() {
         context.startService(intent)
     }
 
-    //登录
-    private val loginLiveData = MutableLiveData<LoginRequest>()
-    val loginResponse = Transformations.switchMap(loginLiveData) {
-        Repository.login(it)
-    }
-    fun login(request: LoginRequest) {
-        loginLiveData.value = request
-        LogUtil.d("Repository", "login request ${request.phone}")
-    }
-    fun loginFinished() {
-        loginLiveData.value = LoginRequest("1", "1", "1", "1")
-    }
+    //发送验证码
+    suspend fun sendSms(request: SmsRequest) = Repository.sendSms(request)
 
-    private val phoneNumLiveData = MutableLiveData<String?>()
-    val phoneNum = Transformations.switchMap(phoneNumLiveData) {
-        if (it != null)
-            Repository.setPhoneNum(it)
-        else
-            Repository.getPhoneNum()
-    }
+    //登录
+    suspend fun login(request: LoginRequest) = Repository.login(request)
+
+    //LiveData线程不安全，同步数据需要在子线程中进行，因此选择线程安全的StateFlow
+    private val phoneNumLiveData = MutableStateFlow("")
+    val phoneNum: StateFlow<String>
+        get() = phoneNumLiveData
     fun getPhoneNum() {
-        phoneNumLiveData.value = null
+        viewModelScope.launch {
+            phoneNumLiveData.value = Repository.getPhoneNum()
+        }
     }
     fun setPhoneNum(phone: String) {
-        phoneNumLiveData.value = phone
+        viewModelScope.launch {
+            Repository.setPhoneNum(phone)
+            phoneNumLiveData.value = phone
+        }
     }
 
     //同步偏好
-    private val downloadPreferenceLiveData = MutableLiveData<LoginRequest>()
-    val downloadPreference = Transformations.switchMap(downloadPreferenceLiveData) {
-        Repository.downloadUserPreference(it)
-    }
-    fun downloadUserPreference(loginRequest: LoginRequest) {
-        downloadPreferenceLiveData.value = loginRequest
-        isActivityRecreated = false
-    }
-
-    private val uploadPreferenceLiveData = MutableLiveData<UserPreference>()
-    val uploadResponse = Transformations.switchMap(uploadPreferenceLiveData) {
-        Repository.uploadUserPreference(it)
-    }
-    fun uploadUserPreference(userPreference: UserPreference) {
-        uploadPreferenceLiveData.value = userPreference
+    fun backupPreference() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val preference = Repository.getUserPreference()
+            preference.encrypt() //加密后上传
+            val result = Repository.uploadUserPreference(preference)
+            val response = result.getOrNull()
+            withContext(Dispatchers.Main) {
+                if (response != null && response.string() == "OK")
+                    toast("备份成功")
+                else
+                    toast("备份失败，请重试，或检查网络连接")
+            }
+        }
     }
 
-    private val getPreferenceLiveData = MutableLiveData<String>()
-    val userPreference = Transformations.switchMap(getPreferenceLiveData) {
-        Repository.getUserPreference()
-    }
-    fun getUserPreference(phone: String) {
-        getPreferenceLiveData.value = phone
-    }
-
-    private val setPreferenceLiveData = MutableLiveData<UserPreference>()
-    val setResponse = Transformations.switchMap(setPreferenceLiveData) {
-        Repository.setUserPreference(it)
-    }
-    fun setUserPreference(userPreference: UserPreference) {
-        setPreferenceLiveData.value = userPreference
+    fun recoveryPreference(onRecoverySuccess: (UserPreference) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val result = Repository.downloadUserPreference(
+                GetPreferenceRequest(phoneNum.value,
+                    SecurityUtil.encrypt(SecurityUtil.aesKey, phoneNum.value))
+            )
+            val preference = result.getOrNull()
+            if (preference != null) {
+                preference.decrypt() //解密后入库
+                Repository.setUserPreference(preference)
+                withContext(Dispatchers.Main) {
+                    onRecoverySuccess(preference)
+                }
+            } else {
+                withContext(Dispatchers.Main) {
+                    toast("恢复失败，请重试，或检查网络连接")
+                }
+            }
+        }
     }
 
     private val _appUpdateInfo = MutableLiveData<Result<UpdateResponse>>()

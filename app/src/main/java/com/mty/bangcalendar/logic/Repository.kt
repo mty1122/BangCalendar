@@ -5,7 +5,6 @@ import android.graphics.drawable.Drawable
 import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.liveData
 import androidx.room.withTransaction
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -132,73 +131,56 @@ object Repository {
 
     fun getEventListFromInternet() = BangCalendarNetwork.getEventList()
 
-    fun login(request: LoginRequest) = liveData(Dispatchers.IO) {
-        val result =
-            if (request.phone == "1")
-                Result.success(null) //登陆完成
-            else {
-                try {
-                    val loginResponse = BangCalendarNetwork.login(request)
-                    Result.success(loginResponse) //发起登录请求成功
-                } catch (e: Exception) {
-                    Result.failure(e) //登录请求失败
-                }
-            }
-        emit(result)
-    }
-
-    fun getPhoneNum(): LiveData<String> {
-        val liveData = MutableLiveData<String>()
-        thread {
-            liveData.postValue(PreferenceDao.getPhoneNum())
-        }
-        return liveData
-    }
-
-    fun setPhoneNum(phone: String): LiveData<String> {
-        val liveData = MutableLiveData<String>()
-        thread {
-            PreferenceDao.setPhoneNum(phone)
-            liveData.postValue(PreferenceDao.getPhoneNum())
-        }
-        return liveData
-    }
-
-    fun downloadUserPreference(request: LoginRequest) = liveData(Dispatchers.IO) {
-        val result = try {
-            val getResponse = BangCalendarNetwork.getUserPreference(request)
-            Result.success(getResponse)
+    suspend fun sendSms(request: SmsRequest) = withContext(Dispatchers.IO) {
+        try {
+            val result = BangCalendarNetwork.sendSms(request)
+            Result.success(result)
         } catch (e: Exception) {
             Result.failure(e)
         }
-        emit(result)
     }
 
-    fun uploadUserPreference(userPreference: UserPreference) = liveData(Dispatchers.IO) {
-        val result = try {
-            val setResponse = BangCalendarNetwork.setUserPreference(userPreference)
-            Result.success(setResponse)
+    suspend fun login(request: LoginRequest) = withContext(Dispatchers.IO) {
+        try {
+            val result = BangCalendarNetwork.login(request)
+            Result.success(result)
         } catch (e: Exception) {
             Result.failure(e)
         }
-        emit(result)
     }
 
-    fun getUserPreference(): LiveData<UserPreference> {
-        val liveData = MutableLiveData<UserPreference>()
-        thread {
-            liveData.postValue(PreferenceDao.getUserPreference())
-        }
-        return liveData
+    suspend fun getPhoneNum() = withContext(Dispatchers.IO) {
+        PreferenceDao.getPhoneNum()
     }
 
-    fun setUserPreference(userPreference: UserPreference): LiveData<Int> {
-        val liveData = MutableLiveData<Int>()
-        thread {
-            PreferenceDao.setUserPreference(userPreference)
-            liveData.postValue(0)
+    suspend fun setPhoneNum(phone: String) = withContext(Dispatchers.IO) {
+        PreferenceDao.setPhoneNum(phone)
+    }
+
+    suspend fun downloadUserPreference(request: GetPreferenceRequest) = withContext(Dispatchers.IO) {
+        try {
+            val result = BangCalendarNetwork.getUserPreference(request)
+            Result.success(result)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
-        return liveData
+    }
+
+    suspend fun uploadUserPreference(userPreference: UserPreference) = withContext(Dispatchers.IO) {
+        try {
+            val result = BangCalendarNetwork.setUserPreference(userPreference)
+            Result.success(result)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getUserPreference() = withContext(Dispatchers.IO) {
+        PreferenceDao.getUserPreference()
+    }
+
+    suspend fun setUserPreference(userPreference: UserPreference) = withContext(Dispatchers.IO) {
+        PreferenceDao.setUserPreference(userPreference)
     }
 
     suspend fun getEventList() = withContext(Dispatchers.IO) {
@@ -249,6 +231,12 @@ object Repository {
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    fun getAesKey() = PreferenceDao.aesKey
+
+    fun setAesKey(key: String) {
+        PreferenceDao.aesKey = key
     }
 
 }

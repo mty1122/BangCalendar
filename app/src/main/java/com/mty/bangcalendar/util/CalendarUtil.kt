@@ -18,7 +18,7 @@ class CalendarUtil(val date: IntDate? = null) {
 
     }
 
-    private val calendar = Calendar.getInstance()
+    private var calendar = Calendar.getInstance()
 
     var rows: Int = FIVE_ROWS
 
@@ -47,6 +47,12 @@ class CalendarUtil(val date: IntDate? = null) {
             month = it.value % 10000 / 100
             day = it.value % 100
         }
+        calendar.firstDayOfWeek = Calendar.SUNDAY
+        refreshRows()
+    }
+
+    fun refreshCalendar() {
+        calendar = Calendar.getInstance()
         calendar.firstDayOfWeek = Calendar.SUNDAY
         refreshRows()
     }

@@ -88,6 +88,7 @@ class GuideActivity : ComponentActivity() {
                 else
                     overridePendingTransition(0, 0)
             } else {
+                /* 常规启动 */
                 startMainActivity()
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
                     overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, 0, 0)

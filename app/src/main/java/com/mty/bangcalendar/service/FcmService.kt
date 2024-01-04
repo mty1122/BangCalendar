@@ -6,8 +6,12 @@ import com.mty.bangcalendar.logic.Repository
 class FcmService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
-        super.onNewToken(token)
-        Repository.setFcmToken(token)
+        try {
+            super.onNewToken(token)
+            Repository.setFcmToken(token)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
 }

@@ -18,7 +18,7 @@ import com.mty.bangcalendar.util.EventUtil
 class EventListActivity : BaseActivity() {
 
     private val viewModel by lazy {
-        ViewModelProvider(this).get(EventListViewModel::class.java)
+        ViewModelProvider(this)[EventListViewModel::class.java]
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

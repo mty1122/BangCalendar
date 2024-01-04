@@ -35,7 +35,7 @@ class SearchActivity : BaseActivity() {
     }
 
     private val viewModel by lazy {
-        ViewModelProvider(this).get(SearchViewModel::class.java)
+        ViewModelProvider(this)[SearchViewModel::class.java]
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,7 +72,7 @@ class SearchActivity : BaseActivity() {
         }
         searchBinding.searchCharacterCard.characterCardItem.visibility = View.GONE
 
-        viewModel.event.observe(this) { event ->
+        viewModel.eventLiveData.observe(this) { event ->
             if (event != null &&
                 getSearchType(searchBinding.searchContent.text.toString()) == SEARCH_EVENT) {
                 LogUtil.d("Search", "活动id为${event.id}")
@@ -83,7 +83,7 @@ class SearchActivity : BaseActivity() {
             }
         }
 
-        viewModel.character.observe(this) { character ->
+        viewModel.characterLiveData.observe(this) { character ->
             if (character != null &&
                 getSearchType(searchBinding.searchContent.text.toString()) == SEARCH_CHARACTER) {
                 //解决Activity意外重启重复刷新的问题

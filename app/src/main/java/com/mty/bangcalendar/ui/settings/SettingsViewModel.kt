@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -125,7 +126,8 @@ class SettingsViewModel : ViewModel() {
     init {
         val intentFilter = IntentFilter()
         intentFilter.addAction("com.mty.bangcalendar.REFRESH_DATABASE_FINISH")
-        BangCalendarApplication.context.registerReceiver(refreshDataResultReceiver, intentFilter)
+        ContextCompat.registerReceiver(BangCalendarApplication.context, refreshDataResultReceiver,
+            intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED)
     }
 
     override fun onCleared() {

@@ -2,6 +2,7 @@ package com.mty.bangcalendar.ui.main
 
 import android.content.*
 import android.graphics.drawable.Drawable
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -97,7 +98,8 @@ class MainViewModel : ViewModel() {
 
         val intentFilter = IntentFilter()
         intentFilter.addAction("com.mty.bangcalendar.JUMP_DATE")
-        BangCalendarApplication.context.registerReceiver(jumpDateReceiver, intentFilter)
+        ContextCompat.registerReceiver(BangCalendarApplication.context, jumpDateReceiver,
+            intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED)
     }
 
     private val _todayEvent = MutableLiveData<Event?>()

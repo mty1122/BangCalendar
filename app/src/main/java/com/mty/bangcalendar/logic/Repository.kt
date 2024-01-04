@@ -3,8 +3,6 @@ package com.mty.bangcalendar.logic
 import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
 import android.net.Uri
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.room.withTransaction
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -14,14 +12,18 @@ import com.bumptech.glide.request.transition.Transition
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.logic.dao.AppDatabase
 import com.mty.bangcalendar.logic.dao.PreferenceDao
-import com.mty.bangcalendar.logic.model.*
+import com.mty.bangcalendar.logic.model.Character
+import com.mty.bangcalendar.logic.model.Event
+import com.mty.bangcalendar.logic.model.GetPreferenceRequest
+import com.mty.bangcalendar.logic.model.GuideInitData
+import com.mty.bangcalendar.logic.model.IntDate
+import com.mty.bangcalendar.logic.model.LoginRequest
+import com.mty.bangcalendar.logic.model.SmsRequest
+import com.mty.bangcalendar.logic.model.UserPreference
 import com.mty.bangcalendar.logic.network.BangCalendarNetwork
 import com.mty.bangcalendar.logic.network.ServiceCreator
-import com.mty.bangcalendar.logic.model.IntDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.lang.Exception
-import kotlin.concurrent.thread
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -92,20 +94,15 @@ object Repository {
     }
 
     suspend fun getEventByDate(date: IntDate) = withContext(Dispatchers.IO) {
-        AppDatabase.getDatabase().eventDao().getNearlyEventByDate(date.date)
+        AppDatabase.getDatabase().eventDao().getNearlyEventByDate(date.value)
     }
 
-    fun getEventById(id: Int): LiveData<Event?> {
-        val liveData = MutableLiveData<Event?>()
-        thread {
-            val event = AppDatabase.getDatabase().eventDao().getEventById(id)
-            liveData.postValue(event)
-        }
-        return liveData
+    suspend fun getEventById(id: Int) = withContext(Dispatchers.IO) {
+        AppDatabase.getDatabase().eventDao().getEventById(id)
     }
 
     suspend fun getBandEventByDate(date: IntDate, character1Id: Int) = withContext(Dispatchers.IO) {
-        AppDatabase.getDatabase().eventDao().getNearlyBandEventByDate(date.date, character1Id)
+        AppDatabase.getDatabase().eventDao().getNearlyBandEventByDate(date.value, character1Id)
     }
 
    suspend fun getCharacterByMonth(month: Int) = withContext(Dispatchers.IO) {
@@ -118,13 +115,8 @@ object Repository {
         AppDatabase.getDatabase().characterDao().getCharacterById(id)
     }
 
-    fun getCharacterByName(name: String): LiveData<Character?> {
-        val liveData = MutableLiveData<Character?>()
-        thread {
-            val character = AppDatabase.getDatabase().characterDao().getCharacterByName(name)
-            liveData.postValue(character)
-        }
-        return liveData
+    suspend fun getCharacterByName(name: String) = withContext(Dispatchers.IO) {
+        AppDatabase.getDatabase().characterDao().getCharacterByName(name)
     }
 
     fun getCharacterListFromInternet() = BangCalendarNetwork.getCharacterList()

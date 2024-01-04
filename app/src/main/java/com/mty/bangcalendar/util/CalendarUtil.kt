@@ -16,9 +16,6 @@ class CalendarUtil(val date: IntDate? = null) {
         fun getDate(year: Int, month: Int, day: Int) =
             IntDate(year * 10000 + month * 100 + day)
 
-        fun differentOfTwoDates(dateStart: IntDate, dateEnd: IntDate): Int =
-            CalendarUtil(dateEnd) - CalendarUtil(dateStart)
-
     }
 
     private val calendar = Calendar.getInstance()
@@ -46,20 +43,17 @@ class CalendarUtil(val date: IntDate? = null) {
         //采用date初始化CalendarUtil(有参)
         date?.let {
             clear()
-            year = it.date / 10000
-            month = it.date % 10000 / 100
-            day = it.date % 100
+            year = it.value / 10000
+            month = it.value % 10000 / 100
+            day = it.value % 100
         }
         calendar.firstDayOfWeek = Calendar.SUNDAY
+        refreshRows()
     }
 
-    fun getMaximumDaysInMonth(): Int {
-        return calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
-    }
+    fun getMaximumDaysInMonth(): Int = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
 
-    fun getDayOfWeak(): Int {
-        return calendar.get(Calendar.DAY_OF_WEEK)
-    }
+    fun getDayOfWeak(): Int = calendar.get(Calendar.DAY_OF_WEEK)
 
     fun plusOneMonth() {
         calendar.add(Calendar.MONTH, 1)
@@ -96,7 +90,10 @@ class CalendarUtil(val date: IntDate? = null) {
 
     private fun refreshRows() {
         val maxDays = getMaximumDaysInMonth()
+        val day = this.day
+        this.day = 1
         val dayOfWeak = getDayOfWeak()
+        this.day = day
         rows = if (maxDays + dayOfWeak < 37) {
             FIVE_ROWS
         } else {
@@ -119,5 +116,7 @@ class CalendarUtil(val date: IntDate? = null) {
         in 13..18 -> "下午"
         else -> ""
     }
+
+    override fun toString() = "${year}年${month}月${day}日"
 
 }

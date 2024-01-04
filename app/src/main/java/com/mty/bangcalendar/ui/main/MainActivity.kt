@@ -38,7 +38,7 @@ import java.util.regex.Pattern
 
 class MainActivity : BaseActivity() {
 
-    private val viewModel by lazy { ViewModelProvider(this).get(MainViewModel::class.java) }
+    private val viewModel by lazy { ViewModelProvider(this)[MainViewModel::class.java] }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -214,8 +214,7 @@ class MainActivity : BaseActivity() {
         viewModel.event.observe(this) {
             val currentDate = viewModel.currentDate.value!!.toDate()
             //活动小于第一期或者大于最后一期时，隐藏活动卡片
-            if (it == null || CalendarUtil.differentOfTwoDates(IntDate(it.startDate),
-                    currentDate) >= 13) {
+            if (it == null || currentDate - IntDate(it.startDate) >= 13) {
                 LogUtil.d("Event", "currentDate $currentDate startDate ${it?.startDate}")
                 mainBinding.eventCard.eventCardItem.visibility = View.GONE
             } else {
@@ -279,9 +278,8 @@ class MainActivity : BaseActivity() {
                 stringBuilder.append("这期活动是${bandName}活哦，快去冲榜吧。")
             } else if (nearlyBandEvent != null) {
                 stringBuilder.append("距离下次${bandName}活还有" +
-                        "${CalendarUtil.differentOfTwoDates(systemDate.toDate(), 
-                            IntDate(nearlyBandEvent.startDate)
-                        )}天，活动编号为${nearlyBandEvent.id}，"
+                        "${IntDate(nearlyBandEvent.startDate) - systemDate.toDate()}天，" +
+                        "活动编号为${nearlyBandEvent.id}，"
                         + "活动属性为${EventUtil.getAttrsName(nearlyBandEvent.attrs)}。")
             }
         }
@@ -295,20 +293,18 @@ class MainActivity : BaseActivity() {
                 if (matcher.find()) {
                     val systemDate = systemDate.toDate()
                     val targetDate = Integer.parseInt(strs[1])
-                    val differentOfTwoDates = CalendarUtil
-                        .differentOfTwoDates(systemDate, IntDate(targetDate))
-                    when (true) {
+                    val differentOfTwoDates = IntDate(targetDate) - systemDate
+                    when {
                         (differentOfTwoDates > 0) -> {
                             stringBuilder.append("距离${strs[0]}还有${differentOfTwoDates}天。")
                         }
                         (differentOfTwoDates == 0) -> {
                             stringBuilder.append("今天就是${strs[0]}。")
                         }
-                        (differentOfTwoDates < 0) -> {
+                        else -> {
                             stringBuilder.append("距离${strs[0]}已经过去" +
                                     "${differentOfTwoDates * -1}天。")
                         }
-                        else -> {}
                     }
                 }
             }

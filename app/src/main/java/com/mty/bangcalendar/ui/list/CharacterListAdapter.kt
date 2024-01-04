@@ -77,7 +77,7 @@ class CharacterListAdapter(private val characterList: List<Character>, private v
 
         val intent = Intent("com.mty.bangcalendar.JUMP_DATE")
         intent.setPackage(context.packageName)
-        intent.putExtra("current_start_date", jumpDate.date)
+        intent.putExtra("current_start_date", jumpDate.value)
         context.sendBroadcast(intent)
 
         val activityIntent = Intent(context, MainActivity::class.java)

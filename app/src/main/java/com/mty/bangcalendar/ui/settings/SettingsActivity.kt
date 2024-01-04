@@ -85,7 +85,7 @@ class SettingsActivity : BaseActivity() {
     class SettingsFragment : PreferenceFragmentCompat() {
 
         private val viewModel by lazy {
-            ViewModelProvider(this).get(SettingsViewModel::class.java)
+            ViewModelProvider(this)[SettingsViewModel::class.java]
         }
 
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {

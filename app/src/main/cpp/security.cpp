@@ -6,7 +6,7 @@ unsigned char signature[16];
 eaes::AES* aes;
 
 extern "C"
-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*) {
+jint JNI_OnLoad(JavaVM* vm, void*) {
     JNIEnv *env;
     if (vm->GetEnv((void **)(&env), JNI_VERSION_1_6) != JNI_OK)
         return JNI_ERR;
@@ -20,8 +20,15 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*) {
     if (jarray_len > 0) {
         //拷贝签名数组
         env->GetByteArrayRegion(signature_java, 0, jarray_len, (jbyte*)signature);
+
+        /*获取签名（用于调试）
+        auto signature_base64 = eaes::base64_encode(signature, 16);
+        __android_log_print(ANDROID_LOG_ERROR, "aes", "%s" ,signature_base64.get());
+        __android_log_print(ANDROID_LOG_ERROR, "aes", "%d" ,signature[0]);
+        */
+
         //签名校验
-        if ((int)signature[0] == 87 || (int)signature[0] == 213) {
+        if ((int)signature[0] == 87 || (int)signature[0] == 228) {
             //实例化加密类
             aes = new eaes::AES(signature);
             return JNI_VERSION_1_6;
@@ -31,7 +38,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*) {
 }
 
 extern "C"
-JNIEXPORT jobjectArray JNICALL
+jobjectArray
 Java_com_mty_bangcalendar_util_SecurityUtil_getSmsRequestCode(JNIEnv *env, jobject ) {
     aes->key = signature;
     auto iv = eaes::rand_iv(16);
@@ -46,7 +53,7 @@ Java_com_mty_bangcalendar_util_SecurityUtil_getSmsRequestCode(JNIEnv *env, jobje
 }
 
 extern "C"
-JNIEXPORT jstring JNICALL
+jstring
 Java_com_mty_bangcalendar_util_SecurityUtil_getRandomKey(JNIEnv *env, jobject) {
     auto key = eaes::rand_iv(16);
     auto key_base64 = eaes::base64_encode(key.get(), 16);
@@ -54,7 +61,7 @@ Java_com_mty_bangcalendar_util_SecurityUtil_getRandomKey(JNIEnv *env, jobject) {
 }
 
 extern "C"
-JNIEXPORT jstring JNICALL
+jstring
 Java_com_mty_bangcalendar_util_SecurityUtil_encrypt(JNIEnv *env, jobject,
                                                     jstring aes_key, jstring text) {
     auto key_base64 = env->GetStringUTFChars(aes_key, nullptr);
@@ -78,7 +85,7 @@ Java_com_mty_bangcalendar_util_SecurityUtil_encrypt(JNIEnv *env, jobject,
 }
 
 extern "C"
-JNIEXPORT jstring JNICALL
+jstring
 Java_com_mty_bangcalendar_util_SecurityUtil_decrypt(JNIEnv *env, jobject,
                                                     jstring aes_key, jstring text) {
     auto key_base64 = env->GetStringUTFChars(aes_key, nullptr);
@@ -95,7 +102,7 @@ Java_com_mty_bangcalendar_util_SecurityUtil_decrypt(JNIEnv *env, jobject,
 }
 
 extern "C"
-JNIEXPORT jstring JNICALL
+jstring
 Java_com_mty_bangcalendar_util_SecurityUtil_getEncryptedKey(JNIEnv *env, jobject,
                                                             jstring aes_key) {
     auto key_base64 = env->GetStringUTFChars(aes_key, nullptr);
@@ -107,6 +114,6 @@ Java_com_mty_bangcalendar_util_SecurityUtil_getEncryptedKey(JNIEnv *env, jobject
 }
 
 extern "C"
-JNIEXPORT void JNICALL JNI_OnUnload(JavaVM*, void*) {
+void JNI_OnUnload(JavaVM*, void*) {
     delete aes;
 }

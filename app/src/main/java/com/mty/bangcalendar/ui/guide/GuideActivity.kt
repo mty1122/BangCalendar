@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import androidx.activity.ComponentActivity
@@ -33,7 +34,7 @@ import kotlinx.coroutines.launch
 
 class GuideActivity : ComponentActivity() {
 
-    private val viewModel by lazy { ViewModelProvider(this).get(GuideViewModel::class.java) }
+    private val viewModel by lazy { ViewModelProvider(this)[GuideViewModel::class.java] }
 
     private val eventConnection: ServiceConnection by lazy {
         object : ServiceConnection {
@@ -65,6 +66,7 @@ class GuideActivity : ComponentActivity() {
         }
     }
 
+    @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.statusBarColor = getColor(R.color.start)
@@ -81,14 +83,21 @@ class GuideActivity : ComponentActivity() {
                 val intent = Intent(this, EventRefreshService::class.java)
                 startService(intent)
                 startMainActivity()
-                overridePendingTransition(0, 0)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+                    overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, 0, 0)
+                else
+                    overridePendingTransition(0, 0)
             } else {
                 startMainActivity()
-                overridePendingTransition(0, 0)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+                    overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, 0, 0)
+                else
+                    overridePendingTransition(0, 0)
             }
         }
     }
 
+    @Suppress("DEPRECATION")
     @Composable
     private fun ShowContent() {
         val progress by viewModel.refreshDataProgress.collectAsState()
@@ -106,7 +115,11 @@ class GuideActivity : ComponentActivity() {
                     buttonText = stringResource(id = R.string.welcome_button),
                     onClickListener = {
                         startMainActivity()
-                        overridePendingTransition(0, android.R.anim.fade_out)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+                            overrideActivityTransition(OVERRIDE_TRANSITION_OPEN,
+                                0, android.R.anim.fade_out)
+                        else
+                            overridePendingTransition(0, android.R.anim.fade_out)
                     },
                     buttonEnabled = buttonEnabled
                 )
@@ -154,7 +167,8 @@ fun GuideView(title: String, progress: Float, progressDetails: String, buttonTex
               buttonEnabled: Boolean, onClickListener: () -> Unit) {
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
-        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
+        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
+        label = ""
     )
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(Modifier.weight(3f))

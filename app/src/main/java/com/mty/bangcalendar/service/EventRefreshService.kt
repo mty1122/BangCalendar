@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 import com.mty.bangcalendar.BangCalendarApplication
+import com.mty.bangcalendar.enum.IntentActions
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.ui.settings.SettingsActivity
@@ -22,7 +23,7 @@ class EventRefreshService : Service() {
 
         fun sendMessage(result: Int) {
             val context = BangCalendarApplication.context
-            val intent = Intent("com.mty.bangcalendar.REFRESH_DATABASE_FINISH")
+            val intent = Intent(IntentActions.REFRESH_DATABASE_FINISH_ACTION.value)
             intent.setPackage(context.packageName)
             intent.putExtra("result", result)
             context.sendBroadcast(intent)

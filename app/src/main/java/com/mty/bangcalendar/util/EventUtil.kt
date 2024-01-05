@@ -91,6 +91,7 @@ object EventUtil {
                 21 -> EventConstant.HHW
                 26 -> EventConstant.M
                 31 -> EventConstant.RAS
+                36-> EventConstant.MG
                 else -> EventConstant.OTHER
             }
         else EventConstant.OTHER
@@ -119,6 +120,7 @@ object EventUtil {
                     21 -> R.drawable.logo_hhw
                     26 -> R.drawable.logo_m
                     31 -> R.drawable.logo_ras
+                    36 -> R.drawable.logo_mg
                     else -> R.drawable.logo_bang
                 }
             } else { R.drawable.logo_bang }

@@ -75,7 +75,7 @@ class CalendarUtil(val date: IntDate? = null) {
         calendar.set(Calendar.DATE, 1)
     }
 
-    fun clear() {
+    private fun clear() {
         calendar.clear()
     }
 

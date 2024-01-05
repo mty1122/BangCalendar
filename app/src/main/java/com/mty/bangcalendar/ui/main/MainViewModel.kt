@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
+import com.mty.bangcalendar.enum.IntentActions
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Character
 import com.mty.bangcalendar.logic.model.Event
@@ -97,7 +98,7 @@ class MainViewModel : ViewModel() {
         Repository.registerOnDefaultPreferenceChangeListener(onSettingsChangeListener)
 
         val intentFilter = IntentFilter()
-        intentFilter.addAction("com.mty.bangcalendar.JUMP_DATE")
+        intentFilter.addAction(IntentActions.JUMP_DATE_ACTION.value)
         ContextCompat.registerReceiver(BangCalendarApplication.context, jumpDateReceiver,
             intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED)
     }

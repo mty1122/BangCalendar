@@ -62,6 +62,7 @@
     <string name="hhw">hhw</string>
     <string name="m">m</string>
     <string name="ras">ras</string>
+    <string name="mg">mg</string>
     <string name="other">other</string>
     <!-- settings -->
     <string name="title_activity_settings">SettingsActivity</string>

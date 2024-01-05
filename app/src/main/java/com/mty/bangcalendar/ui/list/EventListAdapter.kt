@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.android.material.card.MaterialCardView
 import com.mty.bangcalendar.R
+import com.mty.bangcalendar.enum.IntentActions
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.ui.main.MainActivity
 import com.mty.bangcalendar.util.EventUtil
@@ -87,7 +88,7 @@ class EventListAdapter(private val eventList: List<Event> , private val context:
     override fun getItemCount() = eventList.size
 
     private fun startMainActivity(viewHolder: ViewHolder) {
-        val intent = Intent("com.mty.bangcalendar.JUMP_DATE")
+        val intent = Intent(IntentActions.JUMP_DATE_ACTION.value)
         intent.setPackage(context.packageName)
         val position = viewHolder.adapterPosition
         intent.putExtra("current_start_date", eventList[position].startDate)

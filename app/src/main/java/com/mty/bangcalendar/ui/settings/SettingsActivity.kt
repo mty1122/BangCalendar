@@ -232,6 +232,7 @@ class SettingsActivity : BaseActivity() {
                 .setView(view)
                 .setCancelable(false)
                 .create()
+                .apply { setCanceledOnTouchOutside(false) }
 
             view.findViewById<Button>(R.id.send_sms_button).setOnClickListener {
                 val phoneNumber = phoneText.text.toString()
@@ -260,7 +261,7 @@ class SettingsActivity : BaseActivity() {
                     toast("请输入正确的手机号")
             }
             view.findViewById<Button>(R.id.login_cancel_button).setOnClickListener {
-                dialog.hide()
+                dialog.dismiss()
             }
             view.findViewById<Button>(R.id.login_button).setOnClickListener {
                 //验证手机号和验证码合法性，登录中禁用按钮
@@ -283,7 +284,7 @@ class SettingsActivity : BaseActivity() {
                         withContext(Dispatchers.Main) {
                             if (response != null && response.string() == "OK") {
                                 viewModel.setPhoneNum(phoneNumber)
-                                dialog.hide()
+                                dialog.dismiss()
                                 toast("登录成功")
                             } else {
                                 toast("手机号或验证码错误")

@@ -48,16 +48,32 @@ class EventListActivity : BaseActivity() {
         binding.eventList.layoutManager = layoutManager
         viewModel.eventList.observe(this) {
             val bandId = intent.getIntExtra("band_id", -1)
-            var startEventId = intent.getIntExtra("current_id", 1)
-            val eventList = it as ArrayList<Event>
+            val startEventId = intent.getIntExtra("current_id", 1)
+            var startPositionIndex = startEventId - 1
             //对乐队进行过滤
-            if (bandId != -1)
-                startEventId = eventListCutter(eventList, bandId, startEventId)
+            val eventList = if (bandId != -1) {
+                it.filter { event->
+                    EventUtil.getBand(event).id == bandId
+                }.also { newList->
+                    //计算起始活动在新列表里面的索引
+                    newList.indexOfFirst { newEvent->
+                        newEvent.id.toInt() == startEventId
+                    }.also { index->
+                        //找到索引后赋值给起始位置变量
+                        startPositionIndex = if (index != -1)
+                            index
+                        else
+                            0
+                    }
+                }
+            } else {
+                it
+            }
             val adapter = EventListAdapter(eventList, this, viewModel)
             binding.eventList.adapter = adapter
             //设置起始位置
             (binding.eventList.layoutManager as LinearLayoutManager)
-                .scrollToPosition(startEventId - 1)
+                .scrollToPosition(startPositionIndex)
         }
         viewModel.getEventList()
 
@@ -70,6 +86,7 @@ class EventListActivity : BaseActivity() {
         return true
     }
 
+    @Deprecated("对array list删除元素成本太大")
     private fun eventListCutter(eventList: ArrayList<Event>, bandId: Int, startEventId: Int): Int {
         var startEvent: Event? = null
         val iterator = eventList.iterator()

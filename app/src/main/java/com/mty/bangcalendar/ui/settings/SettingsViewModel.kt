@@ -10,6 +10,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mty.bangcalendar.BangCalendarApplication
+import com.mty.bangcalendar.enum.IntentActions
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.*
 import com.mty.bangcalendar.service.CharacterRefreshService
@@ -62,18 +63,18 @@ class SettingsViewModel : ViewModel() {
     suspend fun login(request: LoginRequest) = Repository.login(request)
 
     //LiveData线程不安全，同步数据需要在子线程中进行，因此选择线程安全的StateFlow
-    private val phoneNumLiveData = MutableStateFlow("")
+    private val phoneNumFlow = MutableStateFlow("")
     val phoneNum: StateFlow<String>
-        get() = phoneNumLiveData
+        get() = phoneNumFlow
     fun getPhoneNum() {
         viewModelScope.launch {
-            phoneNumLiveData.value = Repository.getPhoneNum()
+            phoneNumFlow.value = Repository.getPhoneNum()
         }
     }
     fun setPhoneNum(phone: String) {
         viewModelScope.launch {
             Repository.setPhoneNum(phone)
-            phoneNumLiveData.value = phone
+            phoneNumFlow.value = phone
         }
     }
 
@@ -125,7 +126,7 @@ class SettingsViewModel : ViewModel() {
 
     init {
         val intentFilter = IntentFilter()
-        intentFilter.addAction("com.mty.bangcalendar.REFRESH_DATABASE_FINISH")
+        intentFilter.addAction(IntentActions.REFRESH_DATABASE_FINISH_ACTION.value)
         ContextCompat.registerReceiver(BangCalendarApplication.context, refreshDataResultReceiver,
             intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED)
     }

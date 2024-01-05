@@ -27,6 +27,7 @@ enum class EventConstant(val id: Int, val describe: String) {
     HHW(5, BangCalendarApplication.context.getString(com.mty.bangcalendar.R.string.hhw)),
     M(6, BangCalendarApplication.context.getString(com.mty.bangcalendar.R.string.m)),
     RAS(7, BangCalendarApplication.context.getString(com.mty.bangcalendar.R.string.ras)),
+    MG(8, BangCalendarApplication.context.getString(com.mty.bangcalendar.R.string.mg)),
     OTHER(0, BangCalendarApplication.context.getString(com.mty.bangcalendar.R.string.other))
 
 }

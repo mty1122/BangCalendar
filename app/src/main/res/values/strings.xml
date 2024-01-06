@@ -80,7 +80,7 @@
     <string name="notification_head">通知服务</string>
     <string name="update_header">同步</string>
     <string name="update_database_title">更新本地数据库</string>
-    <string name="update_database_summary">更新活动信息与乐队成员信息</string>
+    <string name="update_database_summary">更新完成后建议您重启应用</string>
     <string name="sign_in_title">登录</string>
     <string name="sign_in_summary">未登录</string>
     <string name="upload_user_preference_title">备份用户偏好</string>

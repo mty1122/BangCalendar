@@ -25,4 +25,18 @@
     <color name="r_date_text">#dac3f7</color>
     <color name="r_background">#f8f2f9</color>
     <color name="r_card_background">#fff</color>
+    <!-- theme_m -->
+    <color name="m_bar">#ff86cbf5</color>
+    <color name="m_card_bar">#ff80c5ee</color>
+    <color name="m_text">#ff86cbf5</color>
+    <color name="m_date_text">#ff80c5ee</color>
+    <color name="m_background">#f6fbfd</color>
+    <color name="m_card_background">#fff</color>
+    <!-- theme_pp -->
+    <color name="pp_bar">#ff9bfbbb</color>
+    <color name="pp_card_bar">#ff92f2b2</color>
+    <color name="pp_text">#ff9bfbbb</color>
+    <color name="pp_date_text">#ff92f2b2</color>
+    <color name="pp_background">#f6fef3</color>
+    <color name="pp_card_background">#fff</color>
 </resources>

@@ -44,6 +44,50 @@
         <item name="date_text_color">@color/r_date_text</item>
         <item name="alertDialogTheme">@style/alert_dialog</item>
     </style>
+    <!-- theme_m -->
+    <style name="theme_m" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/m_bar</item>
+        <item name="colorPrimaryVariant">@color/m_bar</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/m_bar</item>
+        <item name="colorSecondaryVariant">@color/m_bar</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <!-- Customize your theme here. -->
+        <item name="android:navigationBarColor">@color/transparent</item>
+        <item name="app_theme_color">@color/m_bar</item>
+        <item name="app_text_color">@color/m_text</item>
+        <item name="app_background_color">@color/m_background</item>
+        <item name="card_bar_color">@color/m_card_bar</item>
+        <item name="card_background_color">@color/m_card_background</item>
+        <item name="date_text_color">@color/m_date_text</item>
+        <item name="alertDialogTheme">@style/alert_dialog</item>
+    </style>
+    <!-- theme_pp -->
+    <style name="theme_pp" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/pp_bar</item>
+        <item name="colorPrimaryVariant">@color/pp_bar</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/pp_bar</item>
+        <item name="colorSecondaryVariant">@color/pp_bar</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <!-- Customize your theme here. -->
+        <item name="android:navigationBarColor">@color/transparent</item>
+        <item name="app_theme_color">@color/pp_bar</item>
+        <item name="app_text_color">@color/pp_text</item>
+        <item name="app_background_color">@color/pp_background</item>
+        <item name="card_bar_color">@color/pp_card_bar</item>
+        <item name="card_background_color">@color/pp_card_background</item>
+        <item name="date_text_color">@color/pp_date_text</item>
+        <item name="alertDialogTheme">@style/alert_dialog</item>
+    </style>
     <!-- alert_dialog -->
     <style name="alert_dialog" parent="Theme.AppCompat.Light.Dialog.Alert">
         <item name="colorPrimary">?attr/colorPrimaryVariant</item>

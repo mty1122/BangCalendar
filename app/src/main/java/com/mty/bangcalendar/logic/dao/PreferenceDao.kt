@@ -76,6 +76,13 @@ object PreferenceDao {
         }
     }
 
+    fun setDefaultPreference() {
+        defaultPreference().edit {
+            putString("band", "ppp")
+            putString("character", "1")
+        }
+    }
+
     fun registerOnDefaultPreferenceChangeListener(listener:
         SharedPreferences.OnSharedPreferenceChangeListener) {
         defaultPreference().registerOnSharedPreferenceChangeListener(listener)

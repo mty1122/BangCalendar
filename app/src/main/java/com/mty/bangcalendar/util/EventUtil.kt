@@ -110,6 +110,7 @@ object EventUtil {
             EventConstant.HHW.describe -> 21
             EventConstant.M.describe -> 26
             EventConstant.RAS.describe -> 31
+            EventConstant.MG.describe -> 36
             else -> -1
         }
 

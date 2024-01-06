@@ -23,6 +23,10 @@ interface EventDao {
             "and character5 = :character1Id + 4")
     fun getNearlyBandEventByDate(date: Int, character1Id: Int): Event?
 
+    @Query("select * from Event where startDate < :date and character1 = :character1Id " +
+            "and character5 = :character1Id + 4 order by id desc limit 1")
+    fun getLastNearlyBandEventByDate(date: Int, character1Id: Int): Event?
+
     @Query("select * from Event where id = :id")
     fun getEventById(id: Int): Event?
 

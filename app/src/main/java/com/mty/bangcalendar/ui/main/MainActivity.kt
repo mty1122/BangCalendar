@@ -199,13 +199,20 @@ class MainActivity : BaseActivity() {
         //刷新角色订阅
         dailyTag.preferenceCharacter?.let { character->
             binding.dailytagCard.dailytagCardBirthday.run {
+                //角色头像和名字
                 Glide.with(this@MainActivity)
                     .load(EventUtil.matchCharacter(character.id.toInt())).into(charImage)
                 charImage.setOnClickListener {
                     startCharacterListActivity(character.id.toInt())
                 }
-                birthdayCountdown.text = CharacterUtil
-                    .birthdayAway(character.birthday, systemDate).toString()
+                Glide.with(this@MainActivity)
+                    .load(CharacterUtil.matchCharacter(character.id.toInt())).into(charNameImage)
+                charNameImage.setOnClickListener {
+                    startCharacterListActivity(character.id.toInt())
+                }
+                //倒数日
+                val birthdayAway = CharacterUtil.birthdayAway(character.birthday, systemDate)
+                birthdayCountdown.text = birthdayAway.toString()
                 birthdayCountdown.setOnClickListener {
                     val target = CalendarUtil(CharacterUtil
                         .getNextBirthdayDate(character.birthday, systemDate))
@@ -214,6 +221,9 @@ class MainActivity : BaseActivity() {
                         jumpDate(binding.viewPager, target)
                     }
                 }
+                //更新进度条
+                birBar.setProgressCompat(
+                    ((365 - birthdayAway) / 365.0 * 100).toInt(), true)
                 birthdayView.visibility = View.VISIBLE
             }
         }
@@ -234,13 +244,27 @@ class MainActivity : BaseActivity() {
                         "band_id" to EventUtil.getBand(event).id
                     )
                 }
-                eventCountdown.text = (IntDate(event.startDate) - systemDate.toDate()).toString()
+                //倒数日
+                val eventAway = (IntDate(event.startDate) - systemDate.toDate())
+                eventCountdown.text = eventAway.toString()
                 eventCountdown.setOnClickListener {
                     val target = CalendarUtil(IntDate(event.startDate))
                     //防止重复跳转
                     if (!target.isSameDate(viewModel.currentDate.value!!)) {
                         jumpDate(binding.viewPager, target)
                     }
+                }
+                //更新进度条
+                lifecycleScope.launch {
+                    val lastEvent = viewModel.getBandLastEventByDate(
+                        date = systemDate.toDate(),
+                        character1Id = event.character1
+                    )
+                    //新乐队可能没有往期活动
+                    val lastDate = lastEvent?.startDate ?: systemDate.toDate().value
+                    val interval = IntDate(event.startDate) - IntDate(lastDate)
+                    eventBar.setProgressCompat(
+                        ((interval - eventAway) / interval.toDouble() * 100).toInt(), true)
                 }
                 eventView.visibility = View.VISIBLE
             }

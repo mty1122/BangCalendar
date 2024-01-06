@@ -49,4 +49,8 @@ class GuideViewModel : ViewModel() {
         _launchButtonEnabled.value = isEnabled
     }
 
+    suspend fun setDefaultPreference() {
+        Repository.setDefaultPreference()
+    }
+
 }

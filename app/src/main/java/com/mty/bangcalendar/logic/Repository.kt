@@ -108,6 +108,10 @@ object Repository {
             AppDatabase.getDatabase().eventDao().getNearlyBandEventByDate(date.value, character1Id)
     }
 
+    suspend fun getBandLastEventByDate(date: IntDate, character1Id: Int) = withContext(Dispatchers.IO) {
+        AppDatabase.getDatabase().eventDao().getLastNearlyBandEventByDate(date.value, character1Id)
+    }
+
    suspend fun getCharacterByMonth(month: Int) = withContext(Dispatchers.IO) {
         val formatMonth = if (month < 10) "0$month"
                           else month.toString()
@@ -235,6 +239,10 @@ object Repository {
 
     fun setAesKey(key: String) {
         PreferenceDao.aesKey = key
+    }
+
+    suspend fun setDefaultPreference() = withContext(Dispatchers.IO) {
+        PreferenceDao.setDefaultPreference()
     }
 
 }

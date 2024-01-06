@@ -148,6 +148,9 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    suspend fun getBandLastEventByDate(date: IntDate, character1Id: Int) =
+        Repository.getBandLastEventByDate(date, character1Id)
+
     suspend fun getEventPic(eventId: String, onPicReady: (Drawable) -> Unit) {
         Repository.getEventPic(eventId)?.let {
             onPicReady(it)

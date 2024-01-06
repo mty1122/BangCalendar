@@ -135,6 +135,7 @@ class GuideActivity : ComponentActivity() {
 
     private fun firstStartInit() {
         lifecycleScope.launch {
+            viewModel.setDefaultPreference()
             var isCharacterRefreshServiceNotStart = true
             viewModel.refreshDataProgress.collect { progress ->
                 when (progress) {

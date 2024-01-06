@@ -17,6 +17,7 @@
     <string name="event">活动</string>
     <string name="zero">0</string>
     <string name="day">天</string>
+    <string name="char_name">角色名称</string>
     <string name="welcome">"欢迎使用\nBangCalendar"</string>
     <string name="welcome_button">"开始使用"</string>
     <string name="init_complete">"初始化完成，请点击按钮进入应用"</string>

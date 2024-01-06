@@ -20,6 +20,7 @@
         <item>HelloHappyWorld</item>
         <item>Morfonica</item>
         <item>RAISEASUILEN</item>
+        <item>MyGO</item>
     </string-array>
 
     <string-array name="band_values">
@@ -31,6 +32,7 @@
         <item>hhw</item>
         <item>m</item>
         <item>ras</item>
+        <item>mg</item>
     </string-array>
 
     <!-- Character Preference -->
@@ -71,6 +73,11 @@
         <item>佐藤益木</item>
         <item>鳰原令王那</item>
         <item>珠手知由</item>
+        <item>高松灯</item>
+        <item>千早爱音</item>
+        <item>要乐奈</item>
+        <item>长崎爽世</item>
+        <item>椎名立希</item>
     </string-array>
 
     <string-array name="char_values">
@@ -110,5 +117,10 @@
         <item>33</item>
         <item>34</item>
         <item>35</item>
+        <item>36</item>
+        <item>37</item>
+        <item>38</item>
+        <item>39</item>
+        <item>40</item>
     </string-array>
 </resources>

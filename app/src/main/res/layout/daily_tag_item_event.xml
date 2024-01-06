@@ -11,47 +11,70 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_centerVertical="true"
-        android:layout_alignParentStart="true">
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@+id/eventBack">
 
-        <ImageView
-            android:id="@+id/band_image"
-            android:layout_width="wrap_content"
-            android:layout_height="52dp"
-            android:layout_marginStart="7dp"
-            android:layout_gravity="center_vertical"
-            android:contentDescription="@string/band" />
+        <LinearLayout
+            android:layout_width="140dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical">
 
-        <ImageView
-            android:id="@+id/eventAttrs"
-            android:layout_width="25dp"
-            android:layout_height="25dp"
+            <ImageView
+                android:id="@+id/band_image"
+                android:layout_width="93dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="7dp"
+                android:layout_gravity="center_vertical"
+                android:contentDescription="@string/band" />
+
+            <ImageView
+                android:id="@+id/eventAttrs"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="5dp"
+                android:contentDescription="@string/eventAttrs" />
+
+        </LinearLayout>
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/event_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_marginStart="5dp"
-            android:contentDescription="@string/eventAttrs" />
+            android:layout_margin="25dp"/>
 
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/day"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="5dp"
+    <LinearLayout
+        android:id="@+id/eventBack"
+        android:layout_width="80dp"
+        android:layout_height="60dp"
+        android:gravity="end"
         android:layout_centerVertical="true"
-        android:layout_alignParentEnd="true"
-        android:text="@string/day"
-        android:textColor="?attr/app_text_color"
-        tools:ignore="RelativeOverlap" />
+        android:layout_alignParentEnd="true">
 
-    <TextView
-        android:id="@+id/eventCountdown"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="6dp"
-        android:layout_centerVertical="true"
-        android:layout_toStartOf="@+id/day"
-        android:text="@string/zero"
-        android:textSize="30sp"
-        android:textColor="?attr/app_text_color"
-        tools:ignore="RelativeOverlap" />
+        <TextView
+            android:id="@+id/eventCountdown"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="5dp"
+            android:text="@string/zero"
+            android:layout_gravity="center_vertical"
+            android:textSize="30sp"
+            android:textColor="?attr/app_text_color"
+            tools:ignore="RelativeOverlap" />
+
+        <TextView
+            android:id="@+id/day"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp"
+            android:text="@string/day"
+            android:layout_gravity="center_vertical"
+            android:textColor="?attr/app_text_color"
+            tools:ignore="RelativeOverlap" />
+
+    </LinearLayout>
 
 </RelativeLayout>

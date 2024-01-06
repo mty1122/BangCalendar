@@ -123,6 +123,9 @@ class CalendarUtil(val date: IntDate? = null) {
         else -> ""
     }
 
+    fun isSameDate(calendarUtil: CalendarUtil) = this.year == calendarUtil.year
+            && this.month == calendarUtil.month && this.day == calendarUtil.day
+
     override fun toString() = "${year}年${month}月${day}日"
 
 }

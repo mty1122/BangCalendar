@@ -64,7 +64,7 @@ class EventRefreshService : Service() {
                                     response: Response<List<Event>>) {
                 val eventList = response.body()
                 if (eventList != null) {
-                    addEventToDatabase(eventList)
+                    addEventListToDatabase(eventList)
                 } else {
                     sendMessage(SettingsActivity.REFRESH_EVENT_FAILURE)
                     stopSelf()
@@ -80,7 +80,7 @@ class EventRefreshService : Service() {
         return super.onStartCommand(intent, flags, startId)
     }
 
-    private fun addEventToDatabase(eventList: List<Event>) {
+    private fun addEventListToDatabase(eventList: List<Event>) {
         CoroutineScope(Dispatchers.IO).launch {
             Repository.addEventListToDatabase(eventList)
             sendMessage(SettingsActivity.REFRESH_EVENT_SUCCESS)

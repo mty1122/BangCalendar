@@ -54,7 +54,7 @@ class CharacterRefreshService : Service(){
                                     response: Response<List<Character>>) {
                 val characterList = response.body()
                 if (characterList != null) {
-                    addCharacterToDatabase(characterList)
+                    addCharacterListToDatabase(characterList)
                 } else {
                     sendMessage(SettingsActivity.REFRESH_CHARACTER_FAILURE)
                     stopSelf()
@@ -70,7 +70,7 @@ class CharacterRefreshService : Service(){
         return super.onStartCommand(intent, flags, startId)
     }
 
-    private fun addCharacterToDatabase(characterList: List<Character>) {
+    private fun addCharacterListToDatabase(characterList: List<Character>) {
         CoroutineScope(Dispatchers.IO).launch {
             Repository.addCharacterListToDatabase(characterList)
             sendMessage(SettingsActivity.REFRESH_CHARACTER_SUCCESS)

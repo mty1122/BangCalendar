@@ -78,6 +78,11 @@ object CharacterUtil {
             33 -> R.drawable.bir_33
             34 -> R.drawable.bir_34
             35 -> R.drawable.bir_35
+            36 -> R.drawable.bir_36
+            37 -> R.drawable.bir_37
+            38 -> R.drawable.bir_38
+            39 -> R.drawable.bir_39
+            40 -> R.drawable.bir_40
             else -> -1
         }
 

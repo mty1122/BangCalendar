@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/eventView"
+    android:layout_width="match_parent"
+    android:layout_height="60dp">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_centerVertical="true"
+        android:layout_alignParentStart="true">
+
+        <ImageView
+            android:id="@+id/band_image"
+            android:layout_width="wrap_content"
+            android:layout_height="52dp"
+            android:layout_marginStart="7dp"
+            android:layout_gravity="center_vertical"
+            android:contentDescription="@string/band" />
+
+        <ImageView
+            android:id="@+id/eventAttrs"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="5dp"
+            android:contentDescription="@string/eventAttrs" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/day"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="5dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentEnd="true"
+        android:text="@string/day"
+        android:textColor="?attr/app_text_color"
+        tools:ignore="RelativeOverlap" />
+
+    <TextView
+        android:id="@+id/eventCountdown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="6dp"
+        android:layout_centerVertical="true"
+        android:layout_toStartOf="@+id/day"
+        android:text="@string/zero"
+        android:textSize="30sp"
+        android:textColor="?attr/app_text_color"
+        tools:ignore="RelativeOverlap" />
+
+</RelativeLayout>

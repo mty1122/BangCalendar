@@ -3,12 +3,10 @@ package com.mty.bangcalendar.ui.main
 import android.annotation.SuppressLint
 import android.os.Build
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.DatePicker
-import android.widget.EditText
 import android.widget.FrameLayout
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.WindowInsetsCompat
@@ -19,12 +17,11 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.ViewPager
 import com.bumptech.glide.Glide
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivityMainBinding
-import com.mty.bangcalendar.enum.EventConstant
 import com.mty.bangcalendar.logic.model.CalendarScrollView
+import com.mty.bangcalendar.logic.model.DailyTag
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.logic.model.IntDate
 import com.mty.bangcalendar.ui.BaseActivity
@@ -34,7 +31,6 @@ import com.mty.bangcalendar.ui.search.SearchActivity
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.*
 import kotlinx.coroutines.launch
-import java.util.regex.Pattern
 
 class MainActivity : BaseActivity() {
 
@@ -56,8 +52,6 @@ class MainActivity : BaseActivity() {
                 val top = WindowInsetsCompat.toWindowInsetsCompat(insets, view)
                     .getInsets(WindowInsetsCompat.Type.statusBars()).top
                 view.updatePadding(top = top)
-                (mainBinding.floatButton.layoutParams as FrameLayout.LayoutParams)
-                    .bottomMargin = top
                 (mainBinding.goBackFloatButton.layoutParams as FrameLayout.LayoutParams)
                     .bottomMargin = top
                 insets
@@ -104,44 +98,9 @@ class MainActivity : BaseActivity() {
         }
 
         //dailyTag服务
-        viewModel.userName.observe(this) {
-            refreshDailyTag(mainBinding)
+        viewModel.dailyTag.observe(this) {
+            refreshDailyTag(mainBinding, it)
         }
-        viewModel.getUserName()
-
-        viewModel.preferenceCharacter.observe(this) { character ->
-            viewModel.birthdayAway = null
-            character?.let {
-                val birthdayAway = CharacterUtil.birthdayAway(it.birthday, systemDate)
-                viewModel.birthdayAway = birthdayAway
-            }
-            refreshDailyTag(mainBinding)
-        }
-        viewModel.getPreferenceCharacter()
-
-        viewModel.preferenceNearlyBandEvent.observe(this) { event ->
-            event?.let {
-                LogUtil.d("Event", "乐队偏好近期活动为${event.id}")
-                refreshDailyTag(mainBinding)
-            }
-        }
-
-        viewModel.preferenceBand.observe(this) { bandName ->
-            bandName?.let {
-                if (it == EventConstant.OTHER.describe
-                    || it == EventUtil.getBand(viewModel.todayEvent.value!!).describe) {
-                    refreshDailyTag(mainBinding)
-                } else {
-                    viewModel.getPreferenceNearlyBandEvent(EventUtil.bandNameToCharacter1(it))
-                }
-            }
-        }
-
-        //附加提示
-        viewModel.additionalTip.observe(this) {
-            refreshDailyTag(mainBinding)
-        }
-        viewModel.getAdditionalTip()
 
         viewModel.todayEvent.observe(this) {
             viewModel.run {
@@ -162,7 +121,7 @@ class MainActivity : BaseActivity() {
                     //无论是否初次启动，都需要加入观察者
                     addEventObserver(mainBinding)
                 }
-                getPreferenceBand() //初次启动刷新关注的乐队
+                getDailyTag() //初次启动刷新DailyTag
             }
         }
         viewModel.getTodayEvent() //获取当天活动
@@ -170,11 +129,6 @@ class MainActivity : BaseActivity() {
         //返回今天按钮
         mainBinding.goBackFloatButton.setOnClickListener {
             goBackToSystemDate(mainBinding)
-        }
-
-        //额外的提醒按钮
-        mainBinding.floatButton.setOnClickListener {
-            addAdditionalTip()
         }
 
         //其他activity的跳转请求
@@ -229,87 +183,72 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    private fun addAdditionalTip() {
-        val view = LayoutInflater.from(this)
-            .inflate(R.layout.additional_tip, null, false)
-        val editText: EditText = view.findViewById(R.id.additionalText)
-        val oldTip = viewModel.additionalTip.value
-        editText.setText(oldTip)
-        val dialog = AlertDialog.Builder(this)
-            .setTitle("额外的日程提醒")
-            .setIcon(R.mipmap.ic_launcher)
-            .setView(view)
-            .setNegativeButton("取消") { _, _ ->
-            }
-            .setPositiveButton("提交") { _, _ ->
-                val newTip = editText.text.toString()
-                if (oldTip != newTip)
-                    viewModel.setAdditionalTip(newTip)
-            }
-            .create()
-        dialog.show()
-    }
-
     //刷新dailyTag
-    private fun refreshDailyTag(mainBinding: ActivityMainBinding) {
-        val stringBuilder = StringBuilder()
-        val userName = viewModel.userName.value
-        val characterName = viewModel.preferenceCharacter.value?.name
-        val birthdayAway = viewModel.birthdayAway
-        val bandName = viewModel.preferenceBand.value
-        val todayEvent = viewModel.todayEvent.value
-        val nearlyBandEvent = viewModel.preferenceNearlyBandEvent.value
-        val additionalTip = viewModel.additionalTip.value
-
-        if(userName == "") {
-            stringBuilder.append("${systemDate.getTimeName()}好，邦邦人。")
-        } else {
-            stringBuilder.append("${systemDate.getTimeName()}好，$userName。")
+    private fun refreshDailyTag(binding: ActivityMainBinding, dailyTag: DailyTag) {
+        //用户偏好不存在，不启动dailytag
+        if (dailyTag.preferenceNearlyBandEvent == null && dailyTag.preferenceCharacter == null) {
+            binding.dailytagCard.cardView.visibility = View.GONE
+            return
         }
-        stringBuilder.append(getString(R.string.defaultTag))
-        characterName?.let {
-            if (birthdayAway == 0) stringBuilder.append("今天是${it}的生日，生日快乐！")
-            else if (birthdayAway != null)
-                stringBuilder.append("距离${it}的生日还有${birthdayAway}天。")
-            else stringBuilder.append("")
+        //刷新标题
+        binding.dailytagCard.dailytagTitle.text = StringBuilder().apply {
+            append("${systemDate.getTimeName()}好")
+            if (dailyTag.userName != "")
+                append("，${dailyTag.userName}")
         }
-        if (bandName != null && bandName != EventConstant.OTHER.describe && todayEvent != null) {
-            if (bandName == EventUtil.getBand(todayEvent).describe) {
-                stringBuilder.append("这期活动是${bandName}活哦，快去冲榜吧。")
-            } else if (nearlyBandEvent != null) {
-                stringBuilder.append("距离下次${bandName}活还有" +
-                        "${IntDate(nearlyBandEvent.startDate) - systemDate.toDate()}天，" +
-                        "活动编号为${nearlyBandEvent.id}，"
-                        + "活动属性为${EventUtil.getAttrsName(nearlyBandEvent.attrs)}。")
-            }
-        }
-        if (additionalTip != null && additionalTip != "") {
-            val strs = additionalTip.split(" ")
-            if (strs.size == 2) {
-                val regex = "\\b\\d{8}\\b"
-                val pattern = Pattern.compile(regex)
-                val matcher = pattern.matcher(strs[1])
-                //输入正确再进行对比
-                if (matcher.find()) {
-                    val systemDate = systemDate.toDate()
-                    val targetDate = Integer.parseInt(strs[1])
-                    val differentOfTwoDates = IntDate(targetDate) - systemDate
-                    when {
-                        (differentOfTwoDates > 0) -> {
-                            stringBuilder.append("距离${strs[0]}还有${differentOfTwoDates}天。")
-                        }
-                        (differentOfTwoDates == 0) -> {
-                            stringBuilder.append("今天就是${strs[0]}。")
-                        }
-                        else -> {
-                            stringBuilder.append("距离${strs[0]}已经过去" +
-                                    "${differentOfTwoDates * -1}天。")
-                        }
+        //刷新角色订阅
+        dailyTag.preferenceCharacter?.let { character->
+            binding.dailytagCard.dailytagCardBirthday.run {
+                Glide.with(this@MainActivity)
+                    .load(EventUtil.matchCharacter(character.id.toInt())).into(charImage)
+                charImage.setOnClickListener {
+                    startCharacterListActivity(character.id.toInt())
+                }
+                birthdayCountdown.text = CharacterUtil
+                    .birthdayAway(character.birthday, systemDate).toString()
+                birthdayCountdown.setOnClickListener {
+                    val target = CalendarUtil(CharacterUtil
+                        .getNextBirthdayDate(character.birthday, systemDate))
+                    //防止重复跳转
+                    if (!target.isSameDate(viewModel.currentDate.value!!)) {
+                        jumpDate(binding.viewPager, target)
                     }
                 }
+                birthdayView.visibility = View.VISIBLE
             }
         }
-        mainBinding.dailytag.text = stringBuilder.toString()
+        if (dailyTag.preferenceCharacter == null)
+            binding.dailytagCard.dailytagCardBirthday.birthdayView.visibility = View.GONE
+        //刷新活动订阅
+        dailyTag.preferenceNearlyBandEvent?.let {  event->
+            binding.dailytagCard.dailytagCardEvent.run {
+                //刷新活动属性
+                Glide.with(this@MainActivity).load(EventUtil.matchAttrs(event.attrs))
+                    .into(eventAttrs)
+                //刷新乐队图片
+                Glide.with(this@MainActivity).load(EventUtil.getBandPic(event))
+                    .into(bandImage)
+                bandImage.setOnClickListener {
+                    startActivity<EventListActivity>(
+                        "current_id" to event.id.toInt(),
+                        "band_id" to EventUtil.getBand(event).id
+                    )
+                }
+                eventCountdown.text = (IntDate(event.startDate) - systemDate.toDate()).toString()
+                eventCountdown.setOnClickListener {
+                    val target = CalendarUtil(IntDate(event.startDate))
+                    //防止重复跳转
+                    if (!target.isSameDate(viewModel.currentDate.value!!)) {
+                        jumpDate(binding.viewPager, target)
+                    }
+                }
+                eventView.visibility = View.VISIBLE
+            }
+        }
+        if (dailyTag.preferenceNearlyBandEvent == null)
+            binding.dailytagCard.dailytagCardEvent.eventView.visibility = View.GONE
+        //用户偏好存在时，启动dailyTag
+        binding.dailytagCard.cardView.visibility = View.VISIBLE
     }
 
     //刷新生日卡片
@@ -449,7 +388,6 @@ class MainActivity : BaseActivity() {
     private fun chooseDate(viewPager: ViewPager) {
         val view = layoutInflater.inflate(R.layout.date_picker, null)
         val datePicker: DatePicker = view.findViewById(R.id.datePicker)
-        val floatButton: FloatingActionButton = findViewById(R.id.floatButton)
         val dialog = AlertDialog.Builder(this)
             .setTitle("请选择跳转的日期")
             .setIcon(R.mipmap.ic_launcher)
@@ -457,14 +395,13 @@ class MainActivity : BaseActivity() {
             .setNegativeButton("取消") { _, _ ->
             }
             .setPositiveButton("确认") { _, _ ->
-                if (floatButton.visibility == View.VISIBLE) { //原地选择不跳转
-                    val calendarUtil = CalendarUtil().apply {
-                        year = datePicker.year
-                        month = datePicker.month + 1
-                        day = datePicker.dayOfMonth
-                    }
-                    jumpDate(viewPager, calendarUtil)
+                val calendarUtil = CalendarUtil().apply {
+                    year = datePicker.year
+                    month = datePicker.month + 1
+                    day = datePicker.dayOfMonth
                 }
+                if (!calendarUtil.isSameDate(viewModel.currentDate.value!!)) //原地选择不跳转
+                    jumpDate(viewPager, calendarUtil)
             }
             .create()
         dialog.show()

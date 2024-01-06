@@ -12,9 +12,11 @@ import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.enum.IntentActions
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Character
+import com.mty.bangcalendar.logic.model.DailyTag
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.logic.model.IntDate
 import com.mty.bangcalendar.util.CalendarUtil
+import com.mty.bangcalendar.util.EventUtil
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -22,7 +24,6 @@ import kotlinx.coroutines.launch
 class MainViewModel : ViewModel() {
 
     var calendarCurrentPosition = 1 //当前view在viewPager中的位置
-    var birthdayAway: Int? = null //关注角色生日还有多少天
 
     //活动起始/终止时间
     var eventStartTime: Long? = null
@@ -35,9 +36,7 @@ class MainViewModel : ViewModel() {
     private val onSettingsChangeListener =
         SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         when (key) {
-            "signature" -> getUserName()
-            "band" -> getPreferenceBand()
-            "character" -> getPreferenceCharacter()
+            "signature", "band", "character" -> getDailyTag()
             "theme" ->recreateActivity()
         }
     }
@@ -131,56 +130,21 @@ class MainViewModel : ViewModel() {
     }
 
     //dailyTag服务
-    private val _userName = MutableLiveData<String>()
-    val userName: LiveData<String>
-        get() = _userName
-    fun getUserName() {
+    private val _dailyTag = MutableLiveData<DailyTag>()
+    val dailyTag: LiveData<DailyTag>
+        get() = _dailyTag
+    fun getDailyTag() {
         viewModelScope.launch {
-           _userName.value = Repository.getUserName()
-        }
-    }
-
-    private val _preferenceBand = MutableLiveData<String>()
-    val preferenceBand: LiveData<String>
-        get() = _preferenceBand
-    fun getPreferenceBand() {
-        viewModelScope.launch {
-            _preferenceBand.value = Repository.getPreferenceBand()
-        }
-    }
-
-    private val _preferenceNearlyBandEvent = MutableLiveData<Event?>()
-    val preferenceNearlyBandEvent: LiveData<Event?>
-        get() = _preferenceNearlyBandEvent
-    fun getPreferenceNearlyBandEvent(character1Id: Int) {
-        viewModelScope.launch {
-            _preferenceNearlyBandEvent.value =
-                Repository.getBandEventByDate(systemDate.toDate(), character1Id)
-        }
-    }
-
-    private val _preferenceCharacter = MutableLiveData<Character>()
-    val preferenceCharacter: LiveData<Character>
-        get() = _preferenceCharacter
-    fun getPreferenceCharacter() {
-        viewModelScope.launch {
+            val userName = Repository.getUserName()
+            val preferenceBand = Repository.getPreferenceBand()
+            val preferenceNearlyBandEvent = Repository.getBandEventByDate(
+                date = systemDate.toDate(),
+                character1Id = EventUtil.bandNameToCharacter1(preferenceBand)
+            )
             val characterId = Repository.getPreferenceCharacter()
-            _preferenceCharacter.value = Repository.getCharacterById(characterId)
-        }
-    }
-
-    //附加提醒
-    private val _additionalTip = MutableLiveData<String>()
-    val additionalTip: LiveData<String>
-        get() = _additionalTip
-    fun getAdditionalTip() {
-        viewModelScope.launch {
-            _additionalTip.value = Repository.getAdditionalTip()
-        }
-    }
-    fun setAdditionalTip(additionalTip: String) {
-        viewModelScope.launch {
-            _additionalTip.value = Repository.setAdditionalTip(additionalTip)
+            val preferenceCharacter = Repository.getCharacterById(characterId)
+            _dailyTag.value = DailyTag(userName, preferenceBand,
+                preferenceNearlyBandEvent, preferenceCharacter)
         }
     }
 

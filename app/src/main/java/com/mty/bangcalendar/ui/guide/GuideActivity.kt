@@ -168,8 +168,7 @@ fun GuideView(title: String, progress: Float, progressDetails: String, buttonTex
               buttonEnabled: Boolean, onClickListener: () -> Unit) {
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
-        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
-        label = ""
+        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
     )
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(Modifier.weight(3f))

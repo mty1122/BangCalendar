@@ -102,7 +102,10 @@ object Repository {
     }
 
     suspend fun getBandEventByDate(date: IntDate, character1Id: Int) = withContext(Dispatchers.IO) {
-        AppDatabase.getDatabase().eventDao().getNearlyBandEventByDate(date.value, character1Id)
+        if (character1Id < 1)
+            null
+        else
+            AppDatabase.getDatabase().eventDao().getNearlyBandEventByDate(date.value, character1Id)
     }
 
    suspend fun getCharacterByMonth(month: Int) = withContext(Dispatchers.IO) {
@@ -112,7 +115,10 @@ object Repository {
     }
 
     suspend fun getCharacterById(id: Int) = withContext(Dispatchers.IO) {
-        AppDatabase.getDatabase().characterDao().getCharacterById(id)
+        if (id < 1)
+            null
+        else
+            AppDatabase.getDatabase().characterDao().getCharacterById(id)
     }
 
     suspend fun getCharacterByName(name: String) = withContext(Dispatchers.IO) {

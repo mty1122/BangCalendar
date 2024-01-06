@@ -47,6 +47,11 @@ object EventUtil {
             33 -> R.drawable.char_33
             34 -> R.drawable.char_34
             35 -> R.drawable.char_35
+            36 -> R.drawable.char_36
+            37 -> R.drawable.char_37
+            38 -> R.drawable.char_38
+            39 -> R.drawable.char_39
+            40 -> R.drawable.char_40
             else -> null
         }
 

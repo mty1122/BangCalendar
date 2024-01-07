@@ -4,15 +4,28 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Button
+import androidx.compose.material.LinearProgressIndicator
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.ProgressIndicatorDefaults
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -20,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityOptionsCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.mty.bangcalendar.BangCalendarApplication
@@ -29,7 +43,6 @@ import com.mty.bangcalendar.service.EventRefreshService
 import com.mty.bangcalendar.ui.main.MainActivity
 import com.mty.bangcalendar.ui.theme.BangCalendarTheme
 import com.mty.bangcalendar.util.ThemeUtil
-import com.mty.bangcalendar.util.startActivity
 import kotlinx.coroutines.launch
 
 class GuideActivity : ComponentActivity() {
@@ -66,13 +79,17 @@ class GuideActivity : ComponentActivity() {
         }
     }
 
-    @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.statusBarColor = getColor(R.color.start)
         //初始化App
         viewModel.getInitData { initData ->
+            //设置主题
             ThemeUtil.setCurrentTheme(initData.theme)
+            //非首次启动不设置动画
+            val anim = ActivityOptionsCompat
+                .makeCustomAnimation(this,0, 0).toBundle()
+            //检查启动类型
             if (initData.isFirstStart) {
                 /* 首次启动 */
                 setContent { ShowContent() }
@@ -82,23 +99,14 @@ class GuideActivity : ComponentActivity() {
                 /* 每周一自动更新数据库 */
                 val intent = Intent(this, EventRefreshService::class.java)
                 startService(intent)
-                startMainActivity()
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-                    overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, 0, 0)
-                else
-                    overridePendingTransition(0, 0)
+                startMainActivity(anim)
             } else {
                 /* 常规启动 */
-                startMainActivity()
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-                    overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, 0, 0)
-                else
-                    overridePendingTransition(0, 0)
+                startMainActivity(anim)
             }
         }
     }
 
-    @Suppress("DEPRECATION")
     @Composable
     private fun ShowContent() {
         val progress by viewModel.refreshDataProgress.collectAsState()
@@ -115,12 +123,9 @@ class GuideActivity : ComponentActivity() {
                     progressDetails = progressDetails,
                     buttonText = stringResource(id = R.string.welcome_button),
                     onClickListener = {
-                        startMainActivity()
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-                            overrideActivityTransition(OVERRIDE_TRANSITION_OPEN,
-                                0, android.R.anim.fade_out)
-                        else
-                            overridePendingTransition(0, android.R.anim.fade_out)
+                        val anim = ActivityOptionsCompat.makeCustomAnimation(
+                            this,0, android.R.anim.fade_out).toBundle()
+                        startMainActivity(anim)
                     },
                     buttonEnabled = buttonEnabled
                 )
@@ -128,8 +133,9 @@ class GuideActivity : ComponentActivity() {
         }
     }
 
-    private fun startMainActivity() {
-        startActivity<MainActivity>()
+    private fun startMainActivity(anim: Bundle?) {
+        val intent = Intent(this, MainActivity::class.java)
+        startActivity(intent, anim)
         finish()
     }
 

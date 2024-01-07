@@ -34,9 +34,17 @@ import kotlinx.coroutines.launch
 
 class MainActivity : BaseActivity() {
 
+    companion object {
+        const val COMPONENT_AMOUNTS = 3 //主界面组件的数量
+    }
+
     private val viewModel by lazy { ViewModelProvider(this)[MainViewModel::class.java] }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        //初次启动时，状态栏颜色与引导界面一致
+        if (viewModel.isActivityFirstStart)
+            window.statusBarColor = getColor(R.color.start)
+
         super.onCreate(savedInstanceState)
 
         val mainBinding = ActivityMainBinding.inflate(layoutInflater)
@@ -55,6 +63,16 @@ class MainActivity : BaseActivity() {
                 (mainBinding.goBackFloatButton.layoutParams as FrameLayout.LayoutParams)
                     .bottomMargin = top
                 insets
+            }
+        }
+
+        //组件全部加载完成后，显示界面
+        mainBinding.mainActivity.visibility = View.INVISIBLE
+        viewModel.loadedComponentAmounts.observe(this) {
+            if (it == COMPONENT_AMOUNTS) {
+                window.statusBarColor = getColor(ThemeUtil.getThemeColor(this))
+                mainBinding.mainActivity.visibility = View.VISIBLE
+                viewModel.isActivityFirstStart = false
             }
         }
 
@@ -95,11 +113,13 @@ class MainActivity : BaseActivity() {
                 0 -> mainBinding.birCard.visibility = View.GONE
                 else -> refreshBirthdayCard(it, mainBinding)
             }
+            viewModel.componentLoadCompleted()
         }
 
         //dailyTag服务
         viewModel.dailyTag.observe(this) {
             refreshDailyTag(mainBinding, it)
+            viewModel.componentLoadCompleted()
         }
 
         viewModel.todayEvent.observe(this) {
@@ -116,7 +136,7 @@ class MainActivity : BaseActivity() {
                             eventEndTime = EventUtil.getEventEndTime(event)
                         }
                         refreshEventComponent(event, mainBinding) //初次启动刷新活动状态
-                        isActivityFirstStart = false
+                        viewModel.componentLoadCompleted()
                     }
                     //无论是否初次启动，都需要加入观察者
                     addEventObserver(mainBinding)

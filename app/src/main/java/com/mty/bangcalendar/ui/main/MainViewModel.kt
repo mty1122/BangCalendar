@@ -32,6 +32,16 @@ class MainViewModel : ViewModel() {
     var isActivityFirstStart = true
     var isActivityRecreated = true
 
+    //统计初次启动完成加载组件的数量
+    private val _loadedComponentAmounts = MutableLiveData(0)
+    val loadedComponentAmounts: LiveData<Int>
+        get() = _loadedComponentAmounts
+
+    fun componentLoadCompleted() {
+        if (isActivityFirstStart)
+            _loadedComponentAmounts.value = _loadedComponentAmounts.value!! + 1
+    }
+
     //应用设置更改
     private val onSettingsChangeListener =
         SharedPreferences.OnSharedPreferenceChangeListener { _, key ->

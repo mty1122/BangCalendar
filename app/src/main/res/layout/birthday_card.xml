@@ -1,0 +1,64 @@
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/cardView"
+    android:layout_marginTop="4dp"
+    android:layout_marginLeft="10dp"
+    android:layout_marginRight="10dp"
+    android:layout_marginBottom="6dp"
+    app:cardBackgroundColor="?attr/card_background_color"
+    app:cardCornerRadius="15dp">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:gravity="center"
+            android:text="@string/happy_birthday"
+            android:textColor="@color/white"
+            android:background="?attr/card_bar_color" />
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_margin="5dp" >
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:src="@drawable/bir_basic"
+                android:contentDescription="@string/bir_char"/>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_gravity="center">
+
+                <ImageView
+                    android:layout_width="85dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/bir_char1"
+                    android:contentDescription="@string/bir_char" />
+
+                <ImageView
+                    android:layout_width="85dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/bir_char2"
+                    android:contentDescription="@string/bir_char"
+                    android:visibility="gone"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

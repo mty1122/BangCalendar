@@ -2,7 +2,6 @@ package com.mty.bangcalendar.ui.main
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
-import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.os.Build
@@ -119,7 +118,7 @@ class MainActivity : BaseActivity() {
             when (it) {
                 0 -> {
                     if (viewModel.isActivityFirstStart)
-                        mainBinding.birCard.visibility = View.GONE
+                        mainBinding.birCard.cardView.visibility = View.GONE
                     else
                         runBirthdayCardAnim(mainBinding, false)
                 }
@@ -311,24 +310,24 @@ class MainActivity : BaseActivity() {
     private fun refreshBirthdayCard(id: Int, binding: ActivityMainBinding) {
         if (id == 12 || id == 17) {
             Glide.with(this).load(CharacterUtil.matchCharacter(12))
-                .into(binding.birChar1)
+                .into(binding.birCard.birChar1)
             Glide.with(this).load(CharacterUtil.matchCharacter(17))
-                .into(binding.birChar2)
-            binding.birChar1.setOnClickListener {
+                .into(binding.birCard.birChar2)
+            binding.birCard.birChar1.setOnClickListener {
                 startCharacterListActivity(12)
             }
-            binding.birChar2.setOnClickListener {
+            binding.birCard.birChar2.setOnClickListener {
                 startCharacterListActivity(17)
             }
-            binding.birChar2.visibility = View.VISIBLE
+            binding.birCard.birChar2.visibility = View.VISIBLE
         }else {
-            binding.birChar2.visibility = View.GONE
+            binding.birCard.birChar2.visibility = View.GONE
             Glide.with(this).load(CharacterUtil.matchCharacter(id))
-                .into(binding.birChar1)
-            binding.birChar1.setOnClickListener {
+                .into(binding.birCard.birChar1)
+            binding.birCard.birChar1.setOnClickListener {
                 startCharacterListActivity(id)
             }
-            binding.birChar2.setOnClickListener {
+            binding.birCard.birChar2.setOnClickListener {
                 startCharacterListActivity(id)
             }
         }
@@ -341,43 +340,35 @@ class MainActivity : BaseActivity() {
                               else View.VISIBLE
         val endVisibility = if (isInsert) View.VISIBLE
                             else View.GONE
-        if (binding.birCard.visibility == startVisibility) {
+        if (binding.birCard.cardView.visibility == startVisibility) {
             val cardsLayout = binding.cardsLayout
-            val birCardIndex = cardsLayout.indexOfChild(binding.birCard)
-            val animDuration: Long = 1000
+            val birCardIndex = cardsLayout.indexOfChild(binding.birCardParent)
+            val animDuration: Long = 600
             //获取生日卡片的高度
-            val cardHeight = binding.birCard.height.toFloat()
-            //生日卡片的初始透明度和结束透明度
-            val startAlpha = if (isInsert) 0f
-                             else 1f
-            val endAlpha = if (isInsert) 1f
-                           else 0f
+            val cardHeight = binding.birCard.cardView.height.toFloat()
             //生日卡片的初始相对位置和结束相对位置
             val startPosition = if (isInsert) -cardHeight
                                 else 0f
             val endPosition = if (isInsert) 0f
                               //这里需要多往上移动生日卡片和下方卡片的间距（margin）
                               else -cardHeight - GenericUtil.dpToPx(10)
-            //创建透明度渐变动画
-            val alphaAnimator = ObjectAnimator
-                .ofFloat(binding.birCard, "alpha", startAlpha, endAlpha)
-            alphaAnimator.duration = animDuration// 设置透明度渐变动画时长
             //创建垂直位移动画
-            val translationYAnimator = ObjectAnimator.ofFloat(binding.birCard,
+            val translationYAnimator = ObjectAnimator.ofFloat(binding.birCard.cardView,
                 "translationY", startPosition, endPosition)
             translationYAnimator.duration = animDuration // 设置垂直位移动画时长
             // 同时播放透明度渐变和垂直位移动画
-            AnimatorSet().apply {
-                playTogether(alphaAnimator, translationYAnimator)
+            translationYAnimator.apply {
                 // 设置动画监听器，处理动画结束时的逻辑
                 addListener(object : AnimatorListenerAdapter() {
                     //计数器用来统计已经完成动画的下方卡片
                     val cardBeforeAmounts = cardsLayout.childCount - birCardIndex - 1
                     val countDownLatch = CountDownLatch(cardBeforeAmounts)
                     override fun onAnimationStart(animation: Animator) {
+                        //将生日卡片显示在最下方
+                        binding.birCardParent.translationZ = -10f
                         //显示待插入的卡片
                         if (isInsert)
-                            binding.birCard.visibility = endVisibility
+                            binding.birCard.cardView.visibility = endVisibility
                         //处理下方卡片
                         for (i in birCardIndex + 1 until cardsLayout.childCount) {
                             val cardBelow = cardsLayout.getChildAt(i)
@@ -404,7 +395,7 @@ class MainActivity : BaseActivity() {
                                 withContext(Dispatchers.Main) {
                                     cardsLayout.post {
                                         log(this@MainActivity, "生日卡片移除")
-                                        binding.birCard.visibility = endVisibility
+                                        binding.birCard.cardView.visibility = endVisibility
                                         //恢复下方卡片属性
                                         for (i in birCardIndex + 1 until cardsLayout.childCount){
                                             val cardBelow = cardsLayout.getChildAt(i)
@@ -414,8 +405,9 @@ class MainActivity : BaseActivity() {
                                 }
                             }
                             //恢复生日卡片属性
-                            binding.birCard.alpha = 1f
-                            binding.birCard.translationY = 0f
+                            binding.birCard.cardView.alpha = 1f
+                            binding.birCard.cardView.translationY = 0f
+                            binding.birCardParent.translationZ = 0f
                         }
                     }
                 })

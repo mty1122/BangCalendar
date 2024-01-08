@@ -42,73 +42,28 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <androidx.viewpager.widget.ViewPager
-                    android:id="@+id/viewPager"
+                <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="350dp" />
+                    android:layout_height="wrap_content">
 
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:id="@+id/bir_card"
-                    android:layout_marginTop="4dp"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginRight="10dp"
-                    android:layout_marginBottom="6dp"
-                    app:cardBackgroundColor="?attr/card_background_color"
-                    app:cardCornerRadius="15dp">
-
-                    <LinearLayout
-                        android:orientation="vertical"
+                    <androidx.viewpager.widget.ViewPager
+                        android:id="@+id/viewPager"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                        android:layout_height="350dp" />
 
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="30dp"
-                            android:gravity="center"
-                            android:text="@string/happy_birthday"
-                            android:textColor="@color/white"
-                            android:background="?attr/card_bar_color" />
+                </FrameLayout>
 
-                        <LinearLayout
-                            android:orientation="vertical"
-                            android:layout_width="match_parent"
-                            android:layout_height="60dp"
-                            android:layout_margin="5dp" >
 
-                            <ImageView
-                                android:layout_width="match_parent"
-                                android:layout_height="30dp"
-                                android:src="@drawable/bir_basic"
-                                android:contentDescription="@string/bir_char"/>
+                <FrameLayout
+                    android:id="@+id/birCardParent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
 
-                            <LinearLayout
-                                android:orientation="horizontal"
-                                android:layout_width="wrap_content"
-                                android:layout_height="30dp"
-                                android:layout_gravity="center">
+                    <include
+                        android:id="@+id/birCard"
+                        layout="@layout/birthday_card"/>
 
-                                <ImageView
-                                    android:layout_width="85dp"
-                                    android:layout_height="wrap_content"
-                                    android:id="@+id/bir_char1"
-                                    android:contentDescription="@string/bir_char" />
-
-                                <ImageView
-                                    android:layout_width="85dp"
-                                    android:layout_height="wrap_content"
-                                    android:id="@+id/bir_char2"
-                                    android:contentDescription="@string/bir_char"
-                                    android:visibility="gone"/>
-
-                            </LinearLayout>
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                </com.google.android.material.card.MaterialCardView>
+                </FrameLayout>
 
                 <include
                     android:id="@+id/dailytagCard"

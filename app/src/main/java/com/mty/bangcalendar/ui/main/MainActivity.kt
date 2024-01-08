@@ -343,7 +343,7 @@ class MainActivity : BaseActivity() {
         if (binding.birCard.cardView.visibility == startVisibility) {
             val cardsLayout = binding.cardsLayout
             val birCardIndex = cardsLayout.indexOfChild(binding.birCardParent)
-            val animDuration: Long = 600
+            val animDuration: Long = 500
             //获取生日卡片的高度
             val cardHeight = binding.birCard.cardView.height.toFloat()
             //生日卡片的初始相对位置和结束相对位置

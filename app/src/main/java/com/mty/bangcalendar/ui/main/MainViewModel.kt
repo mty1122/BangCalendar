@@ -64,10 +64,15 @@ class MainViewModel : ViewModel() {
     val currentDate: LiveData<CalendarUtil>
         get() = _currentDate
 
-    private val _currentDate = MutableLiveData<CalendarUtil>()
+    private val _currentDate = MutableLiveData(CalendarUtil())
+    private var currentIntDate = _currentDate.value!!.toDate()
 
+    //防止重复刷新
     fun refreshCurrentDate() {
-        _currentDate.value = _currentDate.value
+        if (_currentDate.value!!.toDate().value != currentIntDate.value) {
+            _currentDate.value = _currentDate.value
+            currentIntDate = _currentDate.value!!.toDate()
+        }
     }
 
     //当前选中item
@@ -87,7 +92,8 @@ class MainViewModel : ViewModel() {
     private val _birthdayCard = MutableLiveData<Int>()
 
     fun refreshBirthdayCard(id: Int) {
-        _birthdayCard.value = id
+        if (_birthdayCard.value != id)
+            _birthdayCard.value = id
     }
 
     //跳转日期
@@ -101,7 +107,6 @@ class MainViewModel : ViewModel() {
     }
 
     init {
-        _currentDate.value = CalendarUtil()
         _selectedItem.value = systemDate.day
 
         Repository.registerOnDefaultPreferenceChangeListener(onSettingsChangeListener)

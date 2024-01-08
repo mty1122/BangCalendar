@@ -14,6 +14,13 @@ object ThemeUtil {
         return typedValue.resourceId
     }
 
+    fun getToolBarColor(context: Context): Int {
+        val typedValue = TypedValue()
+        context.theme.resolveAttribute(com.google.android.material.R.attr.colorPrimaryVariant ,
+            typedValue, true)
+        return typedValue.resourceId
+    }
+
     fun getDateTextColor(context: Context): Int {
         val typedValue = TypedValue()
         context.theme.resolveAttribute(R.attr.date_text_color, typedValue, true)

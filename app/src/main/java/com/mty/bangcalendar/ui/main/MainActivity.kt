@@ -1,5 +1,9 @@
 package com.mty.bangcalendar.ui.main
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.os.Build
 import android.os.Bundle
@@ -110,7 +114,7 @@ class MainActivity : BaseActivity() {
 
         viewModel.birthdayCard.observe(this) {
             when (it) {
-                0 -> mainBinding.birCard.visibility = View.GONE
+                0 -> runBirthdayCardAnim(mainBinding, false)
                 else -> refreshBirthdayCard(it, mainBinding)
             }
             viewModel.componentLoadCompleted()
@@ -320,7 +324,59 @@ class MainActivity : BaseActivity() {
                 startCharacterListActivity(id)
             }
         }
-        binding.birCard.visibility = View.VISIBLE
+        //配置插入动画
+        runBirthdayCardAnim(binding, true)
+    }
+
+    private fun runBirthdayCardAnim(binding: ActivityMainBinding, isInsert: Boolean) {
+        val startVisibility = if (isInsert) View.GONE
+                              else View.VISIBLE
+        val endVisibility = if (isInsert) View.VISIBLE
+                            else View.GONE
+        if (binding.birCard.visibility == startVisibility) {
+            val cardsLayout = binding.cardsLayout
+            val birCardIndex = cardsLayout.indexOfChild(binding.birCard)
+            val animDuration: Long = 800
+            //获取生日卡片的高度
+            val cardHeight = binding.birCard.height.toFloat()
+            //生日卡片的初始透明度和结束透明度
+            val startAlpha = if (isInsert) 0f
+            else 1f
+            val endAlpha = if (isInsert) 1f
+            else 0f
+            //生日卡片的初始相对位置和结束相对位置
+            val startPosition = if (isInsert) -cardHeight
+            else cardHeight
+            val endPosition = if (isInsert) 0f
+            else 0f
+            //创建透明度渐变动画
+            val alphaAnimator = ObjectAnimator
+                .ofFloat(binding.birCard, "alpha", startAlpha, endAlpha)
+            alphaAnimator.duration = animDuration// 设置透明度渐变动画时长
+            // 创建垂直位移动画
+            val translationYAnimator = ObjectAnimator.ofFloat(binding.birCard,
+                "translationY", startPosition, endPosition)
+            translationYAnimator.duration = animDuration // 设置垂直位移动画时长
+            // 同时播放透明度渐变和垂直位移动画
+            AnimatorSet().apply {
+                playTogether(alphaAnimator, translationYAnimator)
+                // 设置动画监听器，处理动画结束时的逻辑
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationStart(animation: Animator) {
+                        binding.birCard.visibility = endVisibility
+                        // 处理插入位置下方的卡片下移
+                        for (i in birCardIndex + 1 until cardsLayout.childCount) {
+                            val cardBelow = cardsLayout.getChildAt(i)
+                            val moveDownAnimator = ObjectAnimator.ofFloat(cardBelow,
+                                "translationY", startPosition, endPosition
+                            )
+                            moveDownAnimator.duration = animDuration // 设置下移动画时长
+                            moveDownAnimator.start()
+                        }
+                    }
+                })
+            }.start()
+        }
     }
 
     private fun refreshEventComponent(event: Event, binding: ActivityMainBinding) {
@@ -521,11 +577,12 @@ class MainActivity : BaseActivity() {
                             CharacterUtil.characterListToBirthdayMap(it, adapter.birthdayMap)
                             adapter.notifyDataSetChanged()
                             //刷新生日卡片
-                            viewModel.refreshBirthdayCard(0)
-                            adapter.birthdayMap[viewModel.currentDate.value?.day.toString()]
-                                ?.let { id ->
-                                viewModel.refreshBirthdayCard(id)
-                            }
+                            val characterId =
+                                adapter.birthdayMap[viewModel.currentDate.value?.day.toString()]
+                            if (characterId != null)
+                                viewModel.refreshBirthdayCard(characterId)
+                            else
+                                viewModel.refreshBirthdayCard(0)
                         }
                     }
                 }

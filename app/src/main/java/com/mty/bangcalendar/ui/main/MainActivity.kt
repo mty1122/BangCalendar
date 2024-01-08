@@ -34,7 +34,10 @@ import com.mty.bangcalendar.ui.list.EventListActivity
 import com.mty.bangcalendar.ui.search.SearchActivity
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.concurrent.CountDownLatch
 
 class MainActivity : BaseActivity() {
 
@@ -114,7 +117,12 @@ class MainActivity : BaseActivity() {
 
         viewModel.birthdayCard.observe(this) {
             when (it) {
-                0 -> runBirthdayCardAnim(mainBinding, false)
+                0 -> {
+                    if (viewModel.isActivityFirstStart)
+                        mainBinding.birCard.visibility = View.GONE
+                    else
+                        runBirthdayCardAnim(mainBinding, false)
+                }
                 else -> refreshBirthdayCard(it, mainBinding)
             }
             viewModel.componentLoadCompleted()
@@ -336,24 +344,25 @@ class MainActivity : BaseActivity() {
         if (binding.birCard.visibility == startVisibility) {
             val cardsLayout = binding.cardsLayout
             val birCardIndex = cardsLayout.indexOfChild(binding.birCard)
-            val animDuration: Long = 800
+            val animDuration: Long = 1000
             //获取生日卡片的高度
             val cardHeight = binding.birCard.height.toFloat()
             //生日卡片的初始透明度和结束透明度
             val startAlpha = if (isInsert) 0f
-            else 1f
+                             else 1f
             val endAlpha = if (isInsert) 1f
-            else 0f
+                           else 0f
             //生日卡片的初始相对位置和结束相对位置
             val startPosition = if (isInsert) -cardHeight
-            else cardHeight
+                                else 0f
             val endPosition = if (isInsert) 0f
-            else 0f
+                              //这里需要多往上移动生日卡片和下方卡片的间距（margin）
+                              else -cardHeight - GenericUtil.dpToPx(10)
             //创建透明度渐变动画
             val alphaAnimator = ObjectAnimator
                 .ofFloat(binding.birCard, "alpha", startAlpha, endAlpha)
             alphaAnimator.duration = animDuration// 设置透明度渐变动画时长
-            // 创建垂直位移动画
+            //创建垂直位移动画
             val translationYAnimator = ObjectAnimator.ofFloat(binding.birCard,
                 "translationY", startPosition, endPosition)
             translationYAnimator.duration = animDuration // 设置垂直位移动画时长
@@ -362,16 +371,51 @@ class MainActivity : BaseActivity() {
                 playTogether(alphaAnimator, translationYAnimator)
                 // 设置动画监听器，处理动画结束时的逻辑
                 addListener(object : AnimatorListenerAdapter() {
+                    //计数器用来统计已经完成动画的下方卡片
+                    val cardBeforeAmounts = cardsLayout.childCount - birCardIndex - 1
+                    val countDownLatch = CountDownLatch(cardBeforeAmounts)
                     override fun onAnimationStart(animation: Animator) {
-                        binding.birCard.visibility = endVisibility
-                        // 处理插入位置下方的卡片下移
+                        //显示待插入的卡片
+                        if (isInsert)
+                            binding.birCard.visibility = endVisibility
+                        //处理下方卡片
                         for (i in birCardIndex + 1 until cardsLayout.childCount) {
                             val cardBelow = cardsLayout.getChildAt(i)
-                            val moveDownAnimator = ObjectAnimator.ofFloat(cardBelow,
+                            val moveAnimator = ObjectAnimator.ofFloat(cardBelow,
                                 "translationY", startPosition, endPosition
                             )
-                            moveDownAnimator.duration = animDuration // 设置下移动画时长
-                            moveDownAnimator.start()
+                            moveAnimator.addListener(object : AnimatorListenerAdapter() {
+                                override fun onAnimationEnd(animation: Animator) {
+                                    if (!isInsert)
+                                        countDownLatch.countDown()
+                                }
+                            })
+                            moveAnimator.duration = animDuration // 设置下移动画时长
+                            moveAnimator.start()
+                        }
+                    }
+
+                    override fun onAnimationEnd(animation: Animator) {
+                        //隐藏移除卡片
+                        if (!isInsert) {
+                            lifecycleScope.launch(Dispatchers.IO) {
+                                //等待动画完成后移除
+                                countDownLatch.await()
+                                withContext(Dispatchers.Main) {
+                                    cardsLayout.post {
+                                        log(this@MainActivity, "生日卡片移除")
+                                        binding.birCard.visibility = endVisibility
+                                        //恢复下方卡片属性
+                                        for (i in birCardIndex + 1 until cardsLayout.childCount){
+                                            val cardBelow = cardsLayout.getChildAt(i)
+                                            cardBelow.translationY = 0f
+                                        }
+                                    }
+                                }
+                            }
+                            //恢复生日卡片属性
+                            binding.birCard.alpha = 1f
+                            binding.birCard.translationY = 0f
                         }
                     }
                 })

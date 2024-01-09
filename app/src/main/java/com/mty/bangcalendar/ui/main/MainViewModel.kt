@@ -97,6 +97,8 @@ class MainViewModel : ViewModel() {
     var currentDateBirthdayCard = 0
     //记录滑动手势的起始点
     var touchEventStartY = 0f
+    //记录生日卡片高度
+    var cardHeight = 0
     fun refreshBirthdayCard(id: Int) {
         if (_birthdayCard.value != id)
             _birthdayCard.value = id

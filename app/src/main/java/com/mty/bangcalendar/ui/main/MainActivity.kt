@@ -43,9 +43,12 @@ class MainActivity : BaseActivity() {
     }
 
     private val viewModel by lazy { ViewModelProvider(this)[MainViewModel::class.java] }
+    //记录Activity是否创建（用于设置生日卡片的位置）
+    private var isActivityCreated = false
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
+        isActivityCreated = false
         //初次启动时，状态栏颜色与引导界面一致
         if (viewModel.isActivityFirstStart)
             window.statusBarColor = getColor(R.color.start)
@@ -109,14 +112,20 @@ class MainActivity : BaseActivity() {
             } else {
                 mainBinding.goBackFloatButton.visibility = View.VISIBLE
             }
+            //日期改变时，移除当前日期生日卡片角色ID缓存
+            viewModel.currentDateBirthdayCard = 0
         }
 
         viewModel.getCharacterByMonth(systemDate.month) //首次启动刷新当前月的生日角色
 
         viewModel.birthdayCard.observe(this) {
-            //初次启动初始化
-            if (viewModel.isActivityFirstStart) {
+            //生日卡片初始化
+            if (!isActivityCreated) {
+                //记录卡片高度，供activity不可见/重启时使用
+                if (viewModel.isActivityFirstStart)
+                    viewModel.cardHeight = mainBinding.birCard.cardView.height
                 birCardInit(it, mainBinding)
+                isActivityCreated = true
                 viewModel.componentLoadCompleted()
                 return@observe
             }
@@ -332,7 +341,7 @@ class MainActivity : BaseActivity() {
             val mainLinearLayout = binding.mainView
             val birCardIndex = mainLinearLayout.indexOfChild(binding.birCardParent)
 
-            val cardHeight = binding.birCard.cardView.height.toFloat()
+            val cardHeight = viewModel.cardHeight.toFloat()
             val translationY = -cardHeight - GenericUtil.dpToPx(10)
 
             for (i in birCardIndex + 1 until mainLinearLayout.childCount) {

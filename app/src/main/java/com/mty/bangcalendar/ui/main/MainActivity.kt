@@ -39,7 +39,10 @@ import kotlinx.coroutines.launch
 class MainActivity : BaseActivity() {
 
     companion object {
+
         const val COMPONENT_AMOUNTS = 3 //主界面组件的数量
+        const val BIRTHDAY_CARD_INITIAL_DP_HEIGHT = 100 //生日卡片初始高度
+
     }
 
     private val viewModel by lazy { ViewModelProvider(this)[MainViewModel::class.java] }
@@ -121,9 +124,6 @@ class MainActivity : BaseActivity() {
         viewModel.birthdayCard.observe(this) {
             //生日卡片初始化
             if (!isActivityCreated) {
-                //记录卡片高度，供activity不可见/重启时使用
-                if (viewModel.isActivityFirstStart)
-                    viewModel.cardHeight = mainBinding.birCard.cardView.height
                 birCardInit(it, mainBinding)
                 isActivityCreated = true
                 viewModel.componentLoadCompleted()
@@ -332,6 +332,7 @@ class MainActivity : BaseActivity() {
         binding.dailytagCard.cardView.visibility = View.VISIBLE
     }
 
+    //生日卡片初始化
     private fun birCardInit(id: Int, binding: ActivityMainBinding) {
         if (id > 0) {
             refreshBirthdayCard(id, binding)
@@ -341,7 +342,8 @@ class MainActivity : BaseActivity() {
             val mainLinearLayout = binding.mainView
             val birCardIndex = mainLinearLayout.indexOfChild(binding.birCardParent)
 
-            val cardHeight = viewModel.cardHeight.toFloat()
+            //使用初始高度
+            val cardHeight = viewModel.initialCardHeight.toFloat()
             val translationY = -cardHeight - GenericUtil.dpToPx(10)
 
             for (i in birCardIndex + 1 until mainLinearLayout.childCount) {
@@ -409,7 +411,7 @@ class MainActivity : BaseActivity() {
     private fun runBirthdayCardAnim(binding: ActivityMainBinding, isInsert: Boolean) {
         val mainLinearLayout = binding.mainView
         val birCardIndex = mainLinearLayout.indexOfChild(binding.birCardParent)
-        val animDuration: Long = 450
+        val animDuration = AnimUtil.getAnimPreference().toLong()
         //获取生日卡片的高度
         val cardHeight = binding.birCard.cardView.height.toFloat()
         //这里需要多往上移动生日卡片和下方卡片的间距（margin）

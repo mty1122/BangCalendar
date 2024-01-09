@@ -39,4 +39,32 @@
     <color name="pp_date_text">#ff92f2b2</color>
     <color name="pp_background">#f6fef3</color>
     <color name="pp_card_background">#fff</color>
+    <!-- theme_ag -->
+    <color name="ag_bar">#fffbbbbc</color>
+    <color name="ag_card_bar">#fff3b3b4</color>
+    <color name="ag_text">#fffbbbbc</color>
+    <color name="ag_date_text">#fff3b3b4</color>
+    <color name="ag_background">#fdf7f4</color>
+    <color name="ag_card_background">#fff</color>
+    <!-- theme_hhw -->
+    <color name="hhw_bar">#fff5f6b0</color>
+    <color name="hhw_card_bar">#ffebeba5</color>
+    <color name="hhw_text">#fff5f6b0</color>
+    <color name="hhw_date_text">#ffebeba5</color>
+    <color name="hhw_background">#fdfef2</color>
+    <color name="hhw_card_background">#fff</color>
+    <!-- theme_ras -->
+    <color name="ras_bar">#ff4ae2d3</color>
+    <color name="ras_card_bar">#ff3dd5c6</color>
+    <color name="ras_text">#ff4ae2d3</color>
+    <color name="ras_date_text">#ff3dd5c6</color>
+    <color name="ras_background">#f4fdfb</color>
+    <color name="ras_card_background">#fff</color>
+    <!-- theme_mg -->
+    <color name="mg_bar">#ff3388bb</color>
+    <color name="mg_card_bar">#ff3388bb</color>
+    <color name="mg_text">#ff3388bb</color>
+    <color name="mg_date_text">#ff3388bb</color>
+    <color name="mg_background">#f4f7fa</color>
+    <color name="mg_card_background">#fff</color>
 </resources>

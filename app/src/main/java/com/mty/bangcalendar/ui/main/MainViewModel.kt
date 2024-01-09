@@ -16,8 +16,10 @@ import com.mty.bangcalendar.logic.model.Character
 import com.mty.bangcalendar.logic.model.DailyTag
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.logic.model.IntDate
+import com.mty.bangcalendar.ui.main.MainActivity.Companion.BIRTHDAY_CARD_INITIAL_DP_HEIGHT
 import com.mty.bangcalendar.util.CalendarUtil
 import com.mty.bangcalendar.util.EventUtil
+import com.mty.bangcalendar.util.GenericUtil
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -97,8 +99,8 @@ class MainViewModel : ViewModel() {
     var currentDateBirthdayCard = 0
     //记录滑动手势的起始点
     var touchEventStartY = 0f
-    //记录生日卡片高度
-    var cardHeight = 0
+    //计算生日卡片初始高度，供初始化使用（防止生日卡片还未加载出来，导致高度为0）
+    val initialCardHeight = GenericUtil.dpToPx(BIRTHDAY_CARD_INITIAL_DP_HEIGHT)
     fun refreshBirthdayCard(id: Int) {
         if (_birthdayCard.value != id)
             _birthdayCard.value = id

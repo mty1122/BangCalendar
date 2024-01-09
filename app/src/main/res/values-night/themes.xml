@@ -28,6 +28,14 @@
     <style name="theme_m" parent="theme_ppp" />
     <!-- theme_pp -->
     <style name="theme_pp" parent="theme_ppp" />
+    <!-- theme_ag -->
+    <style name="theme_ag" parent="theme_ppp" />
+    <!-- theme_hhw -->
+    <style name="theme_hhw" parent="theme_ppp" />
+    <!-- theme_ras -->
+    <style name="theme_ras" parent="theme_ppp" />
+    <!-- theme_mg -->
+    <style name="theme_mg" parent="theme_ppp" />
     <!-- alert_dialog -->
     <style name="alert_dialog" parent="Theme.AppCompat.DayNight.Dialog.Alert">
         <item name="colorPrimary">@color/teal_200</item>

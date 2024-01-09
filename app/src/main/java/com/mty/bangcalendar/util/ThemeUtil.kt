@@ -30,9 +30,13 @@ object ThemeUtil {
     fun setCurrentTheme(themeName: String) {
         when (themeName) {
             "theme_ppp" -> currentTheme = R.style.theme_ppp
+            "theme_ag" -> currentTheme = R.style.theme_ag
             "theme_pp" -> currentTheme = R.style.theme_pp
             "theme_r" -> currentTheme = R.style.theme_r
+            "theme_hhw" -> currentTheme = R.style.theme_hhw
             "theme_m" -> currentTheme = R.style.theme_m
+            "theme_ras" -> currentTheme = R.style.theme_ras
+            "theme_mg" -> currentTheme = R.style.theme_mg
         }
     }
 

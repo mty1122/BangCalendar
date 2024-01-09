@@ -2,16 +2,24 @@
     <!-- Theme Preference -->
     <string-array name="theme_entries">
         <item>PoppinParty粉</item>
+        <item>Afterglow红</item>
         <item>PastelPalettes绿</item>
         <item>Roselia紫</item>
+        <item>HelloHappyWorld黄</item>
         <item>Morfonica蓝</item>
+        <item>RAISEASUILEN青</item>
+        <item>MyGO靛</item>
     </string-array>
 
     <string-array name="theme_values">
         <item>theme_ppp</item>
+        <item>theme_ag</item>
         <item>theme_pp</item>
         <item>theme_r</item>
+        <item>theme_hhw</item>
         <item>theme_m</item>
+        <item>theme_ras</item>
+        <item>theme_mg</item>
     </string-array>
 
     <!-- Band Preference -->

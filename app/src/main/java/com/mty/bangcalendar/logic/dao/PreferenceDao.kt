@@ -29,14 +29,6 @@ object PreferenceDao {
         }
     }
 
-    fun getAdditionalTip(): String = sharedPreference().getString("additionalTip", "")!!
-
-    fun setAdditionalTip(additionalTip: String) {
-        sharedPreference().edit {
-            putString("additionalTip", additionalTip)
-        }
-    }
-
     fun getPhoneNum(): String = sharedPreference().getString("phone", "")!!
 
     fun setPhoneNum(phone: String) {
@@ -75,6 +67,8 @@ object PreferenceDao {
             putString("character", userPreference.character)
         }
     }
+
+    fun getAnimPreference(): Boolean = defaultPreference().getBoolean("anim", false)
 
     fun setDefaultPreference() {
         defaultPreference().edit {

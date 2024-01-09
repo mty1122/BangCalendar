@@ -202,6 +202,13 @@ class SettingsActivity : BaseActivity() {
                 }
             }
 
+            findPreference<Preference>("anim")?.let {
+                it.setOnPreferenceChangeListener { _, newValue ->
+                    AnimUtil.setAnimPreference(newValue as Boolean)
+                    return@setOnPreferenceChangeListener true
+                }
+            }
+
             findPreference<Preference>("theme")?.let {
                 it.setOnPreferenceChangeListener { _, newValue ->
                     ThemeUtil.setCurrentTheme(newValue as String)

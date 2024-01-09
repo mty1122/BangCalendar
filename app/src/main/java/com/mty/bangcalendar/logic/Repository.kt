@@ -65,20 +65,12 @@ object Repository {
         val isFirstStart = PreferenceDao.isFirstStart
         val theme = PreferenceDao.getTheme()
         val lastRefreshDay = PreferenceDao.getLastRefreshDay()
-        GuideInitData(isFirstStart, theme, lastRefreshDay)
+        val animPreference = PreferenceDao.getAnimPreference()
+        GuideInitData(isFirstStart, theme, lastRefreshDay, animPreference)
     }
 
     suspend fun isNotFirstStart() = withContext(Dispatchers.IO) {
         PreferenceDao.isFirstStart = false
-    }
-
-    suspend fun getAdditionalTip() = withContext(Dispatchers.IO) {
-        PreferenceDao.getAdditionalTip()
-    }
-
-    suspend fun setAdditionalTip(additionalTip: String) = withContext(Dispatchers.IO) {
-        PreferenceDao.setAdditionalTip(additionalTip)
-        PreferenceDao.getAdditionalTip()
     }
 
     suspend fun getUserName() = withContext(Dispatchers.IO) {

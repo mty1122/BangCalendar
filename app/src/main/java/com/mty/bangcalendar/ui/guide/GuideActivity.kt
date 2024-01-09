@@ -42,6 +42,7 @@ import com.mty.bangcalendar.service.CharacterRefreshService
 import com.mty.bangcalendar.service.EventRefreshService
 import com.mty.bangcalendar.ui.main.MainActivity
 import com.mty.bangcalendar.ui.theme.BangCalendarTheme
+import com.mty.bangcalendar.util.AnimUtil
 import com.mty.bangcalendar.util.ThemeUtil
 import kotlinx.coroutines.launch
 
@@ -86,6 +87,8 @@ class GuideActivity : ComponentActivity() {
         viewModel.getInitData { initData ->
             //设置主题
             ThemeUtil.setCurrentTheme(initData.theme)
+            //设置动画偏好
+            AnimUtil.setAnimPreference(initData.animPreference)
             //非首次启动不设置动画
             val anim = ActivityOptionsCompat
                 .makeCustomAnimation(this,0, 0).toBundle()

@@ -72,6 +72,17 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory app:title="@string/experimental">
+
+        <SwitchPreference
+            app:defaultValue="false"
+            app:key="anim"
+            app:title="@string/anim_title"
+            app:summary="@string/anim_summary"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
     <PreferenceCategory app:title="@string/about_header">
 
         <Preference

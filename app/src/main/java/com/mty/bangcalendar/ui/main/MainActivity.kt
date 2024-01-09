@@ -33,10 +33,7 @@ import com.mty.bangcalendar.ui.list.EventListActivity
 import com.mty.bangcalendar.ui.search.SearchActivity
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.*
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.util.concurrent.CountDownLatch
 
 class MainActivity : BaseActivity() {
 
@@ -114,24 +111,29 @@ class MainActivity : BaseActivity() {
 
         viewModel.getCharacterByMonth(systemDate.month) //首次启动刷新当前月的生日角色
 
-        //使用birCardStatus可以提前标识生日卡片的状态，以便有新动作时打断旧的动画
         viewModel.birthdayCard.observe(this) {
+            //初次启动初始化
+            if (viewModel.isActivityFirstStart) {
+                birCardInit(it, mainBinding)
+                viewModel.componentLoadCompleted()
+                return@observe
+            }
+            //刷新生日卡片
             when (it) {
                 0 -> {
-                    if (viewModel.isActivityFirstStart)
-                        mainBinding.birCard.cardView.visibility = View.GONE
-                    else {
+                    if (viewModel.birCardStatus == View.VISIBLE){
+                        viewModel.birCardStatus = View.INVISIBLE
                         runBirthdayCardAnim(mainBinding, false)
                     }
                 }
                 else -> {
                     refreshBirthdayCard(it, mainBinding)
-                    if (mainBinding.birCard.cardView.visibility == View.GONE) {
+                    if (viewModel.birCardStatus == View.INVISIBLE) {
+                        viewModel.birCardStatus = View.VISIBLE
                         runBirthdayCardAnim(mainBinding, true)
                     }
                 }
             }
-            viewModel.componentLoadCompleted()
         }
 
         //dailyTag服务
@@ -313,6 +315,27 @@ class MainActivity : BaseActivity() {
         binding.dailytagCard.cardView.visibility = View.VISIBLE
     }
 
+    private fun birCardInit(id: Int, binding: ActivityMainBinding) {
+        if (id > 0) {
+            refreshBirthdayCard(id, binding)
+            viewModel.birCardStatus = View.VISIBLE
+        }
+        else {
+            val cardsLayout = binding.cardsLayout
+            val birCardIndex = cardsLayout.indexOfChild(binding.birCardParent)
+
+            val cardHeight = binding.birCard.cardView.height.toFloat()
+            val translationY = -cardHeight - GenericUtil.dpToPx(10)
+
+            for (i in birCardIndex + 1 until cardsLayout.childCount) {
+                val cardBelow = cardsLayout.getChildAt(i)
+                cardBelow.translationY = translationY
+            }
+            binding.birCard.cardView.translationY = translationY
+            viewModel.birCardStatus = View.INVISIBLE
+        }
+    }
+
     //刷新生日卡片
     private fun refreshBirthdayCard(id: Int, binding: ActivityMainBinding) {
         if (id == 12 || id == 17) {
@@ -346,76 +369,27 @@ class MainActivity : BaseActivity() {
         val animDuration: Long = 450
         //获取生日卡片的高度
         val cardHeight = binding.birCard.cardView.height.toFloat()
-        //生日卡片的初始相对位置和结束相对位置
-        val startPosition = if (isInsert) -cardHeight
-        else 0f
-        val endPosition = if (isInsert) 0f
         //这里需要多往上移动生日卡片和下方卡片的间距（margin）
-        else -cardHeight - GenericUtil.dpToPx(10)
+        val endPosition = if (isInsert) 0f else -cardHeight - GenericUtil.dpToPx(10)
         //创建垂直位移动画
         val translationYAnimator = ObjectAnimator.ofFloat(binding.birCard.cardView,
-            "translationY", startPosition, endPosition)
+            "translationY", endPosition)
         translationYAnimator.duration = animDuration // 设置垂直位移动画时长
-        //播放垂直位移动画
-        translationYAnimator.apply {
-            //设置动画监听器，处理动画结束时的逻辑
-            addListener(object : AnimatorListenerAdapter() {
-                //计数器用来统计已经完成动画的下方卡片
-                val cardBeforeAmounts = cardsLayout.childCount - birCardIndex - 1
-                val countDownLatch = CountDownLatch(cardBeforeAmounts)
-                override fun onAnimationStart(animation: Animator) {
-                    //将生日卡片显示在最下方
-                    binding.birCardParent.translationZ = -10f
-                    //显示待插入的卡片
-                    if (isInsert)
-                        binding.birCard.cardView.visibility = View.VISIBLE
-                    //处理下方卡片
-                    for (i in birCardIndex + 1 until cardsLayout.childCount) {
-                        val cardBelow = cardsLayout.getChildAt(i)
-                        val moveAnimator = ObjectAnimator.ofFloat(cardBelow,
-                            "translationY", startPosition, endPosition
-                        )
-                        moveAnimator.addListener(object : AnimatorListenerAdapter() {
-                            override fun onAnimationEnd(animation: Animator) {
-                                if (!isInsert)
-                                    countDownLatch.countDown()
-                            }
-                        })
-                        moveAnimator.duration = animDuration // 设置下移动画时长
-                        moveAnimator.start()
-                    }
+        translationYAnimator.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationStart(animation: Animator) {
+                //处理下方卡片
+                for (i in birCardIndex + 1 until cardsLayout.childCount) {
+                    val cardBelow = cardsLayout.getChildAt(i)
+                    val moveAnimator = ObjectAnimator.ofFloat(cardBelow,
+                        "translationY", endPosition
+                    )
+                    moveAnimator.duration = animDuration // 设置下移动画时长
+                    moveAnimator.start()
                 }
-
-                override fun onAnimationEnd(animation: Animator) {
-                    //隐藏移除卡片
-                    if (!isInsert) {
-                        lifecycleScope.launch(Dispatchers.IO) {
-                            //等待动画完成后移除
-                            countDownLatch.await()
-                            withContext(Dispatchers.Main) {
-                                cardsLayout.post {
-                                    binding.birCard.cardView.visibility = View.GONE
-                                    //恢复下方卡片属性
-                                    for (i in birCardIndex + 1 until cardsLayout.childCount){
-                                        val cardBelow = cardsLayout.getChildAt(i)
-                                        cardBelow.translationY = 0f
-                                    }
-                                }
-                                log(this@MainActivity, "生日卡片移除")
-                            }
-                        }
-                        //恢复生日卡片属性
-                        binding.birCard.cardView.alpha = 1f
-                        binding.birCard.cardView.translationY = 0f
-                        binding.birCardParent.translationZ = 0f
-                    }
-                    else
-                        log(this@MainActivity, "生日卡片插入")
-                }
-            })
-        }
+            }
+        })
         translationYAnimator.start()
-        log(this@MainActivity, "生日卡片动画启动")
+        log(this, "生日卡片动画启动")
     }
 
     private fun refreshEventComponent(event: Event, binding: ActivityMainBinding) {

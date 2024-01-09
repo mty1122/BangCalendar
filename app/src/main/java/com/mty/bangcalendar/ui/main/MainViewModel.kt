@@ -2,6 +2,7 @@ package com.mty.bangcalendar.ui.main
 
 import android.content.*
 import android.graphics.drawable.Drawable
+import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -90,7 +91,7 @@ class MainViewModel : ViewModel() {
         get() = _birthdayCard
 
     private val _birthdayCard = MutableLiveData<Int>()
-
+    var birCardStatus = View.INVISIBLE
     fun refreshBirthdayCard(id: Int) {
         if (_birthdayCard.value != id)
             _birthdayCard.value = id

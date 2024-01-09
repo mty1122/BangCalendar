@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mainActivity"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/app_background_color">
 
     <LinearLayout
+        android:id="@+id/mainView"
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -32,56 +34,37 @@
 
         <include layout="@layout/week_bar"/>
 
-        <ScrollView
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <LinearLayout
-                android:id="@+id/cards_layout"
-                android:orientation="vertical"
+            <androidx.viewpager.widget.ViewPager
+                android:id="@+id/viewPager"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="350dp" />
 
-                <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+        </FrameLayout>
 
-                    <androidx.viewpager.widget.ViewPager
-                        android:id="@+id/viewPager"
-                        android:layout_width="match_parent"
-                        android:layout_height="350dp" />
+        <FrameLayout
+            android:id="@+id/birCardParent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:translationZ="-10dp">
 
-                </FrameLayout>
+            <include
+                android:id="@+id/birCard"
+                layout="@layout/birthday_card"/>
 
+        </FrameLayout>
 
-                <FrameLayout
-                    android:id="@+id/birCardParent"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:translationZ="-10dp">
+        <include
+            android:id="@+id/dailytagCard"
+            layout="@layout/dailytag_card"/>
 
-                    <include
-                        android:id="@+id/birCard"
-                        layout="@layout/birthday_card"/>
-
-                </FrameLayout>
-
-                <include
-                    android:id="@+id/dailytagCard"
-                    layout="@layout/dailytag_card"/>
-
-                <include
-                    android:id="@+id/eventCard"
-                    layout="@layout/event_card"/>
-
-                <!-- 向下延长60dp -->
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="56dp" />
-
-            </LinearLayout>
-
-        </ScrollView>
+        <include
+            android:id="@+id/eventCard"
+            layout="@layout/event_card"
+            tools:ignore="VisualLintBounds" />
 
     </LinearLayout>
 

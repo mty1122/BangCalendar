@@ -91,7 +91,12 @@ class MainViewModel : ViewModel() {
         get() = _birthdayCard
 
     private val _birthdayCard = MutableLiveData<Int>()
+    //用来记录生日卡片的状态，采用View的可见性只是为了标记，并不代表生日卡片的View属性
     var birCardStatus = View.INVISIBLE
+    //用来记录当前日期的生日卡片角色ID，以供折叠/展开生日卡片使用
+    var currentDateBirthdayCard = 0
+    //记录滑动手势的起始点
+    var touchEventStartY = 0f
     fun refreshBirthdayCard(id: Int) {
         if (_birthdayCard.value != id)
             _birthdayCard.value = id

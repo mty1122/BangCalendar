@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.MotionEvent
 import android.view.View
 import android.widget.DatePicker
 import android.widget.FrameLayout
@@ -43,6 +44,7 @@ class MainActivity : BaseActivity() {
 
     private val viewModel by lazy { ViewModelProvider(this)[MainViewModel::class.java] }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         //初次启动时，状态栏颜色与引导界面一致
         if (viewModel.isActivityFirstStart)
@@ -134,6 +136,12 @@ class MainActivity : BaseActivity() {
                     }
                 }
             }
+        }
+
+        //设置滑动监听器，实现生日卡片的折叠/展开
+        mainBinding.mainView.setOnTouchListener { _, event ->
+            handleMainViewTouchEvent(event)
+            true
         }
 
         //dailyTag服务
@@ -321,14 +329,14 @@ class MainActivity : BaseActivity() {
             viewModel.birCardStatus = View.VISIBLE
         }
         else {
-            val cardsLayout = binding.cardsLayout
-            val birCardIndex = cardsLayout.indexOfChild(binding.birCardParent)
+            val mainLinearLayout = binding.mainView
+            val birCardIndex = mainLinearLayout.indexOfChild(binding.birCardParent)
 
             val cardHeight = binding.birCard.cardView.height.toFloat()
             val translationY = -cardHeight - GenericUtil.dpToPx(10)
 
-            for (i in birCardIndex + 1 until cardsLayout.childCount) {
-                val cardBelow = cardsLayout.getChildAt(i)
+            for (i in birCardIndex + 1 until mainLinearLayout.childCount) {
+                val cardBelow = mainLinearLayout.getChildAt(i)
                 cardBelow.translationY = translationY
             }
             binding.birCard.cardView.translationY = translationY
@@ -363,9 +371,35 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    //处理生日卡片折叠/展开动画时的手势
+    private fun handleMainViewTouchEvent(event: MotionEvent) {
+        //生日卡片不显示时不处理
+        if (viewModel.birthdayCard.value!! < 1 && viewModel.currentDateBirthdayCard < 1)
+            return
+        //修改当前日期的生日卡片角色ID
+        if (viewModel.birthdayCard.value!! > 0)
+            viewModel.currentDateBirthdayCard = viewModel.birthdayCard.value!!
+
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                viewModel.touchEventStartY = event.y
+            }
+            MotionEvent.ACTION_MOVE -> {
+                val deltaY = event.y - viewModel.touchEventStartY
+                if (deltaY > 0) {
+                    //向下滑动，触发展开动画
+                    viewModel.refreshBirthdayCard(viewModel.currentDateBirthdayCard)
+                } else if (deltaY < 0) {
+                    //向上滑动，触发折叠动画
+                    viewModel.refreshBirthdayCard(0)
+                }
+            }
+        }
+    }
+
     private fun runBirthdayCardAnim(binding: ActivityMainBinding, isInsert: Boolean) {
-        val cardsLayout = binding.cardsLayout
-        val birCardIndex = cardsLayout.indexOfChild(binding.birCardParent)
+        val mainLinearLayout = binding.mainView
+        val birCardIndex = mainLinearLayout.indexOfChild(binding.birCardParent)
         val animDuration: Long = 450
         //获取生日卡片的高度
         val cardHeight = binding.birCard.cardView.height.toFloat()
@@ -378,8 +412,8 @@ class MainActivity : BaseActivity() {
         translationYAnimator.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationStart(animation: Animator) {
                 //处理下方卡片
-                for (i in birCardIndex + 1 until cardsLayout.childCount) {
-                    val cardBelow = cardsLayout.getChildAt(i)
+                for (i in birCardIndex + 1 until mainLinearLayout.childCount) {
+                    val cardBelow = mainLinearLayout.getChildAt(i)
                     val moveAnimator = ObjectAnimator.ofFloat(cardBelow,
                         "translationY", endPosition
                     )

@@ -10,6 +10,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewTreeObserver
 import android.widget.DatePicker
 import android.widget.FrameLayout
 import androidx.appcompat.app.AlertDialog
@@ -39,10 +40,7 @@ import kotlinx.coroutines.launch
 class MainActivity : BaseActivity() {
 
     companion object {
-
         const val COMPONENT_AMOUNTS = 3 //主界面组件的数量
-        const val BIRTHDAY_CARD_INITIAL_DP_HEIGHT = 100 //生日卡片初始高度
-
     }
 
     private val viewModel by lazy { ViewModelProvider(this)[MainViewModel::class.java] }
@@ -78,6 +76,8 @@ class MainActivity : BaseActivity() {
         }
 
         //组件全部加载完成后，显示界面
+        //由于组件是异步加载的，可能属性的修改发生在onCreate后，会出现抽搐的情况
+        //为保证所有组件全部加载完成，再统一显示给用户，故设置此状态
         mainBinding.mainActivity.visibility = View.INVISIBLE
         viewModel.loadedComponentAmounts.observe(this) {
             if (it == COMPONENT_AMOUNTS) {
@@ -124,9 +124,17 @@ class MainActivity : BaseActivity() {
         viewModel.birthdayCard.observe(this) {
             //生日卡片初始化
             if (!isActivityCreated) {
-                birCardInit(it, mainBinding)
-                isActivityCreated = true
-                viewModel.componentLoadCompleted()
+                //等待其膨胀完成后再初始化，防止获取不到高度
+                mainBinding.birCard.cardView.viewTreeObserver.addOnGlobalLayoutListener(object :
+                    ViewTreeObserver.OnGlobalLayoutListener {
+                    override fun onGlobalLayout() {
+                        birCardInit(it, mainBinding)
+                        isActivityCreated = true
+                        viewModel.componentLoadCompleted()
+                        mainBinding.birCard.cardView.viewTreeObserver
+                            .removeOnGlobalLayoutListener(this)
+                    }
+                })
                 return@observe
             }
             //刷新生日卡片
@@ -159,6 +167,7 @@ class MainActivity : BaseActivity() {
             viewModel.componentLoadCompleted()
         }
 
+        //这里的todayEvent是指开始日期小于等于今日最新的活动，所以一定存在
         viewModel.todayEvent.observe(this) {
             viewModel.run {
                 it?.let { event ->
@@ -172,16 +181,14 @@ class MainActivity : BaseActivity() {
                         } else {
                             eventEndTime = EventUtil.getEventEndTime(event)
                         }
-                        refreshEventComponent(event, mainBinding) //初次启动刷新活动状态
+                        eventCardInit(mainBinding, event)
+                        viewModel.componentLoadCompleted()
                     }
                     //无论是否初次启动，都需要加入观察者
                     addEventObserver(mainBinding)
                 }
-                if (it == null)
-                    mainBinding.eventCard.eventCardItem.alpha = 0f
                 getDailyTag() //初次启动刷新DailyTag
             }
-            viewModel.componentLoadCompleted()
         }
         viewModel.getTodayEvent() //获取当天活动
 
@@ -229,8 +236,18 @@ class MainActivity : BaseActivity() {
             //活动小于第一期或者大于最后一期时，隐藏活动卡片
             if (it == null || currentDate - IntDate(it.startDate) >= 13) {
                 LogUtil.d("Event", "currentDate $currentDate startDate ${it?.startDate}")
+                //启动隐藏动画
                 runEventCardAnim(mainBinding, 0f)
+                //取消注册监听器
+                mainBinding.eventCard.char1.setOnClickListener(null)
+                mainBinding.eventCard.char2.setOnClickListener(null)
+                mainBinding.eventCard.char3.setOnClickListener(null)
+                mainBinding.eventCard.char4.setOnClickListener(null)
+                mainBinding.eventCard.char5.setOnClickListener(null)
+                mainBinding.eventCard.eventBand.setOnClickListener(null)
+                mainBinding.eventCard.eventButton.setOnClickListener(null)
             } else {
+                //启动显示动画
                 runEventCardAnim(mainBinding, 1f)
                 LogUtil.d("Event", "Event id is ${it.id}")
                 //相同活动之间移动，不刷新活动
@@ -239,6 +256,16 @@ class MainActivity : BaseActivity() {
                     refreshEventComponent(it, mainBinding)
                 }
             }
+        }
+    }
+
+    private fun eventCardInit(binding: ActivityMainBinding, event: Event) {
+        val currentDate = systemDate.toDate()
+        //活动大于最后一期时，隐藏活动卡片
+        if (currentDate - IntDate(event.startDate) >= 13) {
+            binding.eventCard.eventCardItem.alpha = 0f
+        } else {
+            refreshEventComponent(event, binding)
         }
     }
 
@@ -355,7 +382,7 @@ class MainActivity : BaseActivity() {
             val birCardIndex = mainLinearLayout.indexOfChild(binding.birCardParent)
 
             //使用初始高度
-            val cardHeight = viewModel.initialCardHeight.toFloat()
+            val cardHeight = binding.birCard.cardView.height.toFloat()
             val translationY = -cardHeight - GenericUtil.dpToPx(10)
 
             for (i in birCardIndex + 1 until mainLinearLayout.childCount) {
@@ -602,7 +629,11 @@ class MainActivity : BaseActivity() {
                 clear()
                 addAll(calendarUtil.getDateList())
             }
-            viewAdapter.birthdayMap.clear() //清空角色生日
+            //如果不是同月跳转，则清空角色生日，防止闪烁
+            if (viewModel.currentDate.value!!.year != target.year
+                || viewModel.currentDate.value!!.month != target.month)
+                viewAdapter.birthdayMap.clear()
+            //刷新日历
             viewAdapter.notifyDataSetChanged()
         }
         //初始化viewPager的当前item

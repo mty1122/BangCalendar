@@ -173,13 +173,15 @@ class MainActivity : BaseActivity() {
                             eventEndTime = EventUtil.getEventEndTime(event)
                         }
                         refreshEventComponent(event, mainBinding) //初次启动刷新活动状态
-                        viewModel.componentLoadCompleted()
                     }
                     //无论是否初次启动，都需要加入观察者
                     addEventObserver(mainBinding)
                 }
+                if (it == null)
+                    mainBinding.eventCard.eventCardItem.alpha = 0f
                 getDailyTag() //初次启动刷新DailyTag
             }
+            viewModel.componentLoadCompleted()
         }
         viewModel.getTodayEvent() //获取当天活动
 
@@ -227,9 +229,9 @@ class MainActivity : BaseActivity() {
             //活动小于第一期或者大于最后一期时，隐藏活动卡片
             if (it == null || currentDate - IntDate(it.startDate) >= 13) {
                 LogUtil.d("Event", "currentDate $currentDate startDate ${it?.startDate}")
-                mainBinding.eventCard.eventCardItem.visibility = View.GONE
+                runEventCardAnim(mainBinding, 0f)
             } else {
-                mainBinding.eventCard.eventCardItem.visibility = View.VISIBLE
+                runEventCardAnim(mainBinding, 1f)
                 LogUtil.d("Event", "Event id is ${it.id}")
                 //相同活动之间移动，不刷新活动
                 if (!EventUtil.isSameEvent(mainBinding.eventCard.eventType.text.toString(),
@@ -237,6 +239,16 @@ class MainActivity : BaseActivity() {
                     refreshEventComponent(it, mainBinding)
                 }
             }
+        }
+    }
+
+    private fun runEventCardAnim(mainBinding: ActivityMainBinding, endAlpha: Float) {
+        mainBinding.eventCard.eventCardItem.run {
+            if (endAlpha != alpha)
+                ObjectAnimator.ofFloat(this, "alpha", endAlpha)
+                    .setDuration(AnimUtil.getAnimPreference().toLong())
+                    .start()
+
         }
     }
 
@@ -590,6 +602,7 @@ class MainActivity : BaseActivity() {
                 clear()
                 addAll(calendarUtil.getDateList())
             }
+            viewAdapter.birthdayMap.clear() //清空角色生日
             viewAdapter.notifyDataSetChanged()
         }
         //初始化viewPager的当前item

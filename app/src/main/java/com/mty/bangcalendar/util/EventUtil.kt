@@ -141,7 +141,7 @@ object EventUtil {
             else -> id.toString()
         }
 
-    fun isSameEvent(eventCardTitle: String, eventId: Int): Boolean {
+    fun isSameEvent(eventCardTitle: String, eventId: Int?): Boolean {
         val regex = "\\d+"
         val pattern = Pattern.compile(regex)
         val matcher = pattern.matcher(eventCardTitle)

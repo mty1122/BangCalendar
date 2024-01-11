@@ -233,25 +233,32 @@ class MainActivity : BaseActivity() {
         //观察活动变化，刷新活动组件内容
         viewModel.event.observe(this) {
             val currentDate = viewModel.currentDate.value!!.toDate()
-            //活动小于第一期或者大于最后一期时，隐藏活动卡片
+            //活动小于第一期或者大于最后一期的情况
             if (it == null || currentDate - IntDate(it.startDate) >= 13) {
-                LogUtil.d("Event", "currentDate $currentDate startDate ${it?.startDate}")
-                //启动隐藏动画
-                runEventCardAnim(mainBinding, 0f)
-                //取消注册监听器
-                mainBinding.eventCard.char1.setOnClickListener(null)
-                mainBinding.eventCard.char2.setOnClickListener(null)
-                mainBinding.eventCard.char3.setOnClickListener(null)
-                mainBinding.eventCard.char4.setOnClickListener(null)
-                mainBinding.eventCard.char5.setOnClickListener(null)
-                mainBinding.eventCard.eventBand.setOnClickListener(null)
-                mainBinding.eventCard.eventButton.setOnClickListener(null)
+                if (viewModel.eventCardStatus == View.VISIBLE) {
+                    viewModel.eventCardStatus = View.INVISIBLE
+                    //启动隐藏动画
+                    runEventCardAnim(mainBinding, 0f)
+                    //取消注册监听器
+                    mainBinding.eventCard.char1.setOnClickListener(null)
+                    mainBinding.eventCard.char2.setOnClickListener(null)
+                    mainBinding.eventCard.char3.setOnClickListener(null)
+                    mainBinding.eventCard.char4.setOnClickListener(null)
+                    mainBinding.eventCard.char5.setOnClickListener(null)
+                    mainBinding.eventCard.eventBand.setOnClickListener(null)
+                    mainBinding.eventCard.eventButton.setOnClickListener(null)
+                }
+            //活动合法的情况
             } else {
-                //启动显示动画
-                runEventCardAnim(mainBinding, 1f)
                 LogUtil.d("Event", "Event id is ${it.id}")
-                //相同活动之间移动，不刷新活动
-                if (!EventUtil.isSameEvent(mainBinding.eventCard.eventType.text.toString(),
+                //不可见时，刷新活动
+                if (viewModel.eventCardStatus == View.INVISIBLE) {
+                    viewModel.eventCardStatus = View.VISIBLE
+                    refreshEventComponent(it, mainBinding)
+                    //启动显示动画
+                    runEventCardAnim(mainBinding, 1f)
+                //不同活动之间移动，刷新活动
+                } else if (!EventUtil.isSameEvent(mainBinding.eventCard.eventType.text.toString(),
                         it.id.toInt())) {
                     refreshEventComponent(it, mainBinding)
                 }
@@ -263,8 +270,10 @@ class MainActivity : BaseActivity() {
         val currentDate = systemDate.toDate()
         //活动大于最后一期时，隐藏活动卡片
         if (currentDate - IntDate(event.startDate) >= 13) {
+            viewModel.eventCardStatus = View.INVISIBLE
             binding.eventCard.eventCardItem.alpha = 0f
         } else {
+            viewModel.eventCardStatus = View.VISIBLE
             refreshEventComponent(event, binding)
         }
     }

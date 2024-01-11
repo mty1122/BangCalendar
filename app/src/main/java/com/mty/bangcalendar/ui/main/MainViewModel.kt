@@ -139,6 +139,7 @@ class MainViewModel : ViewModel() {
     private val _event = MutableLiveData<Event?>()
     val event: LiveData<Event?>
         get() = _event
+    var eventCardStatus = View.VISIBLE
     fun getEventByDate(date: IntDate) {
         viewModelScope.launch {
             _event.value = Repository.getEventByDate(date)

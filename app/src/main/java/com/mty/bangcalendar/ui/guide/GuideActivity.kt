@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.os.IBinder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -34,7 +35,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityOptionsCompat
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.R
@@ -48,15 +48,15 @@ import kotlinx.coroutines.launch
 
 class GuideActivity : ComponentActivity() {
 
-    private val viewModel by lazy { ViewModelProvider(this)[GuideViewModel::class.java] }
+    private val viewModel: GuideViewModel by viewModels()
 
+    //创建service connection，供app首次启动初始化使用
     private val eventConnection: ServiceConnection by lazy {
         object : ServiceConnection {
             override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
                 val refreshBinder = p1 as EventRefreshService.RefreshBinder
                 refreshBinder.refresh { progress, details ->
-                    viewModel.refreshDetails(details)
-                    viewModel.refreshDataProgress(progress)
+                    viewModel.updateProgress(progress, details)
                 }
             }
 
@@ -70,8 +70,7 @@ class GuideActivity : ComponentActivity() {
             override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
                 val refreshBinder = p1 as CharacterRefreshService.RefreshBinder
                 refreshBinder.refresh { progress, details ->
-                    viewModel.refreshDetails(details)
-                    viewModel.refreshDataProgress(progress)
+                    viewModel.updateProgress(progress, details)
                 }
             }
 
@@ -100,7 +99,9 @@ class GuideActivity : ComponentActivity() {
             } else if (BangCalendarApplication.systemDate.getDayOfWeak() == 2
                 && initData.lastRefreshDay != BangCalendarApplication.systemDate.day) {
                 /* 每周一自动更新数据库 */
-                val intent = Intent(this, EventRefreshService::class.java)
+                //使用application context，避免内存泄漏
+                val intent = Intent(BangCalendarApplication.context,
+                    EventRefreshService::class.java)
                 startService(intent)
                 startMainActivity(anim)
             } else {
@@ -112,9 +113,8 @@ class GuideActivity : ComponentActivity() {
 
     @Composable
     private fun ShowContent() {
-        val progress by viewModel.refreshDataProgress.collectAsState()
-        val progressDetails by viewModel.refreshDetails.collectAsState()
-        val buttonEnabled by viewModel.launchButtonEnabled.collectAsState()
+        val uiState by viewModel.appInitUiState.collectAsState()
+
         BangCalendarTheme {
             Surface(
                 modifier = Modifier.fillMaxSize(),
@@ -122,15 +122,15 @@ class GuideActivity : ComponentActivity() {
             ) {
                 GuideView(
                     title = stringResource(id = R.string.welcome),
-                    progress = progress.toFloat() / 100,
-                    progressDetails = progressDetails,
+                    progress = uiState.initProgress.toFloat() / 100,
+                    progressDetails = uiState.initDetails,
                     buttonText = stringResource(id = R.string.welcome_button),
                     onClickListener = {
                         val anim = ActivityOptionsCompat.makeCustomAnimation(
                             this,0, android.R.anim.fade_out).toBundle()
                         startMainActivity(anim)
                     },
-                    buttonEnabled = buttonEnabled
+                    buttonEnabled = uiState.launchButtonEnabled
                 )
             }
         }
@@ -146,23 +146,27 @@ class GuideActivity : ComponentActivity() {
         lifecycleScope.launch {
             viewModel.setDefaultPreference()
             var isCharacterRefreshServiceNotStart = true
-            viewModel.refreshDataProgress.collect { progress ->
-                when (progress) {
+            var isInitNotCompleted = true
+            viewModel.appInitUiState.collect { currentUiState ->
+                when (currentUiState.initProgress) {
                     50 -> {
                         if (isCharacterRefreshServiceNotStart) {
+                            isCharacterRefreshServiceNotStart = false
                             val intent = Intent(this@GuideActivity,
                                 CharacterRefreshService::class.java)
                             bindService(intent, characterConnection,
                                 Context.BIND_AUTO_CREATE)
-                            isCharacterRefreshServiceNotStart = false
                         }
                     }
                     100 -> {
-                        viewModel.isNotFirstStart()
-                        unbindService(eventConnection)
-                        unbindService(characterConnection)
-                        viewModel.setLaunchButtonEnabled(true)
-                        viewModel.refreshDetails(getString(R.string.init_complete))
+                        if (isInitNotCompleted) {
+                            isInitNotCompleted = false
+                            viewModel.isNotFirstStart()
+                            unbindService(eventConnection)
+                            unbindService(characterConnection)
+                            viewModel.setLaunchButtonEnabled(true)
+                            viewModel.updateProgress(100, getString(R.string.init_complete))
+                        }
                     }
                 }
             }

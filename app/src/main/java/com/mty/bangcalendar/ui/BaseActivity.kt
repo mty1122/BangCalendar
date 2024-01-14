@@ -12,12 +12,10 @@ open class BaseActivity : AppCompatActivity() {
             setTheme(it)
         }
         super.onCreate(savedInstanceState)
-        //ActivityCollector.addActivity(this)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        //ActivityCollector.removeActivity(this)
         Glide.get(this).clearMemory()
     }
 

@@ -76,15 +76,6 @@ object EventUtil {
             else -> -1
         }
 
-    fun getAttrsName(attrs: Int) =
-        when (attrs) {
-            EventConstant.PURE.id -> EventConstant.PURE.describe
-            EventConstant.POWERFUL.id -> EventConstant.POWERFUL.describe
-            EventConstant.COOL.id -> EventConstant.COOL.describe
-            EventConstant.HAPPY.id -> EventConstant.HAPPY.describe
-            else -> -1
-        }
-
     fun getBand(event: Event) =
         //角色1 + 2 = 角色5 - 2 若角色5不存在则为 角色1 + 2 = 角色3
         if (event.character1 + 2 == ((event.character5?.minus(2)) ?: event.character3))

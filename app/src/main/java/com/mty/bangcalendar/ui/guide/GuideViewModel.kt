@@ -6,49 +6,40 @@ import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.GuideInitData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class GuideViewModel : ViewModel() {
 
-    //载入GuideInitData，包括判断是否初次启动和获取主题
+    //载入GuideInitData，包括判断是否初次启动和获取全局偏好
     fun getInitData(onDataReady: (GuideInitData) -> Unit) {
         viewModelScope.launch {
             onDataReady(Repository.getGuideInitData())
         }
     }
+
+    //app首次启动初始化相关UI状态
+    private val _appInitUiState by lazy { MutableStateFlow(AppInitUiState()) }
+    val appInitUiState : StateFlow<AppInitUiState>
+        get() = _appInitUiState
+    fun updateProgress(progress: Int, details: String) {
+        _appInitUiState.update { currentState->
+            currentState.copy(
+                initProgress = progress,
+                initDetails = details
+            )
+        }
+    }
+    fun setLaunchButtonEnabled(enable: Boolean) {
+        _appInitUiState.update { currentState->
+            currentState.copy(launchButtonEnabled = enable)
+        }
+    }
+
+    //app首次启动初始化相关逻辑
     suspend fun isNotFirstStart() {
         Repository.isNotFirstStart()
     }
-
-    //传递更新进度
-    private val _refreshDataProgress by lazy { MutableStateFlow(0) }
-
-    val refreshDataProgress: StateFlow<Int>
-        get() = _refreshDataProgress
-
-    fun refreshDataProgress(progress: Int) {
-        _refreshDataProgress.value = progress
-    }
-
-    //刷新更新细节(Compose专用)
-    private val _refreshDetails by lazy { MutableStateFlow("") }
-
-    val refreshDetails: StateFlow<String>
-        get() = _refreshDetails
-
-    fun refreshDetails(details: String) {
-        _refreshDetails.value = details
-    }
-
-    private val _launchButtonEnabled by lazy { MutableStateFlow(false) }
-
-    val launchButtonEnabled: StateFlow<Boolean>
-        get() = _launchButtonEnabled
-
-    fun setLaunchButtonEnabled(isEnabled: Boolean) {
-        _launchButtonEnabled.value = isEnabled
-    }
-
     suspend fun setDefaultPreference() {
         Repository.setDefaultPreference()
     }

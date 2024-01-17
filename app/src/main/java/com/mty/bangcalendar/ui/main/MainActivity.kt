@@ -4,6 +4,7 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
 import android.view.Menu
@@ -40,6 +41,7 @@ import com.mty.bangcalendar.ui.main.view.CalendarScrollView
 import com.mty.bangcalendar.ui.search.SearchActivity
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.*
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 class MainActivity : BaseActivity() {
@@ -53,8 +55,6 @@ class MainActivity : BaseActivity() {
     private var isActivityCreated = false
     //记录滑动手势的起始点，用于折叠卡片
     private var touchEventStartY = 0f
-    //记录生日卡片可见性
-    private var isBirthdayCardVisible = false
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -147,15 +147,15 @@ class MainActivity : BaseActivity() {
             //刷新生日卡片
             when (it) {
                 0 -> {
-                    if (isBirthdayCardVisible){
-                        isBirthdayCardVisible = false
+                    if (viewModel.isBirthdayCardVisible){
+                        viewModel.isBirthdayCardVisible = false
                         runBirthdayCardAnim(mainBinding, false)
                     }
                 }
                 else -> {
                     refreshBirthdayCard(it, mainBinding)
-                    if (!isBirthdayCardVisible) {
-                        isBirthdayCardVisible = true
+                    if (!viewModel.isBirthdayCardVisible) {
+                        viewModel.isBirthdayCardVisible = true
                         runBirthdayCardAnim(mainBinding, true)
                     }
                 }
@@ -175,29 +175,30 @@ class MainActivity : BaseActivity() {
         }
 
         //这里的todayEvent是指开始日期小于等于今日最新的活动，所以一定存在
-        viewModel.todayEvent.observe(this) {
-            viewModel.run {
-                it?.let { event ->
+        lifecycleScope.launch {
+            viewModel.fetchInitData().collect{ initData->
+                initData.todayEvent?.let { event->
                     LogUtil.d("Event", "本期活动序号为：${event.id}")
                     //如果activity意外重启，若当前活动不为当日活动，则不刷新活动状态（说明不是初次启动）
-                    if (isActivityFirstStart) {
-                        eventStartTime = EventUtil.getEventStartTime(event)
+                    if (viewModel.isActivityFirstStart) {
+                        viewModel.eventStartTime = EventUtil.getEventStartTime(event)
                         if (event.endDate != null) {
-                            eventEndTime = EventUtil.getEventEndTime(IntDate(event.endDate!!))
-                            EventUtil.setEventLength(eventEndTime!! - eventStartTime!!)
+                            viewModel.eventEndTime =
+                                EventUtil.getEventEndTime(IntDate(event.endDate!!))
+                            EventUtil.setEventLength(viewModel.eventEndTime!! -
+                                    viewModel.eventStartTime!!)
                         } else {
-                            eventEndTime = EventUtil.getEventEndTime(event)
+                            viewModel.eventEndTime = EventUtil.getEventEndTime(event)
                         }
-                        eventCardInit(mainBinding, event)
+                        eventCardInit(mainBinding, event, initData.todayEventPicture!!)
                         viewModel.componentLoadCompleted()
                     }
                     //无论是否初次启动，都需要加入观察者
                     addEventObserver(mainBinding)
                 }
-                refreshDailyTag() //初次启动刷新DailyTag
+                viewModel.refreshDailyTag() //初次启动刷新DailyTag
             }
         }
-        viewModel.getTodayEvent() //获取当天活动
 
         //返回今天按钮
         mainBinding.goBackFloatButton.setOnClickListener {
@@ -238,12 +239,12 @@ class MainActivity : BaseActivity() {
 
     private fun addEventObserver(mainBinding: ActivityMainBinding) {
         //观察活动变化，刷新活动组件内容
-        viewModel.event.observe(this) {
+        viewModel.eventCardUiState.observe(this) {
             val currentDate = viewModel.currentDate.value!!.toDate()
             //活动小于第一期或者大于最后一期的情况
-            if (it == null || currentDate - IntDate(it.startDate) >= 13) {
-                if (viewModel.eventCardStatus == View.VISIBLE) {
-                    viewModel.eventCardStatus = View.INVISIBLE
+            if (it.event == null || currentDate - IntDate(it.event.startDate) >= 13) {
+                if (viewModel.isEventCardVisible) {
+                    viewModel.isEventCardVisible = false
                     //启动隐藏动画
                     runEventCardAnim(mainBinding, 0f)
                     //取消注册监听器
@@ -257,31 +258,32 @@ class MainActivity : BaseActivity() {
                 }
             //活动合法的情况
             } else {
-                LogUtil.d("Event", "Event id is ${it.id}")
+                LogUtil.d("Event", "Event id is ${it.event.id}")
                 //不可见时，刷新活动
-                if (viewModel.eventCardStatus == View.INVISIBLE) {
-                    viewModel.eventCardStatus = View.VISIBLE
-                    refreshEventComponent(it, mainBinding)
+                if (!viewModel.isEventCardVisible) {
+                    viewModel.isEventCardVisible = true
+                    refreshEventComponent(it.event, it.eventPicture!!, mainBinding)
                     //启动显示动画
                     runEventCardAnim(mainBinding, 1f)
                 //不同活动之间移动，刷新活动
                 } else if (!EventUtil.isSameEvent(mainBinding.eventCard.eventType.text.toString(),
-                        it.id.toInt())) {
-                    refreshEventComponent(it, mainBinding)
+                        it.event.id.toInt())) {
+                    refreshEventComponent(it.event, it.eventPicture!!, mainBinding)
                 }
             }
         }
     }
 
-    private fun eventCardInit(binding: ActivityMainBinding, event: Event) {
+    private fun eventCardInit(binding: ActivityMainBinding, event: Event,
+        eventPicture: Flow<Drawable?>) {
         val currentDate = systemDate.toDate()
         //活动大于最后一期时，隐藏活动卡片
         if (currentDate - IntDate(event.startDate) >= 13) {
-            viewModel.eventCardStatus = View.INVISIBLE
+            viewModel.isEventCardVisible = false
             binding.eventCard.eventCardItem.alpha = 0f
         } else {
-            viewModel.eventCardStatus = View.VISIBLE
-            refreshEventComponent(event, binding)
+            viewModel.isEventCardVisible = true
+            refreshEventComponent(event, eventPicture, binding)
         }
     }
 
@@ -385,7 +387,7 @@ class MainActivity : BaseActivity() {
     private fun birCardInit(id: Int, binding: ActivityMainBinding) {
         if (id > 0) {
             refreshBirthdayCard(id, binding)
-            isBirthdayCardVisible = true
+            viewModel.isBirthdayCardVisible = true
         }
         else {
             val mainLinearLayout = binding.mainView
@@ -400,7 +402,7 @@ class MainActivity : BaseActivity() {
                 cardBelow.translationY = translationY
             }
             binding.birCard.cardView.translationY = translationY
-            isBirthdayCardVisible = false
+            viewModel.isBirthdayCardVisible = false
         }
     }
 
@@ -444,12 +446,12 @@ class MainActivity : BaseActivity() {
             MotionEvent.ACTION_MOVE -> {
                 val deltaY = event.y - touchEventStartY
                 //向下滑动，触发展开动画
-                if (deltaY > 0 && !isBirthdayCardVisible) {
-                    isBirthdayCardVisible = true
+                if (deltaY > 0 && !viewModel.isBirthdayCardVisible) {
+                    viewModel.isBirthdayCardVisible = true
                     runBirthdayCardAnim(binding, true)
                 //向上滑动，触发折叠动画
-                } else if (deltaY < 0 && isBirthdayCardVisible) {
-                    isBirthdayCardVisible = false
+                } else if (deltaY < 0 && viewModel.isBirthdayCardVisible) {
+                    viewModel.isBirthdayCardVisible = false
                     runBirthdayCardAnim(binding, false)
                 }
             }
@@ -485,7 +487,8 @@ class MainActivity : BaseActivity() {
         log(this, "生日卡片动画启动")
     }
 
-    private fun refreshEventComponent(event: Event, binding: ActivityMainBinding) {
+    private fun refreshEventComponent(event: Event, eventPicture: Flow<Drawable?>,
+        binding: ActivityMainBinding) {
         LogUtil.d(this, "刷新活动组件")
         //刷新活动状态
         refreshEventStatus(event, binding)
@@ -540,10 +543,11 @@ class MainActivity : BaseActivity() {
             )
         }
         //刷新活动图片
-        val eventId = EventUtil.eventIdFormat(event.id.toInt())
         lifecycleScope.launch {
-            viewModel.getEventPic(eventId) {
-                binding.eventCard.eventBackground.background = it
+            eventPicture.collect{
+                it?.let {
+                    binding.eventCard.eventBackground.background = it
+                }
             }
         }
         binding.eventCard.eventButton.setOnClickListener {
@@ -552,7 +556,7 @@ class MainActivity : BaseActivity() {
     }
 
     private fun refreshEventStatus(event: Event, binding: ActivityMainBinding) {
-        val todayEventId = viewModel.todayEvent.value?.id
+        val todayEventId = viewModel.todayEvent?.id
         val eventId = event.id
         todayEventId?.let {
             log(this, "刷新活动状态")

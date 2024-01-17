@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 class GuideViewModel : ViewModel() {
 
     //载入GuideInitData，包括判断是否初次启动和获取全局偏好
-    fun getInitData(onDataReady: (GuideInitData) -> Unit) {
+    fun fetchInitData(onDataReady: (GuideInitData) -> Unit) {
         viewModelScope.launch {
             onDataReady(Repository.getGuideInitData())
         }

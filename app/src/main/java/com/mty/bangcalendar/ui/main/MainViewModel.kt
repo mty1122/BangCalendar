@@ -5,8 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
-import android.graphics.drawable.Drawable
-import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -19,11 +17,14 @@ import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Character
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.logic.model.IntDate
+import com.mty.bangcalendar.logic.model.MainViewInitData
 import com.mty.bangcalendar.ui.main.state.DailyTagUiState
+import com.mty.bangcalendar.ui.main.state.EventCardUiState
 import com.mty.bangcalendar.util.CalendarUtil
 import com.mty.bangcalendar.util.EventUtil
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 
 class MainViewModel : ViewModel() {
@@ -36,6 +37,9 @@ class MainViewModel : ViewModel() {
 
     var isActivityFirstStart = true
     var isActivityRecreated = true
+
+    var todayEvent: Event? = null
+        private set
 
     //统计初次启动完成加载组件的数量
     private val _loadedComponentAmounts = MutableLiveData(0)
@@ -53,6 +57,18 @@ class MainViewModel : ViewModel() {
         when (key) {
             "signature", "band", "character" -> refreshDailyTag()
             "theme" ->recreateActivity()
+        }
+    }
+
+    fun fetchInitData() = flow {
+        val todayEvent = Repository.getEventByDate(systemDate.toDate())
+        this@MainViewModel.todayEvent = todayEvent
+        if (todayEvent == null)
+            emit(MainViewInitData(null, null))
+        else {
+            val eventId = EventUtil.eventIdFormat(todayEvent.id.toInt())
+            val eventPicture = flow { emit(Repository.getEventPic(eventId)) }
+            emit(MainViewInitData(todayEvent, eventPicture))
         }
     }
 
@@ -93,10 +109,12 @@ class MainViewModel : ViewModel() {
     //生日卡片
     val birthdayCardUiState: LiveData<Int>
         get() = _birthdayCardUiState
-
     private val _birthdayCardUiState = MutableLiveData<Int>()
+
+    //记录生日卡片可见性
+    var isBirthdayCardVisible = true
     fun refreshBirthdayCard(id: Int) {
-        if (_birthdayCardUiState.value != id)
+        if (id != _birthdayCardUiState.value)
             _birthdayCardUiState.value = id
     }
 
@@ -121,22 +139,22 @@ class MainViewModel : ViewModel() {
             intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED)
     }
 
-    private val _todayEvent = MutableLiveData<Event?>()
-    val todayEvent: LiveData<Event?>
-        get() = _todayEvent
-    fun getTodayEvent() {
-        viewModelScope.launch {
-            _todayEvent.value = Repository.getEventByDate(systemDate.toDate())
-        }
-    }
-
-    private val _event = MutableLiveData<Event?>()
-    val event: LiveData<Event?>
-        get() = _event
-    var eventCardStatus = View.VISIBLE
+    //活动卡片服务
+    private val _eventCardUiState = MutableLiveData<EventCardUiState>()
+    val eventCardUiState: LiveData<EventCardUiState>
+        get() = _eventCardUiState
+    //记录活动卡片的可见性
+    var isEventCardVisible = true
     fun getEventByDate(date: IntDate) {
         viewModelScope.launch {
-            _event.value = Repository.getEventByDate(date)
+            val event = Repository.getEventByDate(date)
+            if (event == null) {
+                _eventCardUiState.value = EventCardUiState(null, null)
+            } else {
+                val eventId = EventUtil.eventIdFormat(event.id.toInt())
+                val eventPicture = flow { emit(Repository.getEventPic(eventId)) }
+                _eventCardUiState.value = EventCardUiState(event, eventPicture)
+            }
         }
     }
 
@@ -169,12 +187,6 @@ class MainViewModel : ViewModel() {
             val preferenceCharacter = Repository.getCharacterById(characterId)
             _dailyTagUiState.value = DailyTagUiState(userName, preferenceBand,
                 preferenceBandNextEvent, preferenceBandLatestEvent, preferenceCharacter)
-        }
-    }
-
-    suspend fun getEventPic(eventId: String, onPicReady: (Drawable) -> Unit) {
-        Repository.getEventPic(eventId)?.let {
-            onPicReady(it)
         }
     }
 

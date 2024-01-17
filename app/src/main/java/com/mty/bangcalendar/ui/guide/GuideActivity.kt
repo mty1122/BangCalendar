@@ -85,7 +85,7 @@ class GuideActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         window.statusBarColor = getColor(R.color.start)
         //初始化App
-        viewModel.getInitData { initData ->
+        viewModel.fetchInitData { initData ->
             //设置主题
             ThemeUtil.setCurrentTheme(initData.theme)
             //设置动画偏好

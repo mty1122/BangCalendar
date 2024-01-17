@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import com.mty.bangcalendar.BangCalendarApplication.Companion.context
+import com.mty.bangcalendar.ui.list.CharacterListActivity
 
 /**
  * 简化Activity的启动，示范：startActivity<ArticleActivity>("page" to 20)
@@ -37,6 +38,10 @@ fun Intent.putExtra(pair: Pair<String, *>) {
 
 fun toast(text: String) {
     Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
+}
+
+fun Context.startCharacterListActivity(id: Int) {
+    startActivity<CharacterListActivity>("current_id" to id)
 }
 
 /**

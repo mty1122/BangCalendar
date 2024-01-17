@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
+import android.graphics.drawable.Drawable
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -22,6 +23,7 @@ import com.mty.bangcalendar.ui.main.state.DailyTagUiState
 import com.mty.bangcalendar.ui.main.state.EventCardUiState
 import com.mty.bangcalendar.util.CalendarUtil
 import com.mty.bangcalendar.util.EventUtil
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
@@ -38,7 +40,7 @@ class MainViewModel : ViewModel() {
     var isActivityFirstStart = true
     var isActivityRecreated = true
 
-    var todayEvent: Event? = null
+    lateinit var todayEvent: Event
         private set
 
     //统计初次启动完成加载组件的数量
@@ -61,15 +63,12 @@ class MainViewModel : ViewModel() {
     }
 
     fun fetchInitData() = flow {
-        val todayEvent = Repository.getEventByDate(systemDate.toDate())
+        val todayEvent = Repository.getEventByDate(systemDate.toDate())!!
         this@MainViewModel.todayEvent = todayEvent
-        if (todayEvent == null)
-            emit(MainViewInitData(null, null))
-        else {
-            val eventId = EventUtil.eventIdFormat(todayEvent.id.toInt())
-            val eventPicture = flow { emit(Repository.getEventPic(eventId)) }
-            emit(MainViewInitData(todayEvent, eventPicture))
-        }
+        val eventId = EventUtil.eventIdFormat(todayEvent.id.toInt())
+        val eventPicture: Flow<Drawable?> = flow { emit(Repository.getEventPic(eventId)) }
+        val dailyTagUiState = fetchDailyTagUiState()
+        emit(MainViewInitData(todayEvent, eventPicture, dailyTagUiState))
     }
 
     //跳转日期
@@ -171,23 +170,30 @@ class MainViewModel : ViewModel() {
     private val _dailyTagUiState = MutableLiveData<DailyTagUiState>()
     val dailyTagUiState: LiveData<DailyTagUiState>
         get() = _dailyTagUiState
-    fun refreshDailyTag() {
+    private fun refreshDailyTag() {
         viewModelScope.launch {
-            val userName = Repository.getUserName()
-            val preferenceBand = Repository.getPreferenceBand()
-            val preferenceBandNextEvent = Repository.getBandEventByDate(
-                date = systemDate.toDate(),
-                character1Id = EventUtil.bandNameToCharacter1(preferenceBand)
-            )
-            val preferenceBandLatestEvent = Repository.getBandLastEventByDate(
-                date = systemDate.toDate(),
-                character1Id = preferenceBandNextEvent?.character1
-            )
-            val characterId = Repository.getPreferenceCharacter()
-            val preferenceCharacter = Repository.getCharacterById(characterId)
-            _dailyTagUiState.value = DailyTagUiState(userName, preferenceBand,
-                preferenceBandNextEvent, preferenceBandLatestEvent, preferenceCharacter)
+            fetchDailyTagUiState().collect{
+                _dailyTagUiState.value = it
+            }
         }
+    }
+    private fun fetchDailyTagUiState() = flow {
+        val userName = Repository.getUserName()
+        val preferenceBand = Repository.getPreferenceBand()
+        val preferenceBandNextEvent = Repository.getBandEventByDate(
+            date = systemDate.toDate(),
+            character1Id = EventUtil.bandNameToCharacter1(preferenceBand)
+        )
+        val preferenceBandLatestEvent = Repository.getBandLastEventByDate(
+            date = systemDate.toDate(),
+            character1Id = preferenceBandNextEvent?.character1
+        )
+        val characterId = Repository.getPreferenceCharacter()
+        val preferenceCharacter = Repository.getCharacterById(characterId)
+        emit(
+            DailyTagUiState(userName, preferenceBand,
+            preferenceBandNextEvent, preferenceBandLatestEvent, preferenceCharacter)
+        )
     }
 
     //更改主题，这里采用flow，因为需要activity在不可见时就进行重启

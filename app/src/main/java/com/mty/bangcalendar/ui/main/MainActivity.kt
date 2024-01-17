@@ -19,7 +19,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.ViewPager
 import com.bumptech.glide.Glide
@@ -33,11 +32,9 @@ import com.mty.bangcalendar.ui.list.CharacterListActivity
 import com.mty.bangcalendar.ui.list.EventListActivity
 import com.mty.bangcalendar.ui.main.adapter.CalendarViewAdapter
 import com.mty.bangcalendar.ui.main.adapter.CalendarViewPagerAdapter
-import com.mty.bangcalendar.ui.main.state.DailyTagUiState
-import com.mty.bangcalendar.ui.main.state.shouldBandItemVisible
-import com.mty.bangcalendar.ui.main.state.shouldCharacterItemVisible
-import com.mty.bangcalendar.ui.main.state.shouldVisible
-import com.mty.bangcalendar.ui.main.view.CalendarScrollView
+import com.mty.bangcalendar.ui.main.view.DailyTagView
+import com.mty.bangcalendar.ui.main.view.EventCardView
+import com.mty.bangcalendar.ui.main.view.MainViewInitializer
 import com.mty.bangcalendar.ui.search.SearchActivity
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.*
@@ -55,6 +52,9 @@ class MainActivity : BaseActivity() {
     private var isActivityCreated = false
     //记录滑动手势的起始点，用于折叠卡片
     private var touchEventStartY = 0f
+
+    private val dailyTagView by lazy { DailyTagView() }
+    private val eventCardView by lazy { EventCardView() }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -101,8 +101,6 @@ class MainActivity : BaseActivity() {
             progressColor = getColor(ThemeUtil.getThemeColor(this@MainActivity))
             textColor = getColor(ThemeUtil.getThemeColor(this@MainActivity))
         }
-
-        calendarInit() //日历初始化
 
         //观察当前日期变化，及时刷新活动信息
         viewModel.currentDate.observe(this) {
@@ -170,14 +168,16 @@ class MainActivity : BaseActivity() {
 
         //dailyTag服务
         viewModel.dailyTagUiState.observe(this) {
-            refreshDailyTag(mainBinding, it)
-            viewModel.componentLoadCompleted()
+            dailyTagView.refreshDailyTag(this, viewModel, mainBinding, it)
         }
 
         //这里的todayEvent是指开始日期小于等于今日最新的活动，所以一定存在
         lifecycleScope.launch {
             viewModel.fetchInitData().collect{ initData->
-                initData.todayEvent?.let { event->
+                //初始化界面
+                MainViewInitializer(this@MainActivity, mainBinding,
+                    viewModel, initData, dailyTagView, eventCardView).initViews()
+                initData.todayEvent.let { event->
                     LogUtil.d("Event", "本期活动序号为：${event.id}")
                     //如果activity意外重启，若当前活动不为当日活动，则不刷新活动状态（说明不是初次启动）
                     if (viewModel.isActivityFirstStart) {
@@ -190,13 +190,12 @@ class MainActivity : BaseActivity() {
                         } else {
                             viewModel.eventEndTime = EventUtil.getEventEndTime(event)
                         }
-                        eventCardInit(mainBinding, event, initData.todayEventPicture!!)
+                        eventCardInit(mainBinding, event, initData.todayEventPicture)
                         viewModel.componentLoadCompleted()
                     }
                     //无论是否初次启动，都需要加入观察者
                     addEventObserver(mainBinding)
                 }
-                viewModel.refreshDailyTag() //初次启动刷新DailyTag
             }
         }
 
@@ -207,7 +206,11 @@ class MainActivity : BaseActivity() {
 
         //其他activity的跳转请求
         viewModel.jumpDate.observe(this) {
-            jumpDate(mainBinding.viewPager, CalendarUtil(it))
+            val target = CalendarUtil(it)
+            //防止重复跳转
+            if (!target.isSameDate(viewModel.currentDate.value!!)) {
+                jumpDate(mainBinding.viewPager, target)
+            }
         }
 
         //切换主题
@@ -246,15 +249,9 @@ class MainActivity : BaseActivity() {
                 if (viewModel.isEventCardVisible) {
                     viewModel.isEventCardVisible = false
                     //启动隐藏动画
-                    runEventCardAnim(mainBinding, 0f)
+                    eventCardView.runEventCardAnim(mainBinding, 0f)
                     //取消注册监听器
-                    mainBinding.eventCard.char1.setOnClickListener(null)
-                    mainBinding.eventCard.char2.setOnClickListener(null)
-                    mainBinding.eventCard.char3.setOnClickListener(null)
-                    mainBinding.eventCard.char4.setOnClickListener(null)
-                    mainBinding.eventCard.char5.setOnClickListener(null)
-                    mainBinding.eventCard.eventBand.setOnClickListener(null)
-                    mainBinding.eventCard.eventButton.setOnClickListener(null)
+                    eventCardView.cancelListener(mainBinding)
                 }
             //活动合法的情况
             } else {
@@ -262,125 +259,18 @@ class MainActivity : BaseActivity() {
                 //不可见时，刷新活动
                 if (!viewModel.isEventCardVisible) {
                     viewModel.isEventCardVisible = true
-                    refreshEventComponent(it.event, it.eventPicture!!, mainBinding)
+                    eventCardView.refreshEventComponent(this, lifecycleScope, it.event,
+                        it.eventPicture!!, mainBinding)
                     //启动显示动画
-                    runEventCardAnim(mainBinding, 1f)
+                    eventCardView.runEventCardAnim(mainBinding, 1f)
                 //不同活动之间移动，刷新活动
                 } else if (!EventUtil.isSameEvent(mainBinding.eventCard.eventType.text.toString(),
                         it.event.id.toInt())) {
-                    refreshEventComponent(it.event, it.eventPicture!!, mainBinding)
+                    eventCardView.refreshEventComponent(this, lifecycleScope, it.event,
+                        it.eventPicture!!, mainBinding)
                 }
             }
         }
-    }
-
-    private fun eventCardInit(binding: ActivityMainBinding, event: Event,
-        eventPicture: Flow<Drawable?>) {
-        val currentDate = systemDate.toDate()
-        //活动大于最后一期时，隐藏活动卡片
-        if (currentDate - IntDate(event.startDate) >= 13) {
-            viewModel.isEventCardVisible = false
-            binding.eventCard.eventCardItem.alpha = 0f
-        } else {
-            viewModel.isEventCardVisible = true
-            refreshEventComponent(event, eventPicture, binding)
-        }
-    }
-
-    private fun runEventCardAnim(mainBinding: ActivityMainBinding, endAlpha: Float) {
-        mainBinding.eventCard.eventCardItem.run {
-            if (endAlpha != alpha)
-                ObjectAnimator.ofFloat(this, "alpha", endAlpha)
-                    .setDuration(AnimUtil.getAnimPreference().toLong())
-                    .start()
-
-        }
-    }
-
-    //刷新dailyTag
-    private fun refreshDailyTag(binding: ActivityMainBinding, uiState: DailyTagUiState) {
-        if (!uiState.shouldVisible()) {
-            binding.dailytagCard.cardView.visibility = View.GONE
-            return
-        }
-        //刷新标题
-        binding.dailytagCard.dailytagTitle.text = StringBuilder().apply {
-            append("${systemDate.getTimeName()}好")
-            if (uiState.userName != "")
-                append("，${uiState.userName}")
-        }
-        //刷新角色订阅
-        uiState.preferenceCharacter?.let { character->
-            binding.dailytagCard.dailytagCardBirthday.run {
-                //角色头像和名字
-                Glide.with(this@MainActivity)
-                    .load(EventUtil.matchCharacter(character.id.toInt())).into(charImage)
-                charImage.setOnClickListener {
-                    startCharacterListActivity(character.id.toInt())
-                }
-                Glide.with(this@MainActivity)
-                    .load(CharacterUtil.matchCharacter(character.id.toInt())).into(charNameImage)
-                charNameImage.setOnClickListener {
-                    startCharacterListActivity(character.id.toInt())
-                }
-                //倒数日
-                val birthdayAway = CharacterUtil.birthdayAway(character.birthday, systemDate)
-                birthdayCountdown.text = birthdayAway.toString()
-                birthdayCountdown.setOnClickListener {
-                    val target = CalendarUtil(CharacterUtil
-                        .getNextBirthdayDate(character.birthday, systemDate))
-                    //防止重复跳转
-                    if (!target.isSameDate(viewModel.currentDate.value!!)) {
-                        jumpDate(binding.viewPager, target)
-                    }
-                }
-                //更新进度条
-                birBar.setProgressCompat(
-                    ((365 - birthdayAway) / 365.0 * 100).toInt(), true)
-                birthdayView.visibility = View.VISIBLE
-            }
-        }
-        if (!uiState.shouldCharacterItemVisible())
-            binding.dailytagCard.dailytagCardBirthday.birthdayView.visibility = View.GONE
-        //刷新活动订阅
-        uiState.preferenceBandNextEvent?.let { event->
-            binding.dailytagCard.dailytagCardEvent.run {
-                //刷新活动属性
-                Glide.with(this@MainActivity).load(EventUtil.matchAttrs(event.attrs))
-                    .into(eventAttrs)
-                //刷新乐队图片
-                Glide.with(this@MainActivity).load(EventUtil.getBandPic(event))
-                    .into(bandImage)
-                bandImage.setOnClickListener {
-                    startActivity<EventListActivity>(
-                        "current_id" to event.id.toInt(),
-                        "band_id" to EventUtil.getBand(event).id
-                    )
-                }
-                //倒数日
-                val eventAway = (IntDate(event.startDate) - systemDate.toDate())
-                eventCountdown.text = eventAway.toString()
-                eventCountdown.setOnClickListener {
-                    val target = CalendarUtil(IntDate(event.startDate))
-                    //防止重复跳转
-                    if (!target.isSameDate(viewModel.currentDate.value!!)) {
-                        jumpDate(binding.viewPager, target)
-                    }
-                }
-                //新乐队可能没有往期活动
-                val lastDate =
-                    uiState.preferenceBandLatestEvent?.startDate ?: systemDate.toDate().value
-                val interval = IntDate(event.startDate) - IntDate(lastDate)
-                //更新进度条
-                eventBar.setProgressCompat(
-                    ((interval - eventAway) / interval.toDouble() * 100).toInt(), true)
-                eventView.visibility = View.VISIBLE
-            }
-        }
-        if (!uiState.shouldBandItemVisible())
-            binding.dailytagCard.dailytagCardEvent.eventView.visibility = View.GONE
-        //用户偏好存在时，启动dailyTag
-        binding.dailytagCard.cardView.visibility = View.VISIBLE
     }
 
     //生日卡片初始化
@@ -487,114 +377,6 @@ class MainActivity : BaseActivity() {
         log(this, "生日卡片动画启动")
     }
 
-    private fun refreshEventComponent(event: Event, eventPicture: Flow<Drawable?>,
-        binding: ActivityMainBinding) {
-        LogUtil.d(this, "刷新活动组件")
-        //刷新活动状态
-        refreshEventStatus(event, binding)
-        //刷新活动类型
-        binding.eventCard.eventType.text = StringBuilder().run {
-            append("活动")
-            append(event.id)
-            append(" ")
-            append(EventUtil.matchType(event.type))
-            toString()
-        }
-        //刷新活动角色
-        Glide.with(this).load(EventUtil.matchCharacter(event.character1))
-            .into(binding.eventCard.char1)
-        binding.eventCard.char1.setOnClickListener {
-            startCharacterListActivity(event.character1)
-        }
-        Glide.with(this).load(EventUtil.matchCharacter(event.character2))
-            .into(binding.eventCard.char2)
-        binding.eventCard.char2.setOnClickListener {
-            startCharacterListActivity(event.character2)
-        }
-        Glide.with(this).load(EventUtil.matchCharacter(event.character3))
-            .into(binding.eventCard.char3)
-        binding.eventCard.char3.setOnClickListener {
-            startCharacterListActivity(event.character3)
-        }
-        Glide.with(this).load(EventUtil.matchCharacter(event.character4))
-            .into(binding.eventCard.char4)
-        event.character4?.let { character4 ->
-            binding.eventCard.char4.setOnClickListener {
-                startCharacterListActivity(character4)
-            }
-        }
-        Glide.with(this).load(EventUtil.matchCharacter(event.character5))
-            .into(binding.eventCard.char5)
-        event.character5?.let { character5 ->
-            binding.eventCard.char5.setOnClickListener {
-                startCharacterListActivity(character5)
-            }
-        }
-        //刷新活动属性
-        Glide.with(this).load(EventUtil.matchAttrs(event.attrs))
-            .into(binding.eventCard.eventAttrs)
-        //刷新乐队图片
-        Glide.with(this).load(EventUtil.getBandPic(event))
-            .into(binding.eventCard.eventBand)
-        binding.eventCard.eventBand.setOnClickListener {
-            startActivity<EventListActivity>(
-                "current_id" to event.id.toInt(),
-                "band_id" to EventUtil.getBand(event).id
-            )
-        }
-        //刷新活动图片
-        lifecycleScope.launch {
-            eventPicture.collect{
-                it?.let {
-                    binding.eventCard.eventBackground.background = it
-                }
-            }
-        }
-        binding.eventCard.eventButton.setOnClickListener {
-            startActivity<EventListActivity>("current_id" to event.id.toInt())
-        }
-    }
-
-    private fun refreshEventStatus(event: Event, binding: ActivityMainBinding) {
-        val todayEventId = viewModel.todayEvent?.id
-        val eventId = event.id
-        todayEventId?.let {
-            log(this, "刷新活动状态")
-            when {
-                eventId < todayEventId -> {
-                    binding.eventCard.eventProgressName.setText(R.string.finish)
-                    binding.eventCard.eventProgress.progress = 100
-                }
-                eventId == todayEventId -> {
-                    val systemTime = systemDate.getTimeInMillis()
-                    val eventStartTime = viewModel.eventStartTime
-                    val eventEndTime = viewModel.eventEndTime
-                    if (eventStartTime != null && eventEndTime != null) {
-                        when {
-                            systemTime < eventStartTime -> {
-                                binding.eventCard.eventProgressName.setText(R.string.prepare)
-                                binding.eventCard.eventProgress.progress = 0
-                            }
-                            systemTime >= eventEndTime -> {
-                                binding.eventCard.eventProgressName.setText(R.string.finish)
-                                binding.eventCard.eventProgress.progress = 100
-                            }
-                            else -> {
-                                binding.eventCard.eventProgressName.setText(R.string.ing)
-                                binding.eventCard.eventProgress.progress = EventUtil
-                                    .getEventProgress(systemTime, eventStartTime)
-                            }
-                        }
-                    }
-                }
-                else -> {
-                    binding.eventCard.eventProgressName.setText(R.string.prepare)
-                    binding.eventCard.eventProgress.progress = 0
-                }
-            }
-        }
-    }
-
     private fun chooseDate(viewPager: ViewPager) {
         val view = layoutInflater.inflate(R.layout.date_picker, null)
         val datePicker: DatePicker = view.findViewById(R.id.datePicker)
@@ -622,7 +404,7 @@ class MainActivity : BaseActivity() {
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    private fun jumpDate(viewPager: ViewPager, target: CalendarUtil) {
+    fun jumpDate(viewPager: ViewPager, target: CalendarUtil) {
         val viewPagerAdapter = viewPager.adapter as CalendarViewPagerAdapter
         val scrollViewList = viewPagerAdapter.views
         var lastPosition = 0
@@ -663,126 +445,7 @@ class MainActivity : BaseActivity() {
         viewModel.getCharacterByMonth(target.month) //刷新角色生日
     }
 
-    @SuppressLint("NotifyDataSetChanged")
-    private fun calendarInit() {
-        val list = ArrayList<CalendarScrollView>().apply {
-            add(getCalendarView(-1, 0))
-            add(getCalendarView(0, 1))
-            add(getCalendarView(1, 2))
-        }
-        //初始化viewPager
-        val viewPager: ViewPager = findViewById(R.id.viewPager)
-        val pagerAdapter = CalendarViewPagerAdapter(list)
-        viewPager.adapter = pagerAdapter
-        viewPager.currentItem = 1 //viewPager初始位置为1
-        //设置监听器，用来监听滚动（日历翻页）
-        viewPager.addOnPageChangeListener(getOnPageChangeListener(viewPager, list, pagerAdapter))
-        //观察角色集合的变化，刷新当前月过生日的角色
-        viewModel.characterInMonth.observe(this) {
-            if (it.isNotEmpty()) {
-                for (calendarView in list) {
-                    //由于生日角色只在当前页面刷新，故获取当前显示的view信息
-                    if (calendarView.lastPosition == viewModel.calendarCurrentPosition) {
-                        val view = calendarView.view as RecyclerView
-                        val adapter = view.adapter as CalendarViewAdapter
-                        val calendarUtil = adapter.calendarUtil
-                        //如果当前view的月份与得到的月份一样，则刷新生日角色
-                        if (CharacterUtil.birthdayToMonth(it[0].birthday) == calendarUtil.month) {
-                            adapter.birthdayMap.clear()
-                            CharacterUtil.characterListToBirthdayMap(it, adapter.birthdayMap)
-                            adapter.notifyDataSetChanged()
-                            //刷新生日卡片
-                            val characterId =
-                                adapter.birthdayMap[viewModel.currentDate.value?.day.toString()]
-                            if (characterId != null)
-                                viewModel.refreshBirthdayCard(characterId)
-                            else
-                                viewModel.refreshBirthdayCard(0)
-                        }
-                    }
-                }
-            }
-        }
-
-    }
-
-    private fun getOnPageChangeListener(viewPager: ViewPager, list: List<CalendarScrollView>,
-                                        pagerAdapter: CalendarViewPagerAdapter
-    ) = object : ViewPager.OnPageChangeListener {
-        //position为当前位置（正在滚动时就会改变），监听月变化（翻页）
-        override fun onPageSelected(position: Int) {
-            viewModel.calendarCurrentPosition = position
-            for (calendarView in list) {
-                //发生月变化（上个位置等于当前位置，说明viewPager已被提前加载，即为左右翻页动作）
-                if (calendarView.lastPosition == position) {
-                    //获取当前item的日期
-                    val view = calendarView.view as RecyclerView
-                    val adapter = view.adapter as CalendarViewAdapter
-                    val calendarUtil = adapter.calendarUtil
-                    val year = calendarUtil.year
-                    val month = calendarUtil.month
-                    viewModel.getCharacterByMonth(month) //刷新当前月的生日角色
-                    val selectedDay = viewModel.selectedItem.value!!
-                    val maxDay = calendarUtil.getMaximumDaysInMonth()
-                    //刷新当前日期，从而刷新卡片信息
-                    viewModel.run {
-                        currentDate.value?.year = year
-                        currentDate.value?.month = month
-                        //判断最大天数是否满足选中天数
-                        if (maxDay < selectedDay) {
-                            currentDate.value?.day = maxDay
-                            setSelectedItem(maxDay)
-                        }
-                        refreshCurrentDate()
-                    }
-                }
-            }
-        }
-        override fun onPageScrollStateChanged(state: Int) { //设置循环滚动，滚动到边界自动回正
-            when (state) {
-                //（滚动）动作完成（无论是滚动还是回弹）
-                ViewPager.SCROLL_STATE_IDLE -> {
-                    //如果当前位置为0，则设置item为倒数第二
-                    if (viewModel.calendarCurrentPosition == 0) {
-                        viewPager.setCurrentItem(pagerAdapter.count - 2, false)
-                        //如果当前位置为倒数第一，则设置item为1
-                    } else if (viewModel.calendarCurrentPosition == pagerAdapter.count - 1) {
-                        viewPager.setCurrentItem(1, false)
-                    }
-                }
-            }
-            //循环滚动引起的位置变化将在adapter中处理
-        }
-        override fun onPageScrolled(position: Int, positionOffset: Float,
-                                    positionOffsetPixels: Int) {
-
-        }
-    }
-
-    //获取ViewPager的单个view(recyclerView)
-    @SuppressLint("NotifyDataSetChanged") //当目标日期改变时，刷新RecyclerView
-    private fun getCalendarView(relativeMonth: Int, lastPosition: Int): CalendarScrollView {
-        val calendar = CalendarUtil()
-        calendar.clearDays()
-        calendar.setRelativeMonth(relativeMonth)
-        val dateList = calendar.getDateList()
-        //创建日历recyclerView
-        val layoutManager = object : GridLayoutManager(this, 7) {
-            //禁止纵向滚动
-            override fun canScrollVertically() = false
-        }
-        val recyclerView = RecyclerView(this)
-        val adapter = CalendarViewAdapter(this, dateList, calendar, viewModel)
-        recyclerView.layoutManager = layoutManager
-        recyclerView.adapter = adapter
-        //观察选中item的变化，从而设置选中效果
-        viewModel.selectedItem.observe(this) {
-            adapter.notifyDataSetChanged()
-        }
-        return CalendarScrollView(recyclerView, lastPosition)
-    }
-
-    private fun startCharacterListActivity(id: Int) {
+    fun startCharacterListActivity(id: Int) {
         startActivity<CharacterListActivity>("current_id" to id)
     }
 

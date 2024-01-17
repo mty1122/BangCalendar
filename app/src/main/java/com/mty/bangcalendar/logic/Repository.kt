@@ -100,8 +100,13 @@ object Repository {
             AppDatabase.getDatabase().eventDao().getNearlyBandEventByDate(date.value, character1Id)
     }
 
-    suspend fun getBandLastEventByDate(date: IntDate, character1Id: Int) = withContext(Dispatchers.IO) {
-        AppDatabase.getDatabase().eventDao().getLastNearlyBandEventByDate(date.value, character1Id)
+    suspend fun getBandLastEventByDate(date: IntDate, character1Id: Int?) =
+        withContext(Dispatchers.IO) {
+            if (character1Id != null)
+                AppDatabase.getDatabase().eventDao()
+                    .getLastNearlyBandEventByDate(date.value, character1Id)
+            else
+                null
     }
 
    suspend fun getCharacterByMonth(month: Int) = withContext(Dispatchers.IO) {

@@ -1,11 +1,11 @@
-package com.mty.bangcalendar.ui.main
+package com.mty.bangcalendar.ui.main.adapter
 
 import android.annotation.SuppressLint
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.PagerAdapter
-import com.mty.bangcalendar.logic.model.CalendarScrollView
+import com.mty.bangcalendar.ui.main.view.CalendarScrollView
 import com.mty.bangcalendar.util.LogUtil
 
 class CalendarViewPagerAdapter(val views: List<CalendarScrollView>) : PagerAdapter() {

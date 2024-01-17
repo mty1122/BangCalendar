@@ -1,4 +1,4 @@
-package com.mty.bangcalendar.ui.main
+package com.mty.bangcalendar.ui.main.adapter
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -10,6 +10,7 @@ import androidx.collection.ArrayMap
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.mty.bangcalendar.R
+import com.mty.bangcalendar.ui.main.MainViewModel
 import com.mty.bangcalendar.util.CalendarUtil
 import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.LogUtil
@@ -17,7 +18,8 @@ import com.mty.bangcalendar.util.ThemeUtil
 import de.hdodenhof.circleimageview.CircleImageView
 
 class CalendarViewAdapter(private val context: Context, var dateList: List<String>,
-    val calendarUtil: CalendarUtil, private val viewModel: MainViewModel)
+    val calendarUtil: CalendarUtil, private val viewModel: MainViewModel
+)
     : RecyclerView.Adapter<CalendarViewAdapter.ViewHolder>() {
 
     val birthdayMap = ArrayMap<String, Int>()

@@ -25,13 +25,18 @@ import com.bumptech.glide.Glide
 import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivityMainBinding
-import com.mty.bangcalendar.logic.model.CalendarScrollView
-import com.mty.bangcalendar.logic.model.DailyTag
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.logic.model.IntDate
 import com.mty.bangcalendar.ui.BaseActivity
 import com.mty.bangcalendar.ui.list.CharacterListActivity
 import com.mty.bangcalendar.ui.list.EventListActivity
+import com.mty.bangcalendar.ui.main.adapter.CalendarViewAdapter
+import com.mty.bangcalendar.ui.main.adapter.CalendarViewPagerAdapter
+import com.mty.bangcalendar.ui.main.state.DailyTagUiState
+import com.mty.bangcalendar.ui.main.state.shouldBandItemVisible
+import com.mty.bangcalendar.ui.main.state.shouldCharacterItemVisible
+import com.mty.bangcalendar.ui.main.state.shouldVisible
+import com.mty.bangcalendar.ui.main.view.CalendarScrollView
 import com.mty.bangcalendar.ui.search.SearchActivity
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.*
@@ -46,6 +51,10 @@ class MainActivity : BaseActivity() {
     private val viewModel by lazy { ViewModelProvider(this)[MainViewModel::class.java] }
     //记录Activity是否创建（用于设置生日卡片的位置）
     private var isActivityCreated = false
+    //记录滑动手势的起始点，用于折叠卡片
+    private var touchEventStartY = 0f
+    //记录生日卡片可见性
+    private var isBirthdayCardVisible = false
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -115,13 +124,11 @@ class MainActivity : BaseActivity() {
             } else {
                 mainBinding.goBackFloatButton.visibility = View.VISIBLE
             }
-            //日期改变时，移除当前日期生日卡片角色ID缓存
-            viewModel.currentDateBirthdayCard = 0
         }
 
         viewModel.getCharacterByMonth(systemDate.month) //首次启动刷新当前月的生日角色
 
-        viewModel.birthdayCard.observe(this) {
+        viewModel.birthdayCardUiState.observe(this) {
             //生日卡片初始化
             if (!isActivityCreated) {
                 //等待其膨胀完成后再初始化，防止获取不到高度
@@ -140,15 +147,15 @@ class MainActivity : BaseActivity() {
             //刷新生日卡片
             when (it) {
                 0 -> {
-                    if (viewModel.birCardStatus == View.VISIBLE){
-                        viewModel.birCardStatus = View.INVISIBLE
+                    if (isBirthdayCardVisible){
+                        isBirthdayCardVisible = false
                         runBirthdayCardAnim(mainBinding, false)
                     }
                 }
                 else -> {
                     refreshBirthdayCard(it, mainBinding)
-                    if (viewModel.birCardStatus == View.INVISIBLE) {
-                        viewModel.birCardStatus = View.VISIBLE
+                    if (!isBirthdayCardVisible) {
+                        isBirthdayCardVisible = true
                         runBirthdayCardAnim(mainBinding, true)
                     }
                 }
@@ -157,12 +164,12 @@ class MainActivity : BaseActivity() {
 
         //设置滑动监听器，实现生日卡片的折叠/展开
         mainBinding.mainView.setOnTouchListener { _, event ->
-            handleMainViewTouchEvent(event)
+            handleMainViewTouchEvent(event, mainBinding)
             true
         }
 
         //dailyTag服务
-        viewModel.dailyTag.observe(this) {
+        viewModel.dailyTagUiState.observe(this) {
             refreshDailyTag(mainBinding, it)
             viewModel.componentLoadCompleted()
         }
@@ -187,7 +194,7 @@ class MainActivity : BaseActivity() {
                     //无论是否初次启动，都需要加入观察者
                     addEventObserver(mainBinding)
                 }
-                getDailyTag() //初次启动刷新DailyTag
+                refreshDailyTag() //初次启动刷新DailyTag
             }
         }
         viewModel.getTodayEvent() //获取当天活动
@@ -289,20 +296,19 @@ class MainActivity : BaseActivity() {
     }
 
     //刷新dailyTag
-    private fun refreshDailyTag(binding: ActivityMainBinding, dailyTag: DailyTag) {
-        //用户偏好不存在，不启动dailytag
-        if (dailyTag.preferenceNearlyBandEvent == null && dailyTag.preferenceCharacter == null) {
+    private fun refreshDailyTag(binding: ActivityMainBinding, uiState: DailyTagUiState) {
+        if (!uiState.shouldVisible()) {
             binding.dailytagCard.cardView.visibility = View.GONE
             return
         }
         //刷新标题
         binding.dailytagCard.dailytagTitle.text = StringBuilder().apply {
             append("${systemDate.getTimeName()}好")
-            if (dailyTag.userName != "")
-                append("，${dailyTag.userName}")
+            if (uiState.userName != "")
+                append("，${uiState.userName}")
         }
         //刷新角色订阅
-        dailyTag.preferenceCharacter?.let { character->
+        uiState.preferenceCharacter?.let { character->
             binding.dailytagCard.dailytagCardBirthday.run {
                 //角色头像和名字
                 Glide.with(this@MainActivity)
@@ -332,10 +338,10 @@ class MainActivity : BaseActivity() {
                 birthdayView.visibility = View.VISIBLE
             }
         }
-        if (dailyTag.preferenceCharacter == null)
+        if (!uiState.shouldCharacterItemVisible())
             binding.dailytagCard.dailytagCardBirthday.birthdayView.visibility = View.GONE
         //刷新活动订阅
-        dailyTag.preferenceNearlyBandEvent?.let {  event->
+        uiState.preferenceBandNextEvent?.let { event->
             binding.dailytagCard.dailytagCardEvent.run {
                 //刷新活动属性
                 Glide.with(this@MainActivity).load(EventUtil.matchAttrs(event.attrs))
@@ -359,22 +365,17 @@ class MainActivity : BaseActivity() {
                         jumpDate(binding.viewPager, target)
                     }
                 }
+                //新乐队可能没有往期活动
+                val lastDate =
+                    uiState.preferenceBandLatestEvent?.startDate ?: systemDate.toDate().value
+                val interval = IntDate(event.startDate) - IntDate(lastDate)
                 //更新进度条
-                lifecycleScope.launch {
-                    val lastEvent = viewModel.getBandLastEventByDate(
-                        date = systemDate.toDate(),
-                        character1Id = event.character1
-                    )
-                    //新乐队可能没有往期活动
-                    val lastDate = lastEvent?.startDate ?: systemDate.toDate().value
-                    val interval = IntDate(event.startDate) - IntDate(lastDate)
-                    eventBar.setProgressCompat(
-                        ((interval - eventAway) / interval.toDouble() * 100).toInt(), true)
-                }
+                eventBar.setProgressCompat(
+                    ((interval - eventAway) / interval.toDouble() * 100).toInt(), true)
                 eventView.visibility = View.VISIBLE
             }
         }
-        if (dailyTag.preferenceNearlyBandEvent == null)
+        if (!uiState.shouldBandItemVisible())
             binding.dailytagCard.dailytagCardEvent.eventView.visibility = View.GONE
         //用户偏好存在时，启动dailyTag
         binding.dailytagCard.cardView.visibility = View.VISIBLE
@@ -384,7 +385,7 @@ class MainActivity : BaseActivity() {
     private fun birCardInit(id: Int, binding: ActivityMainBinding) {
         if (id > 0) {
             refreshBirthdayCard(id, binding)
-            viewModel.birCardStatus = View.VISIBLE
+            isBirthdayCardVisible = true
         }
         else {
             val mainLinearLayout = binding.mainView
@@ -399,7 +400,7 @@ class MainActivity : BaseActivity() {
                 cardBelow.translationY = translationY
             }
             binding.birCard.cardView.translationY = translationY
-            viewModel.birCardStatus = View.INVISIBLE
+            isBirthdayCardVisible = false
         }
     }
 
@@ -431,26 +432,25 @@ class MainActivity : BaseActivity() {
     }
 
     //处理生日卡片折叠/展开动画时的手势
-    private fun handleMainViewTouchEvent(event: MotionEvent) {
+    private fun handleMainViewTouchEvent(event: MotionEvent, binding: ActivityMainBinding) {
         //生日卡片不显示时不处理
-        if (viewModel.birthdayCard.value!! < 1 && viewModel.currentDateBirthdayCard < 1)
+        if (viewModel.birthdayCardUiState.value!! < 1)
             return
-        //修改当前日期的生日卡片角色ID
-        if (viewModel.birthdayCard.value!! > 0)
-            viewModel.currentDateBirthdayCard = viewModel.birthdayCard.value!!
-
+        //处理滑动手势
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                viewModel.touchEventStartY = event.y
+                touchEventStartY = event.y
             }
             MotionEvent.ACTION_MOVE -> {
-                val deltaY = event.y - viewModel.touchEventStartY
-                if (deltaY > 0) {
-                    //向下滑动，触发展开动画
-                    viewModel.refreshBirthdayCard(viewModel.currentDateBirthdayCard)
-                } else if (deltaY < 0) {
-                    //向上滑动，触发折叠动画
-                    viewModel.refreshBirthdayCard(0)
+                val deltaY = event.y - touchEventStartY
+                //向下滑动，触发展开动画
+                if (deltaY > 0 && !isBirthdayCardVisible) {
+                    isBirthdayCardVisible = true
+                    runBirthdayCardAnim(binding, true)
+                //向上滑动，触发折叠动画
+                } else if (deltaY < 0 && isBirthdayCardVisible) {
+                    isBirthdayCardVisible = false
+                    runBirthdayCardAnim(binding, false)
                 }
             }
         }
@@ -703,7 +703,8 @@ class MainActivity : BaseActivity() {
     }
 
     private fun getOnPageChangeListener(viewPager: ViewPager, list: List<CalendarScrollView>,
-        pagerAdapter: CalendarViewPagerAdapter) = object : ViewPager.OnPageChangeListener {
+                                        pagerAdapter: CalendarViewPagerAdapter
+    ) = object : ViewPager.OnPageChangeListener {
         //position为当前位置（正在滚动时就会改变），监听月变化（翻页）
         override fun onPageSelected(position: Int) {
             viewModel.calendarCurrentPosition = position
@@ -764,9 +765,7 @@ class MainActivity : BaseActivity() {
         //创建日历recyclerView
         val layoutManager = object : GridLayoutManager(this, 7) {
             //禁止纵向滚动
-            override fun canScrollVertically(): Boolean {
-                return false
-            }
+            override fun canScrollVertically() = false
         }
         val recyclerView = RecyclerView(this)
         val adapter = CalendarViewAdapter(this, dateList, calendar, viewModel)

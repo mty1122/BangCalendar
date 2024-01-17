@@ -44,6 +44,8 @@ import com.mty.bangcalendar.ui.main.MainActivity
 import com.mty.bangcalendar.ui.theme.BangCalendarTheme
 import com.mty.bangcalendar.util.AnimUtil
 import com.mty.bangcalendar.util.ThemeUtil
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class GuideActivity : ComponentActivity() {
@@ -145,30 +147,25 @@ class GuideActivity : ComponentActivity() {
     private fun firstStartInit() {
         lifecycleScope.launch {
             viewModel.setDefaultPreference()
-            var isCharacterRefreshServiceNotStart = true
-            var isInitNotCompleted = true
-            viewModel.appInitUiState.collect { currentUiState ->
-                when (currentUiState.initProgress) {
-                    50 -> {
-                        if (isCharacterRefreshServiceNotStart) {
-                            isCharacterRefreshServiceNotStart = false
+            viewModel.appInitUiState
+                .map { it.initProgress }
+                .distinctUntilChanged()
+                .collect { progress ->
+                    when (progress) {
+                        50 -> {
                             val intent = Intent(this@GuideActivity,
                                 CharacterRefreshService::class.java)
-                            bindService(intent, characterConnection,
-                                Context.BIND_AUTO_CREATE)
+                            bindService(intent, characterConnection, Context.BIND_AUTO_CREATE)
                         }
-                    }
-                    100 -> {
-                        if (isInitNotCompleted) {
-                            isInitNotCompleted = false
+                        100 -> {
                             viewModel.isNotFirstStart()
                             unbindService(eventConnection)
                             unbindService(characterConnection)
                             viewModel.setLaunchButtonEnabled(true)
-                            viewModel.updateProgress(100, getString(R.string.init_complete))
+                            viewModel.updateProgress(100,
+                                getString(R.string.init_complete))
                         }
                     }
-                }
             }
         }
         val intent = Intent(this, EventRefreshService::class.java)

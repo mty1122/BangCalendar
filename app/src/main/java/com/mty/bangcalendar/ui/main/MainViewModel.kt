@@ -17,9 +17,9 @@ import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.enum.IntentActions
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Character
-import com.mty.bangcalendar.logic.model.DailyTag
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.logic.model.IntDate
+import com.mty.bangcalendar.ui.main.state.DailyTagUiState
 import com.mty.bangcalendar.util.CalendarUtil
 import com.mty.bangcalendar.util.EventUtil
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,7 +51,7 @@ class MainViewModel : ViewModel() {
     private val onSettingsChangeListener =
         SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         when (key) {
-            "signature", "band", "character" -> getDailyTag()
+            "signature", "band", "character" -> refreshDailyTag()
             "theme" ->recreateActivity()
         }
     }
@@ -91,19 +91,13 @@ class MainViewModel : ViewModel() {
     }
 
     //生日卡片
-    val birthdayCard: LiveData<Int>
-        get() = _birthdayCard
+    val birthdayCardUiState: LiveData<Int>
+        get() = _birthdayCardUiState
 
-    private val _birthdayCard = MutableLiveData<Int>()
-    //用来记录生日卡片的状态，采用View的可见性只是为了标记，并不代表生日卡片的View属性
-    var birCardStatus = View.INVISIBLE
-    //用来记录当前日期的生日卡片角色ID，以供折叠/展开生日卡片使用
-    var currentDateBirthdayCard = 0
-    //记录滑动手势的起始点
-    var touchEventStartY = 0f
+    private val _birthdayCardUiState = MutableLiveData<Int>()
     fun refreshBirthdayCard(id: Int) {
-        if (_birthdayCard.value != id)
-            _birthdayCard.value = id
+        if (_birthdayCardUiState.value != id)
+            _birthdayCardUiState.value = id
     }
 
     //跳转日期
@@ -156,26 +150,27 @@ class MainViewModel : ViewModel() {
     }
 
     //dailyTag服务
-    private val _dailyTag = MutableLiveData<DailyTag>()
-    val dailyTag: LiveData<DailyTag>
-        get() = _dailyTag
-    fun getDailyTag() {
+    private val _dailyTagUiState = MutableLiveData<DailyTagUiState>()
+    val dailyTagUiState: LiveData<DailyTagUiState>
+        get() = _dailyTagUiState
+    fun refreshDailyTag() {
         viewModelScope.launch {
             val userName = Repository.getUserName()
             val preferenceBand = Repository.getPreferenceBand()
-            val preferenceNearlyBandEvent = Repository.getBandEventByDate(
+            val preferenceBandNextEvent = Repository.getBandEventByDate(
                 date = systemDate.toDate(),
                 character1Id = EventUtil.bandNameToCharacter1(preferenceBand)
             )
+            val preferenceBandLatestEvent = Repository.getBandLastEventByDate(
+                date = systemDate.toDate(),
+                character1Id = preferenceBandNextEvent?.character1
+            )
             val characterId = Repository.getPreferenceCharacter()
             val preferenceCharacter = Repository.getCharacterById(characterId)
-            _dailyTag.value = DailyTag(userName, preferenceBand,
-                preferenceNearlyBandEvent, preferenceCharacter)
+            _dailyTagUiState.value = DailyTagUiState(userName, preferenceBand,
+                preferenceBandNextEvent, preferenceBandLatestEvent, preferenceCharacter)
         }
     }
-
-    suspend fun getBandLastEventByDate(date: IntDate, character1Id: Int) =
-        Repository.getBandLastEventByDate(date, character1Id)
 
     suspend fun getEventPic(eventId: String, onPicReady: (Drawable) -> Unit) {
         Repository.getEventPic(eventId)?.let {

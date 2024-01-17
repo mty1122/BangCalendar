@@ -1,4 +1,4 @@
-package com.mty.bangcalendar.logic.model
+package com.mty.bangcalendar.ui.main.view
 
 import android.view.View
 

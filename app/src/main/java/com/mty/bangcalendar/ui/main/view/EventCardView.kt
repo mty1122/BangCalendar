@@ -10,6 +10,7 @@ import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivityMainBinding
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.ui.list.EventListActivity
+import com.mty.bangcalendar.ui.main.state.MainUiState
 import com.mty.bangcalendar.util.AnimUtil
 import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.LogUtil
@@ -44,13 +45,14 @@ class EventCardView {
     fun refreshEventComponent(
         context: Context,
         lifecycleScope: LifecycleCoroutineScope,
+        mainUiState: MainUiState,
         event: Event,
         eventPicture: Flow<Drawable?>,
         binding: ActivityMainBinding
     ) {
         LogUtil.d(this, "刷新活动组件")
         //刷新活动状态
-        refreshEventStatus(event, binding)
+        refreshEventStatus(event, binding, mainUiState)
         //刷新活动类型
         binding.eventCard.eventType.text = StringBuilder().run {
             append("活动")
@@ -114,8 +116,12 @@ class EventCardView {
         }
     }
 
-    private fun refreshEventStatus(event: Event, binding: ActivityMainBinding) {
-        val todayEventId = viewModel.todayEvent?.id
+    private fun refreshEventStatus(
+        event: Event,
+        binding: ActivityMainBinding,
+        mainUiState: MainUiState
+    ) {
+        val todayEventId = mainUiState.todayEvent?.id
         val eventId = event.id
         todayEventId?.let {
             log(this, "刷新活动状态")
@@ -126,23 +132,21 @@ class EventCardView {
                 }
                 eventId == todayEventId -> {
                     val systemTime = systemDate.getTimeInMillis()
-                    val eventStartTime = viewModel.eventStartTime
-                    val eventEndTime = viewModel.eventEndTime
-                    if (eventStartTime != null && eventEndTime != null) {
-                        when {
-                            systemTime < eventStartTime -> {
-                                binding.eventCard.eventProgressName.setText(R.string.prepare)
-                                binding.eventCard.eventProgress.progress = 0
-                            }
-                            systemTime >= eventEndTime -> {
-                                binding.eventCard.eventProgressName.setText(R.string.finish)
-                                binding.eventCard.eventProgress.progress = 100
-                            }
-                            else -> {
-                                binding.eventCard.eventProgressName.setText(R.string.ing)
-                                binding.eventCard.eventProgress.progress = EventUtil
-                                    .getEventProgress(systemTime, eventStartTime)
-                            }
+                    val eventStartTime = mainUiState.eventStartTime
+                    val eventEndTime = mainUiState.eventEndTime
+                    when {
+                        systemTime < eventStartTime -> {
+                            binding.eventCard.eventProgressName.setText(R.string.prepare)
+                            binding.eventCard.eventProgress.progress = 0
+                        }
+                        systemTime >= eventEndTime -> {
+                            binding.eventCard.eventProgressName.setText(R.string.finish)
+                            binding.eventCard.eventProgress.progress = 100
+                        }
+                        else -> {
+                            binding.eventCard.eventProgressName.setText(R.string.ing)
+                            binding.eventCard.eventProgress.progress = EventUtil
+                                .getEventProgress(systemTime, eventStartTime)
                         }
                     }
                 }

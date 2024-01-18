@@ -2,6 +2,7 @@ package com.mty.bangcalendar.ui.main.view
 
 import android.annotation.SuppressLint
 import android.graphics.drawable.Drawable
+import android.view.ViewTreeObserver
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -16,8 +17,11 @@ import com.mty.bangcalendar.ui.main.MainActivity
 import com.mty.bangcalendar.ui.main.MainViewModel
 import com.mty.bangcalendar.ui.main.adapter.CalendarViewAdapter
 import com.mty.bangcalendar.ui.main.adapter.CalendarViewPagerAdapter
+import com.mty.bangcalendar.ui.main.state.MainUiState
 import com.mty.bangcalendar.util.CalendarUtil
 import com.mty.bangcalendar.util.CharacterUtil
+import com.mty.bangcalendar.util.GenericUtil
+import com.mty.bangcalendar.util.ThemeUtil
 import kotlinx.coroutines.flow.Flow
 
 class MainViewInitializer(
@@ -25,30 +29,72 @@ class MainViewInitializer(
     private val binding: ActivityMainBinding,
     private val viewModel: MainViewModel,
     private val initData: MainViewInitData,
+    private val mainUiState: MainUiState,
     private val dailyTagView: DailyTagView,
-    private val eventCardView: EventCardView
+    private val eventCardView: EventCardView,
+    private val birthdayCardView: BirthdayCardView
 ) {
 
     suspend fun initViews() {
+        //活动进度条初始化
+        binding.eventCard.eventProgress.run {
+            progressColor = mainActivity.getColor(ThemeUtil.getThemeColor(mainActivity))
+            textColor = mainActivity.getColor(ThemeUtil.getThemeColor(mainActivity))
+        }
+
+        /* 下方为四大组件初始化（日历、dailyTag、生日卡片、活动卡片） */
         calendarInit() //无论如何都需要初始化calendarView（需要创建视图）
         initData.dailyTagUiState.collect {
-            dailyTagView.refreshDailyTag(binding, it) //初次启动刷新DailyTag
+            dailyTagView.refreshDailyTag(mainActivity, viewModel, binding, it) //初次启动刷新DailyTag
         }
-        eventCardInit(binding, initData.todayEvent, initData.todayEventPicture)
+        eventCardInit(binding, initData.currentEvent, initData.eventPicture)
+        initData.birthdayCardUiState.collect{
+            //等待其膨胀完成后再初始化，防止获取不到高度
+            binding.birCard.cardView.viewTreeObserver.addOnGlobalLayoutListener(object :
+                ViewTreeObserver.OnGlobalLayoutListener {
+                override fun onGlobalLayout() {
+                    birCardInit(it, binding)
+                    binding.birCard.cardView.viewTreeObserver
+                        .removeOnGlobalLayoutListener(this)
+                }
+            })
+        }
     }
 
-    private fun eventCardInit(binding: ActivityMainBinding, event: Event,
-                              eventPicture: Flow<Drawable?>
+    //生日卡片初始化
+    private fun birCardInit(id: Int, binding: ActivityMainBinding) {
+        if (id > 0) {
+            birthdayCardView.refreshBirthdayCard(mainActivity, id, binding)
+            viewModel.isBirthdayCardVisible = true
+        }
+        else {
+            val mainLinearLayout = binding.mainView
+            val birCardIndex = mainLinearLayout.indexOfChild(binding.birCardParent)
+
+            //使用初始高度
+            val cardHeight = binding.birCard.cardView.height.toFloat()
+            val translationY = -cardHeight - GenericUtil.dpToPx(10)
+
+            for (i in birCardIndex + 1 until mainLinearLayout.childCount) {
+                val cardBelow = mainLinearLayout.getChildAt(i)
+                cardBelow.translationY = translationY
+            }
+            binding.birCard.cardView.translationY = translationY
+            viewModel.isBirthdayCardVisible = false
+        }
+    }
+
+    private fun eventCardInit(binding: ActivityMainBinding, event: Event?,
+                              eventPicture: Flow<Drawable?>?
     ) {
         val currentDate = systemDate.toDate()
-        //活动大于最后一期时，隐藏活动卡片
-        if (currentDate - IntDate(event.startDate) >= 13) {
+        if (event == null || currentDate - IntDate(event.startDate) >= 13) {
             viewModel.isEventCardVisible = false
             binding.eventCard.eventCardItem.alpha = 0f
         } else {
             viewModel.isEventCardVisible = true
             eventCardView.refreshEventComponent(mainActivity, mainActivity.lifecycleScope,
-                event, eventPicture, binding)
+                mainUiState, event, eventPicture!!, binding)
         }
     }
 

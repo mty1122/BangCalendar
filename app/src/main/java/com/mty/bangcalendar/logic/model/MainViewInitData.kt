@@ -5,7 +5,8 @@ import com.mty.bangcalendar.ui.main.state.DailyTagUiState
 import kotlinx.coroutines.flow.Flow
 
 data class MainViewInitData(
-    val todayEvent: Event,
-    val todayEventPicture: Flow<Drawable?>,
-    val dailyTagUiState: Flow<DailyTagUiState>
+    val currentEvent: Event?,
+    val eventPicture: Flow<Drawable?>?,
+    val dailyTagUiState: Flow<DailyTagUiState>,
+    val birthdayCardUiState: Flow<Int>
 )

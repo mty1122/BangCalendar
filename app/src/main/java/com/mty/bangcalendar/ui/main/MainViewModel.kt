@@ -21,36 +21,62 @@ import com.mty.bangcalendar.logic.model.IntDate
 import com.mty.bangcalendar.logic.model.MainViewInitData
 import com.mty.bangcalendar.ui.main.state.DailyTagUiState
 import com.mty.bangcalendar.ui.main.state.EventCardUiState
+import com.mty.bangcalendar.ui.main.state.MainUiState
 import com.mty.bangcalendar.util.CalendarUtil
 import com.mty.bangcalendar.util.EventUtil
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class MainViewModel : ViewModel() {
 
     var calendarCurrentPosition = 1 //当前view在viewPager中的位置
 
-    //活动起始/终止时间
-    var eventStartTime: Long? = null
-    var eventEndTime: Long? = null
-
-    var isActivityFirstStart = true
     var isActivityRecreated = true
 
-    lateinit var todayEvent: Event
-        private set
-
-    //统计初次启动完成加载组件的数量
-    private val _loadedComponentAmounts = MutableLiveData(0)
-    val loadedComponentAmounts: LiveData<Int>
-        get() = _loadedComponentAmounts
-
-    fun componentLoadCompleted() {
-        if (isActivityFirstStart)
-            _loadedComponentAmounts.value = _loadedComponentAmounts.value!! + 1
+    private val _mainUiState =  MutableStateFlow(
+        MainUiState(
+            isLoading = true,
+            isFirstStart = true,
+            todayEvent = null,
+            eventStartTime = 0,
+            eventEndTime = 0
+    ))
+    val mainUiState = _mainUiState.asStateFlow()
+    fun startLoading() {
+        _mainUiState.update {
+            it.copy(isLoading = true)
+        }
+    }
+    fun loadCompleted() {
+        _mainUiState.update {
+            it.copy(
+                isLoading = false,
+                isFirstStart = false
+            )
+        }
+    }
+    private fun setTodayEventState(todayEvent: Event) {
+        val eventStartTime = EventUtil.getEventStartTime(todayEvent)
+        val eventEndTime: Long
+        if (todayEvent.endDate != null) {
+            eventEndTime =
+                EventUtil.getEventEndTime(IntDate(todayEvent.endDate!!))
+            EventUtil.setEventLength(eventEndTime - eventStartTime)
+        } else {
+            eventEndTime = EventUtil.getEventEndTime(todayEvent)
+        }
+        _mainUiState.update {
+            it.copy(
+                todayEvent = todayEvent,
+                eventStartTime = eventStartTime,
+                eventEndTime = eventEndTime
+            )
+        }
     }
 
     //应用设置更改
@@ -62,13 +88,30 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    //主界面加载的起点，首次启动从使用当天活动
     fun fetchInitData() = flow {
-        val todayEvent = Repository.getEventByDate(systemDate.toDate())!!
-        this@MainViewModel.todayEvent = todayEvent
-        val eventId = EventUtil.eventIdFormat(todayEvent.id.toInt())
-        val eventPicture: Flow<Drawable?> = flow { emit(Repository.getEventPic(eventId)) }
+        val currentEvent = if (mainUiState.value.isFirstStart) {
+            val todayEvent = Repository.getEventByDate(systemDate.toDate())!!
+            setTodayEventState(todayEvent)
+            todayEvent
+        } else {
+            eventCardUiState.value!!.event
+        }
+        val eventPicture: Flow<Drawable?>? = if (currentEvent != null) {
+            val eventId = EventUtil.eventIdFormat(currentEvent.id.toInt())
+            flow { emit(Repository.getEventPic(eventId)) }
+        }  else {
+            null
+        }
         val dailyTagUiState = fetchDailyTagUiState()
-        emit(MainViewInitData(todayEvent, eventPicture, dailyTagUiState))
+        val birthdayCardUiState = flow {
+            emit(
+                Repository.getCharacterIdByBirthday(systemDate.toDate().toBirthday()).toInt()
+            )
+        }
+        emit(
+            MainViewInitData(currentEvent, eventPicture, dailyTagUiState, birthdayCardUiState)
+        )
     }
 
     //跳转日期

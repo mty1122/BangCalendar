@@ -115,6 +115,11 @@ object Repository {
        AppDatabase.getDatabase().characterDao().getCharacterByMonth(formatMonth)
     }
 
+    suspend fun getCharacterIdByBirthday(birthday: String) = withContext(Dispatchers.IO) {
+        val idList = AppDatabase.getDatabase().characterDao().getCharacterIdByBirthday(birthday)
+        if (idList.isEmpty()) 0 else idList[0]
+    }
+
     suspend fun getCharacterById(id: Int) = withContext(Dispatchers.IO) {
         if (id < 1)
             null

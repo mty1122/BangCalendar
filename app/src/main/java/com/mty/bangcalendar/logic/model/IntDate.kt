@@ -13,4 +13,12 @@ value class IntDate(val value: Int) {
      */
     operator fun minus(intDate: IntDate) = CalendarUtil(this) - CalendarUtil(intDate)
 
+    fun toBirthday(): String {
+        val birthday = value % 10000
+        return if (birthday >= 1000)
+            birthday.toString()
+        else
+            "0${birthday}"
+    }
+
 }

@@ -4,7 +4,8 @@ import com.mty.bangcalendar.logic.model.Event
 
 data class MainUiState(
     val isLoading: Boolean,
-    val todayEvent: Event,
+    val isFirstStart: Boolean,
+    val todayEvent: Event?,
     val eventStartTime: Long,
     val eventEndTime: Long
 )

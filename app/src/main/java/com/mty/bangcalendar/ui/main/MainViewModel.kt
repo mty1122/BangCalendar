@@ -26,7 +26,6 @@ import com.mty.bangcalendar.util.CalendarUtil
 import com.mty.bangcalendar.util.EventUtil
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
@@ -36,12 +35,12 @@ class MainViewModel : ViewModel() {
 
     var calendarCurrentPosition = 1 //当前view在viewPager中的位置
 
-    var isActivityRecreated = true
-
+    //主界面状态
     private val _mainUiState =  MutableStateFlow(
         MainUiState(
             isLoading = true,
             isFirstStart = true,
+            shouldRecreate = false,
             todayEvent = null,
             eventStartTime = 0,
             eventEndTime = 0
@@ -58,6 +57,16 @@ class MainViewModel : ViewModel() {
                 isLoading = false,
                 isFirstStart = false
             )
+        }
+    }
+    private fun recreateActivity() {
+        _mainUiState.update {
+            it.copy(shouldRecreate = true)
+        }
+    }
+    fun recreateActivityCompleted() {
+        _mainUiState.update {
+            it.copy(shouldRecreate = false)
         }
     }
     private fun setTodayEventState(todayEvent: Event) {
@@ -114,7 +123,7 @@ class MainViewModel : ViewModel() {
         )
     }
 
-    //跳转日期
+    //监听跳转日期请求广播
     private val jumpDateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val startDate = intent.getIntExtra("current_start_date", -1)
@@ -237,15 +246,6 @@ class MainViewModel : ViewModel() {
             DailyTagUiState(userName, preferenceBand,
             preferenceBandNextEvent, preferenceBandLatestEvent, preferenceCharacter)
         )
-    }
-
-    //更改主题，这里采用flow，因为需要activity在不可见时就进行重启
-    private val _activityRecreate = MutableStateFlow(0)
-    val activityRecreate: StateFlow<Int>
-        get() = _activityRecreate
-    private fun recreateActivity() {
-        isActivityRecreated = false
-        _activityRecreate.value++
     }
 
     //取消注册Broadcast

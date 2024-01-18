@@ -44,10 +44,6 @@ class MainActivity : BaseActivity() {
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
 
-        //初次启动时，状态栏颜色与引导界面一致
-        if (viewModel.mainUiState.value.isFirstStart)
-            window.statusBarColor = getColor(R.color.start)
-
         super.onCreate(savedInstanceState)
 
         val mainBinding = ActivityMainBinding.inflate(layoutInflater)
@@ -56,24 +52,19 @@ class MainActivity : BaseActivity() {
         setSupportActionBar(mainBinding.toolBar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
-        //小白条沉浸
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.setDecorFitsSystemWindows(false)
-            mainBinding.mainActivity.setOnApplyWindowInsetsListener { view, insets ->
-                val top = WindowInsetsCompat.toWindowInsetsCompat(insets, view)
-                    .getInsets(WindowInsetsCompat.Type.statusBars()).top
-                view.updatePadding(top = top)
-                (mainBinding.goBackFloatButton.layoutParams as FrameLayout.LayoutParams)
-                    .bottomMargin = top
-                insets
-            }
-        }
+        //初次启动时，状态栏颜色与引导界面一致
+        if (viewModel.mainUiState.value.isFirstStart)
+            window.statusBarColor = getColor(R.color.start)
 
+        //小白条沉浸
+        navigationBarImmersion(mainBinding)
+
+        //开始加载界面
         viewModel.startLoading()
 
         //组件全部加载完成后，显示界面
         //由于组件是异步加载的，可能属性的修改发生在onCreate后，会出现抽搐的情况
-        //为保证所有组件全部加载完成，再统一显示给用户，故设置此状态
+        //为保证所有组件全部加载完成，再统一显示给用户
         mainBinding.mainActivity.visibility = View.INVISIBLE
         lifecycleScope.launch {
             viewModel.mainUiState
@@ -87,7 +78,7 @@ class MainActivity : BaseActivity() {
                     }
                 }
         }
-
+        //获取初始化数据
         lifecycleScope.launch {
             viewModel.fetchInitData().collect{ initData->
                 //初始化界面
@@ -122,26 +113,10 @@ class MainActivity : BaseActivity() {
 
         viewModel.getCharacterByMonth(systemDate.month) //首次启动刷新当前月的生日角色
 
-        addEventObserver(mainBinding) //监听活动变化更新活动组件
-
-        viewModel.birthdayCardUiState.observe(this) {
-            //刷新生日卡片
-            when (it) {
-                0 -> {
-                    if (viewModel.isBirthdayCardVisible){
-                        viewModel.isBirthdayCardVisible = false
-                        birthdayCardView.runBirthdayCardAnim(mainBinding, false)
-                    }
-                }
-                else -> {
-                    birthdayCardView.refreshBirthdayCard(this, it, mainBinding)
-                    if (!viewModel.isBirthdayCardVisible) {
-                        viewModel.isBirthdayCardVisible = true
-                        birthdayCardView.runBirthdayCardAnim(mainBinding, true)
-                    }
-                }
-            }
-        }
+        //为三个卡片组件设置观察者，当ui状态改变时，更新界面
+        setEventCardUiStateObserver(mainBinding)
+        setBirthdayCardUiStateObserver(mainBinding)
+        setDailyTagUiStateObserver(mainBinding)
 
         //设置滑动监听器，实现生日卡片的折叠/展开
         mainBinding.mainView.setOnTouchListener { _, event ->
@@ -155,17 +130,12 @@ class MainActivity : BaseActivity() {
             true
         }
 
-        //dailyTag服务
-        viewModel.dailyTagUiState.observe(this) {
-            dailyTagView.refreshDailyTag(this, viewModel, mainBinding, it)
-        }
-
-        //返回今天按钮
+        //配置返回今天按钮
         mainBinding.goBackFloatButton.setOnClickListener {
             jumpDate(mainBinding.viewPager, systemDate)
         }
 
-        //其他activity的跳转请求
+        //监听其他activity的跳转请求
         viewModel.jumpDate.observe(this) {
             val target = CalendarUtil(it)
             //防止重复跳转
@@ -174,15 +144,17 @@ class MainActivity : BaseActivity() {
             }
         }
 
-        //切换主题
+        //应用主题发生改变时，重启界面
         lifecycleScope.launch {
-            //重启activity会导致observer重新注册，由于stateflow replay=1，会导致重复recreate，因此需要加入判定
-            viewModel.activityRecreate.collect {
-                if (!viewModel.isActivityRecreated) {
-                    recreate()
-                    viewModel.isActivityRecreated = true
+            viewModel.mainUiState
+                .map { it.shouldRecreate }
+                .distinctUntilChanged()
+                .collect { shouldRecreate->
+                    if (shouldRecreate) {
+                        recreate()
+                        viewModel.recreateActivityCompleted()
+                    }
                 }
-            }
         }
 
     }
@@ -201,7 +173,48 @@ class MainActivity : BaseActivity() {
         return true
     }
 
-    private fun addEventObserver(mainBinding: ActivityMainBinding) {
+    private fun navigationBarImmersion(binding: ActivityMainBinding) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.setDecorFitsSystemWindows(false)
+            binding.mainActivity.setOnApplyWindowInsetsListener { view, insets ->
+                val top = WindowInsetsCompat.toWindowInsetsCompat(insets, view)
+                    .getInsets(WindowInsetsCompat.Type.statusBars()).top
+                view.updatePadding(top = top)
+                (binding.goBackFloatButton.layoutParams as FrameLayout.LayoutParams)
+                    .bottomMargin = top
+                insets
+            }
+        }
+    }
+
+    private fun setBirthdayCardUiStateObserver(mainBinding: ActivityMainBinding) {
+        viewModel.birthdayCardUiState.observe(this) {
+            //刷新生日卡片
+            when (it) {
+                0 -> {
+                    if (viewModel.isBirthdayCardVisible){
+                        viewModel.isBirthdayCardVisible = false
+                        birthdayCardView.runBirthdayCardAnim(mainBinding, false)
+                    }
+                }
+                else -> {
+                    birthdayCardView.refreshBirthdayCard(this, it, mainBinding)
+                    if (!viewModel.isBirthdayCardVisible) {
+                        viewModel.isBirthdayCardVisible = true
+                        birthdayCardView.runBirthdayCardAnim(mainBinding, true)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun setDailyTagUiStateObserver(mainBinding: ActivityMainBinding) {
+        viewModel.dailyTagUiState.observe(this) {
+            dailyTagView.refreshDailyTag(this, viewModel, mainBinding, it)
+        }
+    }
+
+    private fun setEventCardUiStateObserver(mainBinding: ActivityMainBinding) {
         //观察活动变化，刷新活动组件内容
         viewModel.eventCardUiState.observe(this) {
             val currentDate = viewModel.currentDate.value!!.toDate()

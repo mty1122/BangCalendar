@@ -21,6 +21,7 @@ import com.mty.bangcalendar.databinding.ActivityMainBinding
 import com.mty.bangcalendar.ui.BaseActivity
 import com.mty.bangcalendar.ui.main.adapter.CalendarViewAdapter
 import com.mty.bangcalendar.ui.main.adapter.CalendarViewPagerAdapter
+import com.mty.bangcalendar.ui.main.state.CalendarItemUiState
 import com.mty.bangcalendar.ui.main.view.BirthdayCardView
 import com.mty.bangcalendar.ui.main.view.DailyTagView
 import com.mty.bangcalendar.ui.main.view.EventCardView
@@ -109,8 +110,6 @@ class MainActivity : BaseActivity() {
                 mainBinding.goBackFloatButton.visibility = View.VISIBLE
             }
         }
-
-        viewModel.getCharacterByMonth(systemDate.month) //首次启动刷新当前月的生日角色
 
         //为三个卡片组件设置观察者，当ui状态改变时，更新界面
         setEventCardUiStateObserver(mainBinding)
@@ -248,17 +247,19 @@ class MainActivity : BaseActivity() {
             calendarUtil.year = target.year
             calendarUtil.month = target.month + relativeMonth
             relativeMonth++
-            viewAdapter.dateList.run {
-                this as ArrayList
-                clear()
-                addAll(calendarUtil.getDateList())
+            //获取初始数据
+            lifecycleScope.launch {
+                val dateList = calendarUtil.getDateList()
+                val characterList = viewModel.fetchCharacterByMonth(calendarUtil.month)
+                val birthdayMap = CharacterUtil.characterListToBirthdayMap(characterList)
+                val calendarItemUiState = CalendarItemUiState(
+                    dateList = dateList,
+                    birthdayMap = birthdayMap
+                )
+                viewAdapter.uiState = calendarItemUiState
+                //刷新日历
+                viewAdapter.notifyDataSetChanged()
             }
-            //如果不是同月跳转，则清空角色生日，防止闪烁
-            if (viewModel.currentDate.value!!.year != target.year
-                || viewModel.currentDate.value!!.month != target.month)
-                viewAdapter.birthdayMap.clear()
-            //刷新日历
-            viewAdapter.notifyDataSetChanged()
         }
         //初始化viewPager的当前item
         viewPager.currentItem = 1
@@ -270,7 +271,6 @@ class MainActivity : BaseActivity() {
             it.day = target.day
         }
         viewModel.refreshCurrentDate() //刷新卡片信息
-        viewModel.getCharacterByMonth(target.month) //刷新角色生日
     }
 
 }

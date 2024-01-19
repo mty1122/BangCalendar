@@ -6,23 +6,21 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.collection.ArrayMap
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.ui.main.MainViewModel
+import com.mty.bangcalendar.ui.main.state.CalendarItemUiState
 import com.mty.bangcalendar.util.CalendarUtil
 import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.LogUtil
 import com.mty.bangcalendar.util.ThemeUtil
 import de.hdodenhof.circleimageview.CircleImageView
 
-class CalendarViewAdapter(private val context: Context, var dateList: List<String>,
+class CalendarViewAdapter(private val context: Context, var uiState: CalendarItemUiState,
     val calendarUtil: CalendarUtil, private val viewModel: MainViewModel
 )
     : RecyclerView.Adapter<CalendarViewAdapter.ViewHolder>() {
-
-    val birthdayMap = ArrayMap<String, Int>()
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val date: TextView = view.findViewById(R.id.dateItem)
@@ -46,7 +44,7 @@ class CalendarViewAdapter(private val context: Context, var dateList: List<Strin
                         setSelectedItem(intDay) //选中目标
                         refreshCurrentDate() //刷新日期
                         //刷新生日卡片
-                        val characterId = birthdayMap[day]
+                        val characterId = uiState.birthdayMap[day]
                         if (characterId != null) {
                             LogUtil.d("Character", "有角色过生日")
                             viewModel.refreshBirthdayCard(characterId)
@@ -62,7 +60,7 @@ class CalendarViewAdapter(private val context: Context, var dateList: List<Strin
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         //获取生日角色
-        val characterId = birthdayMap[dateList[position]]
+        val characterId = uiState.birthdayMap[uiState.dateList[position]]
         //五行显示不下动态调整六行
         if (calendarUtil.rows == CalendarUtil.SIX_ROWS) {
             val scale = context.resources.displayMetrics.density
@@ -74,15 +72,16 @@ class CalendarViewAdapter(private val context: Context, var dateList: List<Strin
             }
         }
         //添加日期
-        holder.date.text = dateList[position]
+        holder.date.text = uiState.dateList[position]
         //设置选中项背景
-        if (dateList[position] != "" && Integer.parseInt(dateList[position])
+        if (uiState.dateList[position] != "" && Integer.parseInt(uiState.dateList[position])
             == viewModel.selectedItem.value) {
             holder.birthday.visibility = View.GONE
             holder.selectBg.visibility = View.VISIBLE
             holder.date.setTextColor(context.getColor(R.color.white))
             LogUtil.d("Calendar", "$position 被选中")
-        } else if (dateList[position] != "" && characterId != null) { //如果生日角色存在则设置角色为背景
+        //如果生日角色存在则设置角色为背景
+        } else if (uiState.dateList[position] != "" && characterId != null) {
             holder.selectBg.visibility = View.GONE
             holder.date.setTextColor(context.getColor(R.color.transparent))
             Glide.with(context).load(EventUtil.matchCharacter(characterId)).into(holder.birthday)
@@ -94,6 +93,6 @@ class CalendarViewAdapter(private val context: Context, var dateList: List<Strin
         }
     }
 
-    override fun getItemCount() = dateList.size
+    override fun getItemCount() = uiState.dateList.size
 
 }

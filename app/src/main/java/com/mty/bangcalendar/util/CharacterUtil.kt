@@ -1,6 +1,5 @@
 package com.mty.bangcalendar.util
 
-import androidx.collection.ArrayMap
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.logic.model.Character
 import com.mty.bangcalendar.logic.model.IntDate
@@ -10,8 +9,8 @@ object CharacterUtil {
     private fun birthdayToDay(birthday: String) = Integer.parseInt(birthday)  % 100
 
     fun characterListToBirthdayMap(characterList: List<Character>,
-        arrayMap: ArrayMap<String, Int>? = null): ArrayMap<String, Int> {
-        val map = arrayMap ?: ArrayMap<String, Int>()
+        mutableMap: MutableMap<String, Int>? = null): Map<String, Int> {
+        val map = mutableMap ?: mutableMapOf()
         for (character in characterList) {
             map[birthdayToDay(character.birthday).toString()] = character.id.toInt()
         }

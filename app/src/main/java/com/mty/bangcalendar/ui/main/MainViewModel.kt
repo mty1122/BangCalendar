@@ -15,7 +15,6 @@ import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.enum.IntentActions
 import com.mty.bangcalendar.logic.Repository
-import com.mty.bangcalendar.logic.model.Character
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.logic.model.IntDate
 import com.mty.bangcalendar.logic.model.MainViewInitData
@@ -209,14 +208,7 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    private val _characterInMonth = MutableLiveData<List<Character>>()
-    val characterInMonth: LiveData<List<Character>>
-        get() = _characterInMonth
-    fun getCharacterByMonth(month: Int) {
-        viewModelScope.launch {
-            _characterInMonth.value = Repository.getCharacterByMonth(month)
-        }
-    }
+    suspend fun fetchCharacterByMonth(month: Int) = Repository.getCharacterByMonth(month)
 
     //dailyTag服务
     private val _dailyTagUiState = MutableLiveData<DailyTagUiState>()

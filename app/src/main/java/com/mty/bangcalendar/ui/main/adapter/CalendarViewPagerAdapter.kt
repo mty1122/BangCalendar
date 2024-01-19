@@ -3,12 +3,19 @@ package com.mty.bangcalendar.ui.main.adapter
 import android.annotation.SuppressLint
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.PagerAdapter
+import com.mty.bangcalendar.ui.main.state.CalendarItemUiState
 import com.mty.bangcalendar.ui.main.view.CalendarScrollView
 import com.mty.bangcalendar.util.LogUtil
+import kotlinx.coroutines.launch
 
-class CalendarViewPagerAdapter(val views: List<CalendarScrollView>) : PagerAdapter() {
+class CalendarViewPagerAdapter(
+    val views: List<CalendarScrollView>,
+    private val lifecycleScope: LifecycleCoroutineScope,
+    private val fetchBirthdayMapByMonth: suspend (Int) -> Map<String, Int>,
+) : PagerAdapter() {
 
     companion object {
         //定义滚动结果常量
@@ -59,21 +66,27 @@ class CalendarViewPagerAdapter(val views: List<CalendarScrollView>) : PagerAdapt
         when (getScrollResult(lastPosition, position)) {
             RESULT_PLUS -> {
                 calendarUtil.month += 3
-                adapter.dateList.run {
-                    this as ArrayList
-                    clear()
-                    addAll(calendarUtil.getDateList())
+                lifecycleScope.launch {
+                    val birthdayMap = fetchBirthdayMapByMonth(calendarUtil.month)
+                    val dateList = calendarUtil.getDateList()
+                    adapter.uiState = CalendarItemUiState(
+                        birthdayMap = birthdayMap,
+                        dateList = dateList
+                    )
+                    adapter.notifyDataSetChanged()
                 }
-                adapter.notifyDataSetChanged()
             }
             RESULT_MINUS -> {
                 calendarUtil.month -= 3
-                adapter.dateList.run {
-                    this as ArrayList
-                    clear()
-                    addAll(calendarUtil.getDateList())
+                lifecycleScope.launch {
+                    val birthdayMap = fetchBirthdayMapByMonth(calendarUtil.month)
+                    val dateList = calendarUtil.getDateList()
+                    adapter.uiState = CalendarItemUiState(
+                        birthdayMap = birthdayMap,
+                        dateList = dateList
+                    )
+                    adapter.notifyDataSetChanged()
                 }
-                adapter.notifyDataSetChanged()
             }
         }
     }

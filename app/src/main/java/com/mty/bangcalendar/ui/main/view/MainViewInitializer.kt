@@ -17,6 +17,7 @@ import com.mty.bangcalendar.ui.main.MainActivity
 import com.mty.bangcalendar.ui.main.MainViewModel
 import com.mty.bangcalendar.ui.main.adapter.CalendarViewAdapter
 import com.mty.bangcalendar.ui.main.adapter.CalendarViewPagerAdapter
+import com.mty.bangcalendar.ui.main.state.CalendarItemUiState
 import com.mty.bangcalendar.ui.main.state.MainUiState
 import com.mty.bangcalendar.util.CalendarUtil
 import com.mty.bangcalendar.util.CharacterUtil
@@ -99,7 +100,7 @@ class MainViewInitializer(
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    private fun calendarInit() {
+    private suspend fun calendarInit() {
         val list = listOf(
             getCalendarView(-1, 0),
             getCalendarView(0, 1),
@@ -107,37 +108,14 @@ class MainViewInitializer(
         )
         //初始化viewPager
         val viewPager: ViewPager = mainActivity.findViewById(R.id.viewPager)
-        val pagerAdapter = CalendarViewPagerAdapter(list)
+        val pagerAdapter = CalendarViewPagerAdapter(list, mainActivity.lifecycleScope) { month->
+            val characterList = viewModel.fetchCharacterByMonth(month)
+            CharacterUtil.characterListToBirthdayMap(characterList)
+        }
         viewPager.adapter = pagerAdapter
         viewPager.currentItem = 1 //viewPager初始位置为1
         //设置监听器，用来监听滚动（日历翻页）
         viewPager.addOnPageChangeListener(getOnPageChangeListener(viewPager, list, pagerAdapter))
-        //观察角色集合的变化，刷新当前月过生日的角色
-        viewModel.characterInMonth.observe(mainActivity) {
-            if (it.isNotEmpty()) {
-                for (calendarView in list) {
-                    //由于生日角色只在当前页面刷新，故获取当前显示的view信息
-                    if (calendarView.lastPosition == viewModel.calendarCurrentPosition) {
-                        val view = calendarView.view as RecyclerView
-                        val adapter = view.adapter as CalendarViewAdapter
-                        val calendarUtil = adapter.calendarUtil
-                        //如果当前view的月份与得到的月份一样，则刷新生日角色
-                        if (CharacterUtil.birthdayToMonth(it[0].birthday) == calendarUtil.month) {
-                            adapter.birthdayMap.clear()
-                            CharacterUtil.characterListToBirthdayMap(it, adapter.birthdayMap)
-                            adapter.notifyDataSetChanged()
-                            //刷新生日卡片
-                            val characterId =
-                                adapter.birthdayMap[viewModel.currentDate.value?.day.toString()]
-                            if (characterId != null)
-                                viewModel.refreshBirthdayCard(characterId)
-                            else
-                                viewModel.refreshBirthdayCard(0)
-                        }
-                    }
-                }
-            }
-        }
     }
 
     private fun getOnPageChangeListener(viewPager: ViewPager, list: List<CalendarScrollView>,
@@ -155,7 +133,6 @@ class MainViewInitializer(
                     val calendarUtil = adapter.calendarUtil
                     val year = calendarUtil.year
                     val month = calendarUtil.month
-                    viewModel.getCharacterByMonth(month) //刷新当前月的生日角色
                     val selectedDay = viewModel.selectedItem.value!!
                     val maxDay = calendarUtil.getMaximumDaysInMonth()
                     //刷新当前日期，从而刷新卡片信息
@@ -195,24 +172,29 @@ class MainViewInitializer(
 
     //获取ViewPager的单个view(recyclerView)
     @SuppressLint("NotifyDataSetChanged") //当目标日期改变时，刷新RecyclerView
-    private fun getCalendarView(relativeMonth: Int, lastPosition: Int): CalendarScrollView {
+    private suspend fun getCalendarView(relativeMonth: Int, lastPosition: Int): CalendarScrollView{
         val calendar = CalendarUtil()
         calendar.clearDays()
         calendar.month += relativeMonth
-        val dateList = calendar.getDateList()
         //创建日历recyclerView
         val layoutManager = object : GridLayoutManager(mainActivity, 7) {
             //禁止纵向滚动
             override fun canScrollVertically() = false
         }
         val recyclerView = RecyclerView(mainActivity)
-        val adapter = CalendarViewAdapter(mainActivity, dateList, calendar, viewModel)
+        //获取初始数据
+        val dateList = calendar.getDateList()
+        val characterList = viewModel.fetchCharacterByMonth(calendar.month)
+        val birthdayMap = CharacterUtil.characterListToBirthdayMap(characterList)
+        val calendarItemUiState = CalendarItemUiState(
+            dateList = dateList,
+            birthdayMap = birthdayMap
+        )
+        //设置适配器
+        val adapter = CalendarViewAdapter(mainActivity, calendarItemUiState, calendar, viewModel)
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = adapter
-        //观察选中item的变化，从而设置选中效果
-        viewModel.selectedItem.observe(mainActivity) {
-            adapter.notifyDataSetChanged()
-        }
+
         return CalendarScrollView(recyclerView, lastPosition)
     }
 

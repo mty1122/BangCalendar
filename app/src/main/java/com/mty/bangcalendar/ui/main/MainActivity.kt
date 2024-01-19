@@ -189,6 +189,9 @@ class MainActivity : BaseActivity() {
 
     private fun setBirthdayCardUiStateObserver(mainBinding: ActivityMainBinding) {
         viewModel.birthdayCardUiState.observe(this) {
+            //加载中不刷新生日卡片
+            if (viewModel.mainUiState.value.isLoading)
+                return@observe
             //刷新生日卡片
             when (it) {
                 0 -> {
@@ -217,6 +220,9 @@ class MainActivity : BaseActivity() {
     private fun setEventCardUiStateObserver(mainBinding: ActivityMainBinding) {
         //观察活动变化，刷新活动组件内容
         viewModel.eventCardUiState.observe(this) {
+            //加载中不刷新活动卡片
+            if (viewModel.mainUiState.value.isLoading)
+                return@observe
             val currentDate = viewModel.currentDate.value!!.toDate()
             //活动小于第一期或者大于最后一期的情况
             if (it.event == null || currentDate - IntDate(it.event.startDate) >= 13) {

@@ -97,7 +97,7 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    //主界面加载的起点，首次启动从使用当天活动
+    //主界面加载的起点，首次启动使用当天活动
     fun fetchInitData() = flow {
         val currentEvent = if (mainUiState.value.isFirstStart) {
             val todayEvent = Repository.getEventByDate(systemDate.toDate())!!

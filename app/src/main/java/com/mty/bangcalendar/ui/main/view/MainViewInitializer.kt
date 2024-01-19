@@ -100,11 +100,11 @@ class MainViewInitializer(
 
     @SuppressLint("NotifyDataSetChanged")
     private fun calendarInit() {
-        val list = ArrayList<CalendarScrollView>().apply {
-            add(getCalendarView(-1, 0))
-            add(getCalendarView(0, 1))
-            add(getCalendarView(1, 2))
-        }
+        val list = listOf(
+            getCalendarView(-1, 0),
+            getCalendarView(0, 1),
+            getCalendarView(1, 2)
+        )
         //初始化viewPager
         val viewPager: ViewPager = mainActivity.findViewById(R.id.viewPager)
         val pagerAdapter = CalendarViewPagerAdapter(list)

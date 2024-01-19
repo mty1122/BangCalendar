@@ -16,16 +16,35 @@ import com.mty.bangcalendar.util.startCharacterListActivity
 
 class BirthdayCardView {
 
+    //记录生日卡片可见性
+    var isBirthdayCardVisible = true
     //记录滑动手势的起始点，用于折叠卡片
     private var touchEventStartY = 0f
+
+    //当UiState发生改变时，进行处理
+    fun handleUiState(context: Context, mainBinding: ActivityMainBinding, uiState: Int) {
+        when (uiState) {
+            0 -> {
+                if (isBirthdayCardVisible){
+                    isBirthdayCardVisible = false
+                    runBirthdayCardAnim(mainBinding, false)
+                }
+            }
+            else -> {
+                refreshBirthdayCard(context, uiState, mainBinding)
+                if (!isBirthdayCardVisible) {
+                    isBirthdayCardVisible = true
+                    runBirthdayCardAnim(mainBinding, true)
+                }
+            }
+        }
+    }
 
     //处理生日卡片折叠/展开动画时的手势
     fun handleMainViewTouchEvent(
         event: MotionEvent,
         binding: ActivityMainBinding,
         getBirthdayCardUiState: () -> Int,
-        getBirthdayCardVisibility: () -> Boolean,
-        setBirthdayCardVisible: (Boolean) -> Unit
     ) {
         //生日卡片不显示时不处理
         if (getBirthdayCardUiState() < 1)
@@ -38,12 +57,12 @@ class BirthdayCardView {
             MotionEvent.ACTION_MOVE -> {
                 val deltaY = event.y - touchEventStartY
                 //向下滑动，触发展开动画
-                if (deltaY > 0 && !getBirthdayCardVisibility()) {
-                    setBirthdayCardVisible(true)
+                if (deltaY > 0 && !isBirthdayCardVisible) {
+                    isBirthdayCardVisible = true
                     runBirthdayCardAnim(binding, true)
                     //向上滑动，触发折叠动画
-                } else if (deltaY < 0 && getBirthdayCardVisibility()) {
-                    setBirthdayCardVisible(false)
+                } else if (deltaY < 0 && isBirthdayCardVisible) {
+                    isBirthdayCardVisible = false
                     runBirthdayCardAnim(binding, false)
                 }
             }
@@ -77,7 +96,7 @@ class BirthdayCardView {
         }
     }
 
-    fun runBirthdayCardAnim(binding: ActivityMainBinding, isInsert: Boolean) {
+    private fun runBirthdayCardAnim(binding: ActivityMainBinding, isInsert: Boolean) {
         val mainLinearLayout = binding.mainView
         val birCardIndex = mainLinearLayout.indexOfChild(binding.birCardParent)
         val animDuration = AnimUtil.getAnimPreference().toLong()

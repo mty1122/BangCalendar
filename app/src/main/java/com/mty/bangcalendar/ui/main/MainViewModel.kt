@@ -113,9 +113,13 @@ class MainViewModel : ViewModel() {
             null
         }
         val dailyTagUiState = fetchDailyTagUiState()
-        val birthdayCardUiState = flow {
+        val birthdayCardUiState = if (mainUiState.value.isFirstStart) flow {
             emit(
                 Repository.getCharacterIdByBirthday(systemDate.toDate().toBirthday()).toInt()
+            )
+        } else flow {
+            emit(
+                Repository.getCharacterIdByBirthday(currentIntDate.toBirthday()).toInt()
             )
         }
         emit(
@@ -162,8 +166,6 @@ class MainViewModel : ViewModel() {
         get() = _birthdayCardUiState
     private val _birthdayCardUiState = MutableLiveData<Int>()
 
-    //记录生日卡片可见性
-    var isBirthdayCardVisible = true
     fun refreshBirthdayCard(id: Int) {
         if (id != _birthdayCardUiState.value)
             _birthdayCardUiState.value = id
@@ -194,8 +196,6 @@ class MainViewModel : ViewModel() {
     private val _eventCardUiState = MutableLiveData<EventCardUiState>()
     val eventCardUiState: LiveData<EventCardUiState>
         get() = _eventCardUiState
-    //记录活动卡片的可见性
-    var isEventCardVisible = true
     fun getEventByDate(date: IntDate) {
         viewModelScope.launch {
             val event = Repository.getEventByDate(date)

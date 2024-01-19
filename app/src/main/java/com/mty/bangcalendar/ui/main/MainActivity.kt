@@ -18,7 +18,6 @@ import androidx.viewpager.widget.ViewPager
 import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivityMainBinding
-import com.mty.bangcalendar.logic.model.IntDate
 import com.mty.bangcalendar.ui.BaseActivity
 import com.mty.bangcalendar.ui.main.adapter.CalendarViewAdapter
 import com.mty.bangcalendar.ui.main.adapter.CalendarViewPagerAdapter
@@ -123,10 +122,7 @@ class MainActivity : BaseActivity() {
             birthdayCardView.handleMainViewTouchEvent(
                 event,
                 mainBinding,
-                { viewModel.birthdayCardUiState.value!! },
-                { viewModel.isBirthdayCardVisible },
-                { viewModel.isBirthdayCardVisible = it }
-            )
+            ) { viewModel.birthdayCardUiState.value!! }
             true
         }
 
@@ -193,21 +189,7 @@ class MainActivity : BaseActivity() {
             if (viewModel.mainUiState.value.isLoading)
                 return@observe
             //刷新生日卡片
-            when (it) {
-                0 -> {
-                    if (viewModel.isBirthdayCardVisible){
-                        viewModel.isBirthdayCardVisible = false
-                        birthdayCardView.runBirthdayCardAnim(mainBinding, false)
-                    }
-                }
-                else -> {
-                    birthdayCardView.refreshBirthdayCard(this, it, mainBinding)
-                    if (!viewModel.isBirthdayCardVisible) {
-                        viewModel.isBirthdayCardVisible = true
-                        birthdayCardView.runBirthdayCardAnim(mainBinding, true)
-                    }
-                }
-            }
+            birthdayCardView.handleUiState(this, mainBinding, it)
         }
     }
 
@@ -218,38 +200,14 @@ class MainActivity : BaseActivity() {
     }
 
     private fun setEventCardUiStateObserver(mainBinding: ActivityMainBinding) {
-        //观察活动变化，刷新活动组件内容
         viewModel.eventCardUiState.observe(this) {
             //加载中不刷新活动卡片
             if (viewModel.mainUiState.value.isLoading)
                 return@observe
-            val currentDate = viewModel.currentDate.value!!.toDate()
-            //活动小于第一期或者大于最后一期的情况
-            if (it.event == null || currentDate - IntDate(it.event.startDate) >= 13) {
-                if (viewModel.isEventCardVisible) {
-                    viewModel.isEventCardVisible = false
-                    //启动隐藏动画
-                    eventCardView.runEventCardAnim(mainBinding, 0f)
-                    //取消注册监听器
-                    eventCardView.cancelListener(mainBinding)
-                }
-            //活动合法的情况
-            } else {
-                LogUtil.d("Event", "Event id is ${it.event.id}")
-                //不可见时，刷新活动
-                if (!viewModel.isEventCardVisible) {
-                    viewModel.isEventCardVisible = true
-                    eventCardView.refreshEventComponent(this, lifecycleScope,
-                        viewModel.mainUiState.value, it.event, it.eventPicture!!, mainBinding)
-                    //启动显示动画
-                    eventCardView.runEventCardAnim(mainBinding, 1f)
-                //不同活动之间移动，刷新活动
-                } else if (!EventUtil.isSameEvent(mainBinding.eventCard.eventType.text.toString(),
-                        it.event.id.toInt())) {
-                    eventCardView.refreshEventComponent(this, lifecycleScope,
-                        viewModel.mainUiState.value,it.event, it.eventPicture!!, mainBinding)
-                }
-            }
+            //刷新活动卡片
+            eventCardView.handleUiState(this, lifecycleScope,
+                viewModel.currentDate.value!!.toDate(),
+                viewModel.mainUiState.value, it, mainBinding)
         }
     }
 

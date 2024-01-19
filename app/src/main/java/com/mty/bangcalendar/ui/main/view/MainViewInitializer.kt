@@ -65,7 +65,7 @@ class MainViewInitializer(
     private fun birCardInit(id: Int, binding: ActivityMainBinding) {
         if (id > 0) {
             birthdayCardView.refreshBirthdayCard(mainActivity, id, binding)
-            viewModel.isBirthdayCardVisible = true
+            birthdayCardView.isBirthdayCardVisible = true
         }
         else {
             val mainLinearLayout = binding.mainView
@@ -80,7 +80,7 @@ class MainViewInitializer(
                 cardBelow.translationY = translationY
             }
             binding.birCard.cardView.translationY = translationY
-            viewModel.isBirthdayCardVisible = false
+            birthdayCardView.isBirthdayCardVisible = false
         }
     }
 
@@ -89,10 +89,10 @@ class MainViewInitializer(
     ) {
         val currentDate = systemDate.toDate()
         if (event == null || currentDate - IntDate(event.startDate) >= 13) {
-            viewModel.isEventCardVisible = false
+            eventCardView.isEventCardVisible = false
             binding.eventCard.eventCardItem.alpha = 0f
         } else {
-            viewModel.isEventCardVisible = true
+            eventCardView.isEventCardVisible = true
             eventCardView.refreshEventComponent(mainActivity, mainActivity.lifecycleScope,
                 mainUiState, event, eventPicture!!, binding)
         }

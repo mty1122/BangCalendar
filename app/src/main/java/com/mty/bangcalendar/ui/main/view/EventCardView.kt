@@ -9,7 +9,9 @@ import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivityMainBinding
 import com.mty.bangcalendar.logic.model.Event
+import com.mty.bangcalendar.logic.model.IntDate
 import com.mty.bangcalendar.ui.list.EventListActivity
+import com.mty.bangcalendar.ui.main.state.EventCardUiState
 import com.mty.bangcalendar.ui.main.state.MainUiState
 import com.mty.bangcalendar.util.AnimUtil
 import com.mty.bangcalendar.util.EventUtil
@@ -22,7 +24,47 @@ import kotlinx.coroutines.launch
 
 class EventCardView {
 
-    fun runEventCardAnim(mainBinding: ActivityMainBinding, endAlpha: Float) {
+    //记录活动卡片的可见性
+    var isEventCardVisible = true
+
+    fun handleUiState(
+        context: Context,
+        lifecycleScope: LifecycleCoroutineScope,
+        currentDate: IntDate,
+        mainUiState: MainUiState,
+        eventCardUiState: EventCardUiState,
+        mainBinding: ActivityMainBinding
+    ) {
+        //活动小于第一期或者大于最后一期的情况
+        if (eventCardUiState.event == null ||
+            currentDate - IntDate(eventCardUiState.event.startDate) >= 13) {
+            if (isEventCardVisible) {
+                isEventCardVisible = false
+                //启动隐藏动画
+                runEventCardAnim(mainBinding, 0f)
+                //取消注册监听器
+                cancelListener(mainBinding)
+            }
+            //活动合法的情况
+        } else {
+            LogUtil.d("Event", "Event id is ${eventCardUiState.event.id}")
+            //不可见时，刷新活动
+            if (!isEventCardVisible) {
+                isEventCardVisible = true
+                refreshEventComponent(context, lifecycleScope, mainUiState,
+                    eventCardUiState.event, eventCardUiState.eventPicture!!, mainBinding)
+                //启动显示动画
+                runEventCardAnim(mainBinding, 1f)
+                //不同活动之间移动，刷新活动
+            } else if (!EventUtil.isSameEvent(mainBinding.eventCard.eventType.text.toString(),
+                    eventCardUiState.event.id.toInt())) {
+                refreshEventComponent(context, lifecycleScope, mainUiState,
+                    eventCardUiState.event, eventCardUiState.eventPicture!!, mainBinding)
+            }
+        }
+    }
+
+    private fun runEventCardAnim(mainBinding: ActivityMainBinding, endAlpha: Float) {
         mainBinding.eventCard.eventCardItem.run {
             if (endAlpha != alpha)
                 ObjectAnimator.ofFloat(this, "alpha", endAlpha)
@@ -32,7 +74,7 @@ class EventCardView {
         }
     }
 
-    fun cancelListener(mainBinding: ActivityMainBinding) {
+    private fun cancelListener(mainBinding: ActivityMainBinding) {
         mainBinding.eventCard.char1.setOnClickListener(null)
         mainBinding.eventCard.char2.setOnClickListener(null)
         mainBinding.eventCard.char3.setOnClickListener(null)

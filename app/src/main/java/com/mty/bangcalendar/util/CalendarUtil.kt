@@ -21,23 +21,36 @@ class CalendarUtil(val date: IntDate? = null) {
     private var calendar = Calendar.getInstance()
 
     var rows: Int = FIVE_ROWS
+        private set
 
     var year: Int
         get() = calendar.get(Calendar.YEAR)
-        set(value) = calendar.set(Calendar.YEAR, value)
+        set(value) {
+            calendar.set(Calendar.YEAR, value)
+            refreshRows()
+        }
 
     //月默认从0开始
     var month: Int
         get() = calendar.get(Calendar.MONTH) + 1
-        set(value) = calendar.set(Calendar.MONTH, value - 1)
+        set(value) {
+            calendar.set(Calendar.MONTH, value - 1)
+            refreshRows()
+        }
 
     var day: Int
         get() = calendar.get(Calendar.DATE)
-        set(value) = calendar.set(Calendar.DATE, value)
+        set(value) {
+            calendar.set(Calendar.DATE, value)
+            refreshRows()
+        }
 
     var hour: Int
         get() = calendar.get(Calendar.HOUR_OF_DAY)
-        set(value) = calendar.set(Calendar.HOUR_OF_DAY, value)
+        set(value) {
+            calendar.set(Calendar.HOUR_OF_DAY, value)
+            refreshRows()
+        }
 
     init {
         //采用date初始化CalendarUtil(有参)
@@ -60,16 +73,6 @@ class CalendarUtil(val date: IntDate? = null) {
     fun getMaximumDaysInMonth(): Int = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
 
     fun getDayOfWeak(): Int = calendar.get(Calendar.DAY_OF_WEEK)
-
-    fun plusOneMonth() {
-        calendar.add(Calendar.MONTH, 1)
-        refreshRows()
-    }
-
-    fun minusOneMonth() {
-        calendar.add(Calendar.MONTH, -1)
-        refreshRows()
-    }
 
     fun clearDays() {
         calendar.set(Calendar.DATE, 1)
@@ -97,20 +100,14 @@ class CalendarUtil(val date: IntDate? = null) {
     private fun refreshRows() {
         val maxDays = getMaximumDaysInMonth()
         val day = this.day
-        this.day = 1
+        calendar.set(Calendar.DATE, 1)
         val dayOfWeak = getDayOfWeak()
-        this.day = day
+        calendar.set(Calendar.DATE, day)
         rows = if (maxDays + dayOfWeak < 37) {
             FIVE_ROWS
         } else {
             SIX_ROWS
         }
-        LogUtil.d(this, "maxDays = $maxDays  dayOfWeek = $dayOfWeak rows = $rows")
-    }
-
-    fun setRelativeMonth(month: Int) {
-        calendar.add(Calendar.MONTH, month)
-        refreshRows()
     }
 
     fun toDate() = getDate(year, month, day)

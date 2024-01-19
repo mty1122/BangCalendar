@@ -246,9 +246,8 @@ class MainActivity : BaseActivity() {
                 .adapter as CalendarViewAdapter
             val calendarUtil = viewAdapter.calendarUtil
             calendarUtil.year = target.year
-            calendarUtil.month = target.month
-            calendarUtil.rows = target.rows
-            calendarUtil.setRelativeMonth(relativeMonth++)
+            calendarUtil.month = target.month + relativeMonth
+            relativeMonth++
             viewAdapter.dateList.run {
                 this as ArrayList
                 clear()
@@ -269,7 +268,6 @@ class MainActivity : BaseActivity() {
             it.year = target.year
             it.month = target.month
             it.day = target.day
-            it.rows = target.rows
         }
         viewModel.refreshCurrentDate() //刷新卡片信息
         viewModel.getCharacterByMonth(target.month) //刷新角色生日

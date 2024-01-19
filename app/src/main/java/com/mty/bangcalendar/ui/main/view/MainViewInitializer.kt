@@ -198,7 +198,7 @@ class MainViewInitializer(
     private fun getCalendarView(relativeMonth: Int, lastPosition: Int): CalendarScrollView {
         val calendar = CalendarUtil()
         calendar.clearDays()
-        calendar.setRelativeMonth(relativeMonth)
+        calendar.month += relativeMonth
         val dateList = calendar.getDateList()
         //创建日历recyclerView
         val layoutManager = object : GridLayoutManager(mainActivity, 7) {

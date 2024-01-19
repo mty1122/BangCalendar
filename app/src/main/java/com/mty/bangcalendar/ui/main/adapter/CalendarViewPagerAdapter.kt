@@ -58,9 +58,7 @@ class CalendarViewPagerAdapter(val views: List<CalendarScrollView>) : PagerAdapt
 
         when (getScrollResult(lastPosition, position)) {
             RESULT_PLUS -> {
-                repeat(3) {
-                    calendarUtil.plusOneMonth()
-                }
+                calendarUtil.month += 3
                 adapter.dateList.run {
                     this as ArrayList
                     clear()
@@ -69,9 +67,7 @@ class CalendarViewPagerAdapter(val views: List<CalendarScrollView>) : PagerAdapt
                 adapter.notifyDataSetChanged()
             }
             RESULT_MINUS -> {
-                repeat(3) {
-                    calendarUtil.minusOneMonth()
-                }
+                calendarUtil.month -= 3
                 adapter.dateList.run {
                     this as ArrayList
                     clear()

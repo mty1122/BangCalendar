@@ -118,7 +118,7 @@ class MainViewModel : ViewModel() {
             )
         } else flow {
             emit(
-                Repository.getCharacterIdByBirthday(currentIntDate.toBirthday()).toInt()
+                Repository.getCharacterIdByBirthday(currentDate.value!!.toBirthday()).toInt()
             )
         }
         emit(
@@ -135,29 +135,16 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    //当前选中的日期
-    val currentDate: LiveData<CalendarUtil>
+    //当前选中的日期，处理因日期变化带来的ui改变（核心功能）
+    val currentDate: LiveData<IntDate>
         get() = _currentDate
 
-    private val _currentDate = MutableLiveData(CalendarUtil())
-    private var currentIntDate = _currentDate.value!!.toDate()
-
-    //防止重复刷新
-    fun refreshCurrentDate() {
-        if (_currentDate.value!!.toDate().value != currentIntDate.value) {
-            _currentDate.value = _currentDate.value
-            currentIntDate = _currentDate.value!!.toDate()
+    private val _currentDate = MutableLiveData(CalendarUtil().toDate())
+    fun refreshCurrentDate(newDate: IntDate) {
+        //防止重复刷新
+        if (newDate != currentDate.value) {
+            _currentDate.value = newDate
         }
-    }
-
-    //当前选中item
-    val selectedItem: LiveData<Int>
-        get() = _selectedItem
-
-    private val _selectedItem = MutableLiveData<Int>()
-
-    fun setSelectedItem(item: Int) {
-        _selectedItem.value = item
     }
 
     //生日卡片
@@ -165,12 +152,15 @@ class MainViewModel : ViewModel() {
         get() = _birthdayCardUiState
     private val _birthdayCardUiState = MutableLiveData<Int>()
 
-    fun refreshBirthdayCard(id: Int) {
-        if (id != _birthdayCardUiState.value)
-            _birthdayCardUiState.value = id
+    fun refreshBirthdayCard(date: IntDate) {
+        viewModelScope.launch {
+            val characterId = Repository.getCharacterIdByBirthday(date.toBirthday()).toInt()
+            if (characterId != _birthdayCardUiState.value)
+                _birthdayCardUiState.value = characterId
+        }
     }
 
-    //跳转日期
+    //跳转日期，处理外部跳转请求
     val jumpDate: LiveData<IntDate>
         get() = _jumpDate
 
@@ -181,8 +171,6 @@ class MainViewModel : ViewModel() {
     }
 
     init {
-        _selectedItem.value = systemDate.day
-
         Repository.registerOnDefaultPreferenceChangeListener(onSettingsChangeListener)
 
         val intentFilter = IntentFilter()

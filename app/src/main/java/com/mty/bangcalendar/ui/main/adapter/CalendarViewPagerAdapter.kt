@@ -6,7 +6,6 @@ import android.view.ViewGroup
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.PagerAdapter
-import com.mty.bangcalendar.ui.main.state.CalendarItemUiState
 import com.mty.bangcalendar.ui.main.view.CalendarScrollView
 import com.mty.bangcalendar.util.LogUtil
 import kotlinx.coroutines.launch
@@ -69,7 +68,8 @@ class CalendarViewPagerAdapter(
                 lifecycleScope.launch {
                     val birthdayMap = fetchBirthdayMapByMonth(calendarUtil.month)
                     val dateList = calendarUtil.getDateList()
-                    adapter.uiState = CalendarItemUiState(
+                    adapter.uiState = adapter.uiState.copy(
+                        isVisible = false,
                         birthdayMap = birthdayMap,
                         dateList = dateList
                     )
@@ -81,7 +81,8 @@ class CalendarViewPagerAdapter(
                 lifecycleScope.launch {
                     val birthdayMap = fetchBirthdayMapByMonth(calendarUtil.month)
                     val dateList = calendarUtil.getDateList()
-                    adapter.uiState = CalendarItemUiState(
+                    adapter.uiState = adapter.uiState.copy(
+                        isVisible = false,
                         birthdayMap = birthdayMap,
                         dateList = dateList
                     )

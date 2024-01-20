@@ -1,8 +1,11 @@
 package com.mty.bangcalendar.ui.main.state
 
+import com.mty.bangcalendar.logic.model.IntDate
+
 data class CalendarItemUiState(
-    val selectedItem: Int = -1, //默认不选中
+    val isVisible: Boolean,
     val dateList: List<String>,
     val birthdayMap: Map<String, Int>,
-    val onClick: () -> Unit = {} //默认不设置点击事件
+    val getCurrentDate: () -> IntDate,
+    val onDateChange: (IntDate) -> Unit
 )

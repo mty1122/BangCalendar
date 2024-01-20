@@ -1,5 +1,6 @@
 package com.mty.bangcalendar.ui.main.adapter
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
@@ -9,18 +10,20 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.mty.bangcalendar.R
-import com.mty.bangcalendar.ui.main.MainViewModel
 import com.mty.bangcalendar.ui.main.state.CalendarItemUiState
 import com.mty.bangcalendar.util.CalendarUtil
 import com.mty.bangcalendar.util.EventUtil
+import com.mty.bangcalendar.util.GenericUtil
 import com.mty.bangcalendar.util.LogUtil
 import com.mty.bangcalendar.util.ThemeUtil
 import de.hdodenhof.circleimageview.CircleImageView
 
-class CalendarViewAdapter(private val context: Context, var uiState: CalendarItemUiState,
-    val calendarUtil: CalendarUtil, private val viewModel: MainViewModel
-)
-    : RecyclerView.Adapter<CalendarViewAdapter.ViewHolder>() {
+@SuppressLint("NotifyDataSetChanged")
+class CalendarViewAdapter(
+    private val context: Context,
+    var uiState: CalendarItemUiState,
+    val calendarUtil: CalendarUtil
+) : RecyclerView.Adapter<CalendarViewAdapter.ViewHolder>() {
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val date: TextView = view.findViewById(R.id.dateItem)
@@ -33,25 +36,16 @@ class CalendarViewAdapter(private val context: Context, var uiState: CalendarIte
             .inflate(R.layout.date_item, parent, false)
         val holder = ViewHolder(view)
         holder.itemView.setOnClickListener {
-            val day = holder.date.text.toString()
-            if (day != "") {
-                //如果不为空，则选中目标日期
-                val intDay = Integer.parseInt(day)
-                viewModel.run {
-                    //避免重复点击
-                    if (selectedItem.value != intDay) {
-                        currentDate.value?.day = intDay
-                        setSelectedItem(intDay) //选中目标
-                        refreshCurrentDate() //刷新日期
-                        //刷新生日卡片
-                        val characterId = uiState.birthdayMap[day]
-                        if (characterId != null) {
-                            LogUtil.d("Character", "有角色过生日")
-                            viewModel.refreshBirthdayCard(characterId)
-                        }else {
-                            viewModel.refreshBirthdayCard(0)
-                        }
-                    }
+            val selectedItem = holder.date.text.toString()
+            if (selectedItem != "") {
+                val selectedDay = selectedItem.toInt()
+                val currentDay = uiState.getCurrentDate().getDay()
+                //如果不是重复点击，则更新当前日期
+                if (selectedDay != currentDay) {
+                    uiState.onDateChange(
+                        CalendarUtil.getDate(calendarUtil.year, calendarUtil.month, selectedDay)
+                    )
+                    notifyDataSetChanged()
                 }
             }
         }
@@ -63,19 +57,16 @@ class CalendarViewAdapter(private val context: Context, var uiState: CalendarIte
         val characterId = uiState.birthdayMap[uiState.dateList[position]]
         //五行显示不下动态调整六行
         if (calendarUtil.rows == CalendarUtil.SIX_ROWS) {
-            val scale = context.resources.displayMetrics.density
-            val dpValue = 58
-            val pxValue = (dpValue * scale + 0.5f).toInt()
             holder.itemView.layoutParams.let {
-                it.height = pxValue
+                it.height = GenericUtil.dpToPx(58)
                 holder.itemView.layoutParams = it
             }
         }
         //添加日期
         holder.date.text = uiState.dateList[position]
         //设置选中项背景
-        if (uiState.dateList[position] != "" && Integer.parseInt(uiState.dateList[position])
-            == viewModel.selectedItem.value) {
+        if (uiState.isVisible && uiState.dateList[position] != "" &&
+            uiState.dateList[position].toInt() == uiState.getCurrentDate().getDay()) {
             holder.birthday.visibility = View.GONE
             holder.selectBg.visibility = View.VISIBLE
             holder.date.setTextColor(context.getColor(R.color.white))

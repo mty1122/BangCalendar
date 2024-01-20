@@ -122,6 +122,7 @@ class MainViewInitializer(
                                         pagerAdapter: CalendarViewPagerAdapter) =
         object : ViewPager.OnPageChangeListener {
         //position为当前位置（正在滚动时就会改变），监听月变化（翻页）
+        @SuppressLint("NotifyDataSetChanged")
         override fun onPageSelected(position: Int) {
             viewModel.calendarCurrentPosition = position
             for (calendarView in list) {
@@ -133,19 +134,20 @@ class MainViewInitializer(
                     val calendarUtil = adapter.calendarUtil
                     val year = calendarUtil.year
                     val month = calendarUtil.month
-                    val selectedDay = viewModel.selectedItem.value!!
+                    var selectedDay = adapter.uiState.getCurrentDate().getDay()
                     val maxDay = calendarUtil.getMaximumDaysInMonth()
                     //刷新当前日期，从而刷新卡片信息
-                    viewModel.run {
-                        currentDate.value?.year = year
-                        currentDate.value?.month = month
-                        //判断最大天数是否满足选中天数
-                        if (maxDay < selectedDay) {
-                            currentDate.value?.day = maxDay
-                            setSelectedItem(maxDay)
-                        }
-                        refreshCurrentDate()
+                    if (maxDay < selectedDay) {
+                        selectedDay = maxDay
                     }
+                    adapter.uiState.onDateChange(
+                        CalendarUtil.getDate(year, month, selectedDay)
+                    )
+                    //设置可见性，显示选中项
+                    adapter.uiState = adapter.uiState.copy(
+                        isVisible = true
+                    )
+                    adapter.notifyDataSetChanged()
                 }
             }
         }
@@ -187,11 +189,16 @@ class MainViewInitializer(
         val characterList = viewModel.fetchCharacterByMonth(calendar.month)
         val birthdayMap = CharacterUtil.characterListToBirthdayMap(characterList)
         val calendarItemUiState = CalendarItemUiState(
+            isVisible = lastPosition == 1, //设置中间的日历视图可见
             dateList = dateList,
-            birthdayMap = birthdayMap
+            birthdayMap = birthdayMap,
+            getCurrentDate = { viewModel.currentDate.value!! },
+            onDateChange = {
+                viewModel.refreshCurrentDate(it)
+            }
         )
         //设置适配器
-        val adapter = CalendarViewAdapter(mainActivity, calendarItemUiState, calendar, viewModel)
+        val adapter = CalendarViewAdapter(mainActivity, calendarItemUiState, calendar)
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = adapter
 

@@ -21,7 +21,6 @@ import com.mty.bangcalendar.databinding.ActivityMainBinding
 import com.mty.bangcalendar.ui.BaseActivity
 import com.mty.bangcalendar.ui.main.adapter.CalendarViewAdapter
 import com.mty.bangcalendar.ui.main.adapter.CalendarViewPagerAdapter
-import com.mty.bangcalendar.ui.main.state.CalendarItemUiState
 import com.mty.bangcalendar.ui.main.view.BirthdayCardView
 import com.mty.bangcalendar.ui.main.view.DailyTagView
 import com.mty.bangcalendar.ui.main.view.EventCardView
@@ -90,21 +89,21 @@ class MainActivity : BaseActivity() {
         }
 
         //观察当前日期变化，及时刷新活动信息
-        viewModel.currentDate.observe(this) {
-            val date = it.toDate()
+        viewModel.currentDate.observe(this) { date->
             LogUtil.d(this, "日期发生变化 $date")
             viewModel.getEventByDate(date) //刷新活动
+            viewModel.refreshBirthdayCard(date) //刷新生日卡片
             //顶部日期刷新
             mainBinding.date.text = StringBuilder().run {
-                append(it.year)
+                append(date.getYear())
                 append("年")
-                append(it.month)
+                append(date.getMonth())
                 append("月")
                 toString()
             }
             //返回今天浮窗
-            if (it.year == systemDate.year && it.month == systemDate.month
-                && it.day== systemDate.day) {
+            if (date.getYear() == systemDate.year && date.getMonth() == systemDate.month
+                && date.getDay()== systemDate.day) {
                 mainBinding.goBackFloatButton.visibility = View.GONE
             } else {
                 mainBinding.goBackFloatButton.visibility = View.VISIBLE
@@ -134,7 +133,7 @@ class MainActivity : BaseActivity() {
         viewModel.jumpDate.observe(this) {
             val target = CalendarUtil(it)
             //防止重复跳转
-            if (!target.isSameDate(viewModel.currentDate.value!!)) {
+            if (target.toDate().value != viewModel.currentDate.value!!.value) {
                 jumpDate(mainBinding.viewPager, target)
             }
         }
@@ -205,7 +204,7 @@ class MainActivity : BaseActivity() {
                 return@observe
             //刷新活动卡片
             eventCardView.handleUiState(this, lifecycleScope,
-                viewModel.currentDate.value!!.toDate(),
+                viewModel.currentDate.value!!,
                 viewModel.mainUiState.value, it, mainBinding)
         }
     }
@@ -225,7 +224,8 @@ class MainActivity : BaseActivity() {
                     month = datePicker.month + 1
                     day = datePicker.dayOfMonth
                 }
-                if (!calendarUtil.isSameDate(viewModel.currentDate.value!!)) //原地选择不跳转
+                //原地选择不跳转
+                if (calendarUtil.toDate().value != viewModel.currentDate.value!!.value)
                     jumpDate(viewPager, calendarUtil)
             }
             .create()
@@ -234,6 +234,8 @@ class MainActivity : BaseActivity() {
 
     @SuppressLint("NotifyDataSetChanged")
     fun jumpDate(viewPager: ViewPager, target: CalendarUtil) {
+        //刷新当前日期
+        viewModel.refreshCurrentDate(target.toDate())
         val viewPagerAdapter = viewPager.adapter as CalendarViewPagerAdapter
         val scrollViewList = viewPagerAdapter.views
         var lastPosition = 0
@@ -252,7 +254,8 @@ class MainActivity : BaseActivity() {
                 val dateList = calendarUtil.getDateList()
                 val characterList = viewModel.fetchCharacterByMonth(calendarUtil.month)
                 val birthdayMap = CharacterUtil.characterListToBirthdayMap(characterList)
-                val calendarItemUiState = CalendarItemUiState(
+                val calendarItemUiState = viewAdapter.uiState.copy(
+                    isVisible = lastPosition == 1, //设置中间的日历视图可见
                     dateList = dateList,
                     birthdayMap = birthdayMap
                 )
@@ -263,14 +266,6 @@ class MainActivity : BaseActivity() {
         }
         //初始化viewPager的当前item
         viewPager.currentItem = 1
-        //初始化选中项
-        viewModel.setSelectedItem(target.day)
-        viewModel.currentDate.value?.let {
-            it.year = target.year
-            it.month = target.month
-            it.day = target.day
-        }
-        viewModel.refreshCurrentDate() //刷新卡片信息
     }
 
 }

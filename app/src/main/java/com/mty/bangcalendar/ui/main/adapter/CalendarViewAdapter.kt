@@ -18,12 +18,13 @@ import com.mty.bangcalendar.util.LogUtil
 import com.mty.bangcalendar.util.ThemeUtil
 import de.hdodenhof.circleimageview.CircleImageView
 
-@SuppressLint("NotifyDataSetChanged")
 class CalendarViewAdapter(
     private val context: Context,
     var uiState: CalendarItemUiState,
     val calendarUtil: CalendarUtil
 ) : RecyclerView.Adapter<CalendarViewAdapter.ViewHolder>() {
+
+    private var selectedItemPosition = 0
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val date: TextView = view.findViewById(R.id.dateItem)
@@ -45,14 +46,16 @@ class CalendarViewAdapter(
                     uiState.onDateChange(
                         CalendarUtil.getDate(calendarUtil.year, calendarUtil.month, selectedDay)
                     )
-                    notifyDataSetChanged()
+                    //相同页面点击操作，先去除旧的选中，再更新新的选中
+                    hideSelectedItem()
+                    showSelectedItem()
                 }
             }
         }
         return holder
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ViewHolder, @SuppressLint("RecyclerView") position: Int){
         //获取生日角色
         val characterId = uiState.birthdayMap[uiState.dateList[position]]
         //五行显示不下动态调整六行
@@ -65,12 +68,13 @@ class CalendarViewAdapter(
         //添加日期
         holder.date.text = uiState.dateList[position]
         //设置选中项背景
-        if (uiState.isVisible && uiState.dateList[position] != "" &&
-            uiState.dateList[position].toInt() == uiState.getCurrentDate().getDay()) {
+        if (uiState.isVisible &&
+            uiState.dateList[position] == uiState.getCurrentDate().getDay().toString()) {
             holder.birthday.visibility = View.GONE
             holder.selectBg.visibility = View.VISIBLE
             holder.date.setTextColor(context.getColor(R.color.white))
             LogUtil.d("Calendar", "$position 被选中")
+            selectedItemPosition = position //记录最后一个被选中的item，用于更新
         //如果生日角色存在则设置角色为背景
         } else if (uiState.dateList[position] != "" && characterId != null) {
             holder.selectBg.visibility = View.GONE
@@ -85,5 +89,15 @@ class CalendarViewAdapter(
     }
 
     override fun getItemCount() = uiState.dateList.size
+
+    fun showSelectedItem() {
+        uiState.dateList.forEachIndexed { index, day ->
+            if (day == uiState.getCurrentDate().getDay().toString())
+                notifyItemChanged(index)
+        }
+    }
+    fun hideSelectedItem() {
+        notifyItemChanged(selectedItemPosition)
+    }
 
 }

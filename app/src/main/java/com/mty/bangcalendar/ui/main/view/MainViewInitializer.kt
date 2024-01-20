@@ -126,11 +126,11 @@ class MainViewInitializer(
         override fun onPageSelected(position: Int) {
             viewModel.calendarCurrentPosition = position
             for (calendarView in list) {
+                val view = calendarView.view as RecyclerView
+                val adapter = view.adapter as CalendarViewAdapter
                 //发生月变化（上个位置等于当前位置，说明viewPager已被提前加载，即为左右翻页动作）
                 if (calendarView.lastPosition == position) {
                     //获取当前item的日期
-                    val view = calendarView.view as RecyclerView
-                    val adapter = view.adapter as CalendarViewAdapter
                     val calendarUtil = adapter.calendarUtil
                     val year = calendarUtil.year
                     val month = calendarUtil.month
@@ -147,7 +147,13 @@ class MainViewInitializer(
                     adapter.uiState = adapter.uiState.copy(
                         isVisible = true
                     )
-                    adapter.notifyDataSetChanged()
+                    adapter.showSelectedItem()
+                //取消处于不可见位置的view的选中
+                } else {
+                    adapter.uiState = adapter.uiState.copy(
+                        isVisible = false
+                    )
+                    adapter.hideSelectedItem()
                 }
             }
         }
@@ -184,6 +190,8 @@ class MainViewInitializer(
             override fun canScrollVertically() = false
         }
         val recyclerView = RecyclerView(mainActivity)
+        //禁用item动画
+        recyclerView.itemAnimator = null
         //获取初始数据
         val dateList = calendar.getDateList()
         val characterList = viewModel.fetchCharacterByMonth(calendar.month)

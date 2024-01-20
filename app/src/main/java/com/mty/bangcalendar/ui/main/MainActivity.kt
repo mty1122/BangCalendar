@@ -84,6 +84,10 @@ class MainActivity : BaseActivity() {
                 MainViewInitializer(this@MainActivity, mainBinding, viewModel, initData,
                     viewModel.mainUiState.value, dailyTagView, eventCardView, birthdayCardView)
                     .initViews()
+                //重置jumpDate的值，防止activity重启后，旧的跳转日期被再次监听到
+                if (!viewModel.mainUiState.value.isFirstStart)
+                    viewModel.setJumpDate(viewModel.currentDate.value!!)
+                //初始化完成
                 viewModel.loadCompleted()
             }
         }
@@ -134,7 +138,7 @@ class MainActivity : BaseActivity() {
             val target = CalendarUtil(it)
             //防止重复跳转 && 防止activity重启后replay引起的跳转
             if (target.toDate().value != viewModel.currentDate.value!!.value &&
-                viewModel.mainUiState.value.isFirstStart) {
+                !viewModel.mainUiState.value.isLoading) {
                 jumpDate(mainBinding.viewPager, target)
             }
         }

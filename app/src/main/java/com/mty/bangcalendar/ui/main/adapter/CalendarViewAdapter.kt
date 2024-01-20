@@ -91,8 +91,9 @@ class CalendarViewAdapter(
     override fun getItemCount() = uiState.dateList.size
 
     fun showSelectedItem() {
+        val currentDay = uiState.getCurrentDate().getDay().toString()
         uiState.dateList.forEachIndexed { index, day ->
-            if (day == uiState.getCurrentDate().getDay().toString())
+            if (day == currentDay)
                 notifyItemChanged(index)
         }
     }

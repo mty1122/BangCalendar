@@ -31,6 +31,7 @@ class MainViewInitializer(
     private val viewModel: MainViewModel,
     private val initData: MainViewInitData,
     private val mainUiState: MainUiState,
+    private val calendarView: CalendarView,
     private val dailyTagView: DailyTagView,
     private val eventCardView: EventCardView,
     private val birthdayCardView: BirthdayCardView
@@ -99,7 +100,6 @@ class MainViewInitializer(
         }
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     private suspend fun calendarInit() {
         val list = listOf(
             getCalendarView(-1, 0),
@@ -122,9 +122,8 @@ class MainViewInitializer(
                                         pagerAdapter: CalendarViewPagerAdapter) =
         object : ViewPager.OnPageChangeListener {
         //position为当前位置（正在滚动时就会改变），监听月变化（翻页）
-        @SuppressLint("NotifyDataSetChanged")
         override fun onPageSelected(position: Int) {
-            viewModel.calendarCurrentPosition = position
+            calendarView.calendarCurrentPosition = position
             for (calendarView in list) {
                 val view = calendarView.view as RecyclerView
                 val adapter = view.adapter as CalendarViewAdapter
@@ -162,10 +161,10 @@ class MainViewInitializer(
                 //（滚动）动作完成（无论是滚动还是回弹）
                 ViewPager.SCROLL_STATE_IDLE -> {
                     //如果当前位置为0，则设置item为倒数第二
-                    if (viewModel.calendarCurrentPosition == 0) {
+                    if (calendarView.calendarCurrentPosition == 0) {
                         viewPager.setCurrentItem(pagerAdapter.count - 2, false)
                         //如果当前位置为倒数第一，则设置item为1
-                    } else if (viewModel.calendarCurrentPosition == pagerAdapter.count - 1) {
+                    } else if (calendarView.calendarCurrentPosition == pagerAdapter.count - 1) {
                         viewPager.setCurrentItem(1, false)
                     }
                 }

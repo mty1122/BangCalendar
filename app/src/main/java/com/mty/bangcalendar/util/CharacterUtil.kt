@@ -17,8 +17,6 @@ object CharacterUtil {
         return map
     }
 
-    fun birthdayToMonth(birthday: String) = Integer.parseInt(birthday) / 100
-
     fun getNextBirthdayDate(birthday: String, systemDate: CalendarUtil): IntDate {
         val intBirthday = Integer.parseInt(birthday)
         val month = intBirthday / 100

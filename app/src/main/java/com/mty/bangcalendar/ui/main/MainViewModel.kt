@@ -32,8 +32,6 @@ import kotlinx.coroutines.launch
 
 class MainViewModel : ViewModel() {
 
-    var calendarCurrentPosition = 1 //当前view在viewPager中的位置
-
     //主界面状态
     private val _mainUiState =  MutableStateFlow(
         MainUiState(
@@ -87,15 +85,6 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    //应用设置更改
-    private val onSettingsChangeListener =
-        SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-        when (key) {
-            "signature", "band", "character" -> refreshDailyTag()
-            "theme" ->recreateActivity()
-        }
-    }
-
     //主界面加载的起点，首次启动使用当天活动
     fun fetchInitData() = flow {
         val currentEvent = if (mainUiState.value.isFirstStart) {
@@ -126,15 +115,6 @@ class MainViewModel : ViewModel() {
         )
     }
 
-    //监听跳转日期请求广播
-    private val jumpDateReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val startDate = intent.getIntExtra("current_start_date", -1)
-            if (startDate != -1)
-                setJumpDate(IntDate(startDate))
-        }
-    }
-
     //当前选中的日期，处理因日期变化带来的ui改变（核心功能）
     val currentDate: LiveData<IntDate>
         get() = _currentDate
@@ -147,11 +127,10 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    //生日卡片
+    //生日卡片模块
     val birthdayCardUiState: LiveData<Int>
         get() = _birthdayCardUiState
     private val _birthdayCardUiState = MutableLiveData<Int>()
-
     fun refreshBirthdayCard(date: IntDate) {
         viewModelScope.launch {
             val characterId = Repository.getCharacterIdByBirthday(date.toBirthday()).toInt()
@@ -159,27 +138,17 @@ class MainViewModel : ViewModel() {
                 _birthdayCardUiState.value = characterId
         }
     }
+    suspend fun fetchCharacterByMonth(month: Int) = Repository.getCharacterByMonth(month)
 
-    //跳转日期，处理外部跳转请求
+    //外部日期跳转请求
     val jumpDate: LiveData<IntDate>
         get() = _jumpDate
-
     private val _jumpDate = MutableLiveData<IntDate>()
-
     fun setJumpDate(startDate: IntDate) {
         _jumpDate.value = startDate
     }
 
-    init {
-        Repository.registerOnDefaultPreferenceChangeListener(onSettingsChangeListener)
-
-        val intentFilter = IntentFilter()
-        intentFilter.addAction(IntentActions.JUMP_DATE_ACTION.value)
-        ContextCompat.registerReceiver(BangCalendarApplication.context, jumpDateReceiver,
-            intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED)
-    }
-
-    //活动卡片服务
+    //活动卡片模块
     private val _eventCardUiState = MutableLiveData<EventCardUiState>()
     val eventCardUiState: LiveData<EventCardUiState>
         get() = _eventCardUiState
@@ -196,9 +165,7 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    suspend fun fetchCharacterByMonth(month: Int) = Repository.getCharacterByMonth(month)
-
-    //dailyTag服务
+    //dailyTag模块
     private val _dailyTagUiState = MutableLiveData<DailyTagUiState>()
     val dailyTagUiState: LiveData<DailyTagUiState>
         get() = _dailyTagUiState
@@ -228,7 +195,31 @@ class MainViewModel : ViewModel() {
         )
     }
 
-    //取消注册Broadcast
+    //监听跳转日期请求广播
+    private val jumpDateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val startDate = intent.getIntExtra("current_start_date", -1)
+            if (startDate != -1)
+                setJumpDate(IntDate(startDate))
+        }
+    }
+    //监听应用设置更改
+    private val onSettingsChangeListener =
+        SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            when (key) {
+                "signature", "band", "character" -> refreshDailyTag()
+                "theme" ->recreateActivity()
+            }
+        }
+    init {
+        Repository.registerOnDefaultPreferenceChangeListener(onSettingsChangeListener)
+
+        val intentFilter = IntentFilter()
+        intentFilter.addAction(IntentActions.JUMP_DATE_ACTION.value)
+        ContextCompat.registerReceiver(BangCalendarApplication.context, jumpDateReceiver,
+            intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED)
+    }
+    //取消注册监听器
     override fun onCleared() {
         super.onCleared()
         Repository.unregisterOnDefaultPreferenceChangeListener(onSettingsChangeListener)

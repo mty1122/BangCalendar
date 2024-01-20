@@ -13,15 +13,13 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.ViewPager
 import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivityMainBinding
 import com.mty.bangcalendar.ui.BaseActivity
-import com.mty.bangcalendar.ui.main.adapter.CalendarViewAdapter
-import com.mty.bangcalendar.ui.main.adapter.CalendarViewPagerAdapter
 import com.mty.bangcalendar.ui.main.view.BirthdayCardView
+import com.mty.bangcalendar.ui.main.view.CalendarView
 import com.mty.bangcalendar.ui.main.view.DailyTagView
 import com.mty.bangcalendar.ui.main.view.EventCardView
 import com.mty.bangcalendar.ui.main.view.MainViewInitializer
@@ -36,6 +34,7 @@ class MainActivity : BaseActivity() {
 
     private val viewModel by lazy { ViewModelProvider(this)[MainViewModel::class.java] }
 
+    private val calendarView by lazy { CalendarView() }
     private val dailyTagView by lazy { DailyTagView() }
     private val eventCardView by lazy { EventCardView() }
     private val birthdayCardView by lazy { BirthdayCardView() }
@@ -45,9 +44,11 @@ class MainActivity : BaseActivity() {
 
         super.onCreate(savedInstanceState)
 
+        //膨胀布局，配置viewBinding
         val mainBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(mainBinding.root)
 
+        //配置toolBar
         setSupportActionBar(mainBinding.toolBar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
@@ -82,7 +83,8 @@ class MainActivity : BaseActivity() {
             viewModel.fetchInitData().collect{ initData->
                 //初始化界面
                 MainViewInitializer(this@MainActivity, mainBinding, viewModel, initData,
-                    viewModel.mainUiState.value, dailyTagView, eventCardView, birthdayCardView)
+                    viewModel.mainUiState.value, calendarView, dailyTagView, eventCardView,
+                    birthdayCardView)
                     .initViews()
                 //重置jumpDate的值，防止activity重启后，旧的跳转日期被再次监听到
                 if (!viewModel.mainUiState.value.isFirstStart)
@@ -92,9 +94,9 @@ class MainActivity : BaseActivity() {
             }
         }
 
-        //观察当前日期变化，及时刷新活动信息
+        //观察当前日期变化，刷新顶部日期、返回今天按钮、活动组件和生日组件
         viewModel.currentDate.observe(this) { date->
-            LogUtil.d(this, "日期发生变化 $date")
+            log(this, "日期发生变化 $date")
             viewModel.getEventByDate(date) //刷新活动
             viewModel.refreshBirthdayCard(date) //刷新生日卡片
             //顶部日期刷新
@@ -103,7 +105,6 @@ class MainActivity : BaseActivity() {
                 append("年")
                 append(date.getMonth())
                 append("月")
-                toString()
             }
             //返回今天浮窗
             if (date.getYear() == systemDate.year && date.getMonth() == systemDate.month
@@ -130,16 +131,20 @@ class MainActivity : BaseActivity() {
 
         //配置返回今天按钮
         mainBinding.goBackFloatButton.setOnClickListener {
-            jumpDate(mainBinding.viewPager, systemDate)
+            calendarView.jumpDate(mainBinding.viewPager, systemDate, lifecycleScope,
+                { viewModel.refreshCurrentDate(it) },
+                { viewModel.fetchCharacterByMonth(it) })
         }
 
         //监听其他activity的跳转请求
-        viewModel.jumpDate.observe(this) {
-            val target = CalendarUtil(it)
+        viewModel.jumpDate.observe(this) { targetDate->
+            val target = CalendarUtil(targetDate)
             //防止重复跳转 && 防止activity重启后replay引起的跳转
             if (target.toDate().value != viewModel.currentDate.value!!.value &&
                 !viewModel.mainUiState.value.isLoading) {
-                jumpDate(mainBinding.viewPager, target)
+                calendarView.jumpDate(mainBinding.viewPager, target, lifecycleScope,
+                    { viewModel.refreshCurrentDate(it) },
+                    { viewModel.fetchCharacterByMonth(it) })
             }
         }
 
@@ -214,6 +219,7 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    //用于弹出跳转日期相关界面
     private fun chooseDate(viewPager: ViewPager) {
         val view = layoutInflater.inflate(R.layout.date_picker, null)
         val datePicker: DatePicker = view.findViewById(R.id.datePicker)
@@ -231,48 +237,12 @@ class MainActivity : BaseActivity() {
                 }
                 //原地选择不跳转
                 if (calendarUtil.toDate().value != viewModel.currentDate.value!!.value)
-                    jumpDate(viewPager, calendarUtil)
+                    calendarView.jumpDate(viewPager, calendarUtil, lifecycleScope,
+                        { viewModel.refreshCurrentDate(it) },
+                        { viewModel.fetchCharacterByMonth(it) })
             }
             .create()
         dialog.show()
-    }
-
-    @SuppressLint("NotifyDataSetChanged")
-    fun jumpDate(viewPager: ViewPager, target: CalendarUtil) {
-        //刷新当前日期
-        viewModel.refreshCurrentDate(target.toDate())
-        val viewPagerAdapter = viewPager.adapter as CalendarViewPagerAdapter
-        val scrollViewList = viewPagerAdapter.views
-        var lastPosition = 0
-        var relativeMonth = -1
-        //初始化view集合中view的日期
-        lifecycleScope.launch {
-            for (scrollView in scrollViewList) {
-                scrollView.lastPosition = lastPosition //设置上次位置
-                val viewAdapter = (scrollView.view as RecyclerView)
-                    .adapter as CalendarViewAdapter
-                val calendarUtil = viewAdapter.calendarUtil
-                calendarUtil.year = target.year
-                calendarUtil.month = target.month + relativeMonth
-                //获取初始数据
-                val dateList = calendarUtil.getDateList()
-                val characterList = viewModel.fetchCharacterByMonth(calendarUtil.month)
-                val birthdayMap = CharacterUtil.characterListToBirthdayMap(characterList)
-                val calendarItemUiState = viewAdapter.uiState.copy(
-                    isVisible = lastPosition == 1,
-                    dateList = dateList,
-                    birthdayMap = birthdayMap
-                )
-                viewAdapter.uiState = calendarItemUiState
-                //刷新日历
-                viewAdapter.notifyDataSetChanged()
-                //下一个日历界面
-                lastPosition++
-                relativeMonth++
-            }
-            //初始化viewPager的当前item
-            viewPager.currentItem = 1
-        }
     }
 
 }

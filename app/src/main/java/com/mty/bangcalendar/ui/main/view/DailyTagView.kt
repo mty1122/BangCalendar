@@ -7,7 +7,6 @@ import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.databinding.ActivityMainBinding
 import com.mty.bangcalendar.logic.model.IntDate
 import com.mty.bangcalendar.ui.list.EventListActivity
-import com.mty.bangcalendar.ui.main.MainViewModel
 import com.mty.bangcalendar.ui.main.state.DailyTagUiState
 import com.mty.bangcalendar.ui.main.state.shouldBandItemVisible
 import com.mty.bangcalendar.ui.main.state.shouldCharacterItemVisible
@@ -22,9 +21,9 @@ class DailyTagView {
     //刷新dailyTag
     fun refreshDailyTag(
         context: Context,
-        viewModel: MainViewModel,
         binding: ActivityMainBinding,
-        uiState: DailyTagUiState
+        uiState: DailyTagUiState,
+        jumpDate: (IntDate) -> Unit
     ) {
         if (!uiState.shouldVisible()) {
             binding.dailytagCard.cardView.visibility = View.GONE
@@ -58,7 +57,7 @@ class DailyTagView {
                 birthdayCountdown.setOnClickListener {
                     val target = CharacterUtil.getNextBirthdayDate(character.birthday,
                             BangCalendarApplication.systemDate)
-                    viewModel.setJumpDate(target)
+                    jumpDate(target)
                 }
                 //更新进度条
                 birBar.setProgressCompat(
@@ -88,7 +87,7 @@ class DailyTagView {
                         BangCalendarApplication.systemDate.toDate())
                 eventCountdown.text = eventAway.toString()
                 eventCountdown.setOnClickListener {
-                    viewModel.setJumpDate(IntDate(event.startDate))
+                    jumpDate(IntDate(event.startDate))
                 }
                 //新乐队可能没有往期活动
                 val lastDate = uiState.preferenceBandLatestEvent?.startDate

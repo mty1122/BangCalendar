@@ -45,11 +45,16 @@ class MainViewInitializer(
         }
 
         /* 下方为四大组件初始化（日历、dailyTag、生日卡片、活动卡片） */
-        calendarInit() //无论如何都需要初始化calendarView（需要创建视图）
-        initData.dailyTagUiState.collect {
-            dailyTagView.refreshDailyTag(mainActivity, viewModel, binding, it) //初次启动刷新DailyTag
+        calendarInit() //加载日历模块
+        //加载DailyTag
+        initData.dailyTagUiState.collect { uiState->
+            dailyTagView.refreshDailyTag(mainActivity, binding, uiState) {
+                viewModel.setJumpDate(it)
+            }
         }
+        //加载活动卡片
         eventCardInit(binding, initData.currentEvent, initData.eventPicture)
+        //加载生日卡片
         initData.birthdayCardUiState.collect{
             //等待其膨胀完成后再初始化，防止获取不到高度
             binding.birCard.cardView.viewTreeObserver.addOnGlobalLayoutListener(object :

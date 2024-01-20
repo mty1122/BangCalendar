@@ -202,8 +202,10 @@ class MainActivity : BaseActivity() {
     }
 
     private fun setDailyTagUiStateObserver(mainBinding: ActivityMainBinding) {
-        viewModel.dailyTagUiState.observe(this) {
-            dailyTagView.refreshDailyTag(this, viewModel, mainBinding, it)
+        viewModel.dailyTagUiState.observe(this) { uiState->
+            dailyTagView.refreshDailyTag(this, mainBinding, uiState) {
+                viewModel.setJumpDate(it)
+            }
         }
     }
 

@@ -45,10 +45,12 @@ class MainViewInitializer(
         }
 
         /* 下方为四大组件初始化（日历、dailyTag、生日卡片、活动卡片） */
-        calendarInit() //加载日历模块
+        //加载日历模块，如果不是初次启动，使用viewModel保存的状态
+        val initDate = if (mainUiState.isFirstStart) null else viewModel.currentDate.value!!
+        calendarInit(initDate)
         //加载DailyTag
         initData.dailyTagUiState.collect { uiState->
-            dailyTagView.refreshDailyTag(mainActivity, binding, uiState) {
+            dailyTagView.refreshDailyTag(binding, uiState) {
                 viewModel.setJumpDate(it)
             }
         }
@@ -71,7 +73,7 @@ class MainViewInitializer(
     //生日卡片初始化
     private fun birCardInit(id: Int, binding: ActivityMainBinding) {
         if (id > 0) {
-            birthdayCardView.refreshBirthdayCard(mainActivity, id, binding)
+            birthdayCardView.refreshBirthdayCard(id, binding)
             birthdayCardView.isBirthdayCardVisible = true
         }
         else {
@@ -100,16 +102,16 @@ class MainViewInitializer(
             binding.eventCard.eventCardItem.alpha = 0f
         } else {
             eventCardView.isEventCardVisible = true
-            eventCardView.refreshEventComponent(mainActivity, mainActivity.lifecycleScope,
+            eventCardView.refreshEventComponent(mainActivity.lifecycleScope,
                 mainUiState, event, eventPicture!!, binding)
         }
     }
 
-    private suspend fun calendarInit() {
+    private suspend fun calendarInit(initDate: IntDate?) {
         val list = listOf(
-            getCalendarView(-1, 0),
-            getCalendarView(0, 1),
-            getCalendarView(1, 2)
+            getCalendarView(-1, 0, initDate),
+            getCalendarView(0, 1, initDate),
+            getCalendarView(1, 2, initDate)
         )
         //初始化viewPager
         val viewPager: ViewPager = mainActivity.findViewById(R.id.viewPager)
@@ -183,9 +185,13 @@ class MainViewInitializer(
     }
 
     //获取ViewPager的单个view(recyclerView)
-    @SuppressLint("NotifyDataSetChanged") //当目标日期改变时，刷新RecyclerView
-    private suspend fun getCalendarView(relativeMonth: Int, lastPosition: Int): CalendarScrollView{
-        val calendar = CalendarUtil()
+    @SuppressLint("NotifyDataSetChanged")
+    private suspend fun getCalendarView(
+        relativeMonth: Int,
+        lastPosition: Int,
+        initDate: IntDate?
+    ): CalendarScrollView{
+        val calendar = CalendarUtil(initDate)
         calendar.clearDays()
         calendar.month += relativeMonth
         //创建日历recyclerView

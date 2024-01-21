@@ -11,8 +11,9 @@ import com.mty.bangcalendar.ui.main.adapter.CalendarViewPagerAdapter
 import com.mty.bangcalendar.util.CalendarUtil
 import com.mty.bangcalendar.util.CharacterUtil
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class CalendarView {
+class CalendarView @Inject constructor() {
 
     var calendarCurrentPosition = 1 //当前view在viewPager中的位置
 

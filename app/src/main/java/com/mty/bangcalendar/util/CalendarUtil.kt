@@ -3,7 +3,7 @@ package com.mty.bangcalendar.util
 import com.mty.bangcalendar.logic.model.IntDate
 import java.util.Calendar
 
-class CalendarUtil(val date: IntDate? = null) {
+class CalendarUtil(date: IntDate? = null) {
 
     operator fun minus(calendarUtil: CalendarUtil): Int =
         ( (this.getTimeInMillis() - calendarUtil.getTimeInMillis()) / (1000 * 3600 * 24) ).toInt()
@@ -56,9 +56,9 @@ class CalendarUtil(val date: IntDate? = null) {
         //采用date初始化CalendarUtil(有参)
         date?.let {
             clear()
-            year = it.value / 10000
-            month = it.value % 10000 / 100
-            day = it.value % 100
+            year = it.getYear()
+            month = it.getMonth()
+            day = it.getDay()
         }
         calendar.firstDayOfWeek = Calendar.SUNDAY
         refreshRows()
@@ -119,9 +119,6 @@ class CalendarUtil(val date: IntDate? = null) {
         in 13..18 -> "下午"
         else -> ""
     }
-
-    fun isSameDate(calendarUtil: CalendarUtil) = this.year == calendarUtil.year
-            && this.month == calendarUtil.month && this.day == calendarUtil.day
 
     override fun toString() = "${year}年${month}月${day}日"
 

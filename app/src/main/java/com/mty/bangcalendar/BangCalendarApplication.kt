@@ -7,7 +7,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import com.mty.bangcalendar.util.CalendarUtil
+import dagger.hilt.android.HiltAndroidApp
 
+@HiltAndroidApp
 class BangCalendarApplication : Application() {
 
     companion object {

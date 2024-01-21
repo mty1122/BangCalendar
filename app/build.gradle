@@ -3,6 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
     id 'org.jetbrains.kotlin.plugin.serialization'
+    id 'com.google.dagger.hilt.android'
 }
 
 android {
@@ -132,13 +133,19 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1'
     implementation 'androidx.activity:activity-compose:1.7.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0'
+    implementation "com.google.dagger:hilt-android:2.44"
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
     annotationProcessor 'com.github.bumptech.glide:compiler:4.13.0'
     annotationProcessor 'androidx.room:room-compiler:2.5.1'
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
     debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
     kapt 'androidx.room:room-compiler:2.5.1'
+    kapt "com.google.dagger:hilt-compiler:2.44"
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}
+
+kapt {
+    correctErrorTypes true
 }

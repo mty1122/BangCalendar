@@ -15,12 +15,13 @@ import com.mty.bangcalendar.util.CharacterUtil
 import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.startActivity
 import com.mty.bangcalendar.util.startCharacterListActivity
+import dagger.hilt.android.qualifiers.ActivityContext
+import javax.inject.Inject
 
-class DailyTagView {
+class DailyTagView @Inject constructor(@ActivityContext val context: Context) {
 
     //刷新dailyTag
     fun refreshDailyTag(
-        context: Context,
         binding: ActivityMainBinding,
         uiState: DailyTagUiState,
         jumpDate: (IntDate) -> Unit

@@ -13,8 +13,10 @@ import com.mty.bangcalendar.util.CharacterUtil
 import com.mty.bangcalendar.util.GenericUtil
 import com.mty.bangcalendar.util.log
 import com.mty.bangcalendar.util.startCharacterListActivity
+import dagger.hilt.android.qualifiers.ActivityContext
+import javax.inject.Inject
 
-class BirthdayCardView {
+class BirthdayCardView @Inject constructor(@ActivityContext val context: Context) {
 
     //记录生日卡片可见性
     var isBirthdayCardVisible = true
@@ -22,7 +24,7 @@ class BirthdayCardView {
     private var touchEventStartY = 0f
 
     //当UiState发生改变时，进行处理
-    fun handleUiState(context: Context, mainBinding: ActivityMainBinding, uiState: Int) {
+    fun handleUiState(mainBinding: ActivityMainBinding, uiState: Int) {
         when (uiState) {
             0 -> {
                 if (isBirthdayCardVisible){
@@ -31,7 +33,7 @@ class BirthdayCardView {
                 }
             }
             else -> {
-                refreshBirthdayCard(context, uiState, mainBinding)
+                refreshBirthdayCard(uiState, mainBinding)
                 if (!isBirthdayCardVisible) {
                     isBirthdayCardVisible = true
                     runBirthdayCardAnim(mainBinding, true)
@@ -70,7 +72,7 @@ class BirthdayCardView {
     }
 
     //刷新生日卡片
-    fun refreshBirthdayCard(context: Context, id: Int, binding: ActivityMainBinding) {
+    fun refreshBirthdayCard(id: Int, binding: ActivityMainBinding) {
         if (id == 12 || id == 17) {
             Glide.with(context).load(CharacterUtil.matchCharacter(12))
                 .into(binding.birCard.birChar1)

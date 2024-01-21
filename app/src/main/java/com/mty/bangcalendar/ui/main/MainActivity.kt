@@ -8,10 +8,10 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.DatePicker
 import android.widget.FrameLayout
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager.widget.ViewPager
 import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
@@ -26,18 +26,21 @@ import com.mty.bangcalendar.ui.main.view.MainViewInitializer
 import com.mty.bangcalendar.ui.search.SearchActivity
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.*
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : BaseActivity() {
 
-    private val viewModel by lazy { ViewModelProvider(this)[MainViewModel::class.java] }
+    private val viewModel: MainViewModel by viewModels()
 
-    private val calendarView by lazy { CalendarView() }
-    private val dailyTagView by lazy { DailyTagView() }
-    private val eventCardView by lazy { EventCardView() }
-    private val birthdayCardView by lazy { BirthdayCardView() }
+    @Inject lateinit var calendarView: CalendarView
+    @Inject lateinit var dailyTagView: DailyTagView
+    @Inject lateinit var eventCardView: EventCardView
+    @Inject lateinit var birthdayCardView: BirthdayCardView
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -197,13 +200,13 @@ class MainActivity : BaseActivity() {
             if (viewModel.mainUiState.value.isLoading)
                 return@observe
             //刷新生日卡片
-            birthdayCardView.handleUiState(this, mainBinding, it)
+            birthdayCardView.handleUiState(mainBinding, it)
         }
     }
 
     private fun setDailyTagUiStateObserver(mainBinding: ActivityMainBinding) {
         viewModel.dailyTagUiState.observe(this) { uiState->
-            dailyTagView.refreshDailyTag(this, mainBinding, uiState) {
+            dailyTagView.refreshDailyTag(mainBinding, uiState) {
                 viewModel.setJumpDate(it)
             }
         }
@@ -215,7 +218,7 @@ class MainActivity : BaseActivity() {
             if (viewModel.mainUiState.value.isLoading)
                 return@observe
             //刷新活动卡片
-            eventCardView.handleUiState(this, lifecycleScope,
+            eventCardView.handleUiState(lifecycleScope,
                 viewModel.currentDate.value!!,
                 viewModel.mainUiState.value, it, mainBinding)
         }

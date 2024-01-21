@@ -14,7 +14,7 @@ value class IntDate(val value: Int) {
     operator fun minus(intDate: IntDate) = CalendarUtil(this) - CalendarUtil(intDate)
 
     fun getYear() = value / 10000
-    fun getMonth() = (value % 10000) / 100
+    fun getMonth() = value % 10000 / 100
     fun getDay() = value % 100
 
     fun toBirthday(): String {

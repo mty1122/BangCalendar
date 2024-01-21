@@ -19,16 +19,17 @@ import com.mty.bangcalendar.util.LogUtil
 import com.mty.bangcalendar.util.log
 import com.mty.bangcalendar.util.startActivity
 import com.mty.bangcalendar.util.startCharacterListActivity
+import dagger.hilt.android.qualifiers.ActivityContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class EventCardView {
+class EventCardView @Inject constructor(@ActivityContext val context: Context) {
 
     //记录活动卡片的可见性
     var isEventCardVisible = true
 
     fun handleUiState(
-        context: Context,
         lifecycleScope: LifecycleCoroutineScope,
         currentDate: IntDate,
         mainUiState: MainUiState,
@@ -51,14 +52,14 @@ class EventCardView {
             //不可见时，刷新活动
             if (!isEventCardVisible) {
                 isEventCardVisible = true
-                refreshEventComponent(context, lifecycleScope, mainUiState,
+                refreshEventComponent(lifecycleScope, mainUiState,
                     eventCardUiState.event, eventCardUiState.eventPicture!!, mainBinding)
                 //启动显示动画
                 runEventCardAnim(mainBinding, 1f)
                 //不同活动之间移动，刷新活动
             } else if (!EventUtil.isSameEvent(mainBinding.eventCard.eventType.text.toString(),
                     eventCardUiState.event.id.toInt())) {
-                refreshEventComponent(context, lifecycleScope, mainUiState,
+                refreshEventComponent(lifecycleScope, mainUiState,
                     eventCardUiState.event, eventCardUiState.eventPicture!!, mainBinding)
             }
         }
@@ -85,7 +86,6 @@ class EventCardView {
     }
 
     fun refreshEventComponent(
-        context: Context,
         lifecycleScope: LifecycleCoroutineScope,
         mainUiState: MainUiState,
         event: Event,

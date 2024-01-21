@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewTreeObserver
 import android.widget.DatePicker
 import android.widget.FrameLayout
 import androidx.activity.viewModels
@@ -17,12 +18,13 @@ import androidx.viewpager.widget.ViewPager
 import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivityMainBinding
+import com.mty.bangcalendar.logic.model.MainViewInitData
 import com.mty.bangcalendar.ui.BaseActivity
+import com.mty.bangcalendar.ui.main.state.MainUiState
 import com.mty.bangcalendar.ui.main.view.BirthdayCardView
 import com.mty.bangcalendar.ui.main.view.CalendarView
 import com.mty.bangcalendar.ui.main.view.DailyTagView
 import com.mty.bangcalendar.ui.main.view.EventCardView
-import com.mty.bangcalendar.ui.main.view.MainViewInitializer
 import com.mty.bangcalendar.ui.search.SearchActivity
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.*
@@ -85,10 +87,7 @@ class MainActivity : BaseActivity() {
         lifecycleScope.launch {
             viewModel.fetchInitData().collect{ initData->
                 //初始化界面
-                MainViewInitializer(this@MainActivity, mainBinding, viewModel, initData,
-                    viewModel.mainUiState.value, calendarView, dailyTagView, eventCardView,
-                    birthdayCardView)
-                    .initViews()
+                initViews(mainBinding, viewModel.mainUiState.value, initData)
                 //重置jumpDate的值，防止activity重启后，旧的跳转日期被再次监听到
                 if (!viewModel.mainUiState.value.isFirstStart)
                     viewModel.setJumpDate(viewModel.currentDate.value!!)
@@ -134,9 +133,11 @@ class MainActivity : BaseActivity() {
 
         //配置返回今天按钮
         mainBinding.goBackFloatButton.setOnClickListener {
-            calendarView.jumpDate(mainBinding.viewPager, systemDate, lifecycleScope,
-                { viewModel.refreshCurrentDate(it) },
-                { viewModel.fetchCharacterByMonth(it) })
+            lifecycleScope.launch {
+                calendarView.jumpDate(mainBinding.viewPager, systemDate,
+                    { viewModel.refreshCurrentDate(it) },
+                    { viewModel.fetchBirthdayMapByMonth(it) })
+            }
         }
 
         //监听其他activity的跳转请求
@@ -145,9 +146,11 @@ class MainActivity : BaseActivity() {
             //防止重复跳转 && 防止activity重启后replay引起的跳转
             if (target.toDate().value != viewModel.currentDate.value!!.value &&
                 !viewModel.mainUiState.value.isLoading) {
-                calendarView.jumpDate(mainBinding.viewPager, target, lifecycleScope,
-                    { viewModel.refreshCurrentDate(it) },
-                    { viewModel.fetchCharacterByMonth(it) })
+                lifecycleScope.launch{
+                    calendarView.jumpDate(mainBinding.viewPager, target,
+                        { viewModel.refreshCurrentDate(it) },
+                        { viewModel.fetchBirthdayMapByMonth(it) })
+                }
             }
         }
 
@@ -218,9 +221,10 @@ class MainActivity : BaseActivity() {
             if (viewModel.mainUiState.value.isLoading)
                 return@observe
             //刷新活动卡片
-            eventCardView.handleUiState(lifecycleScope,
-                viewModel.currentDate.value!!,
-                viewModel.mainUiState.value, it, mainBinding)
+            lifecycleScope.launch {
+                eventCardView.handleUiState(viewModel.currentDate.value!!,
+                    viewModel.mainUiState.value, it, mainBinding)
+            }
         }
     }
 
@@ -242,12 +246,58 @@ class MainActivity : BaseActivity() {
                 }
                 //原地选择不跳转
                 if (calendarUtil.toDate().value != viewModel.currentDate.value!!.value)
-                    calendarView.jumpDate(viewPager, calendarUtil, lifecycleScope,
-                        { viewModel.refreshCurrentDate(it) },
-                        { viewModel.fetchCharacterByMonth(it) })
+                    lifecycleScope.launch {
+                        calendarView.jumpDate(viewPager, calendarUtil,
+                            { viewModel.refreshCurrentDate(it) },
+                            { viewModel.fetchBirthdayMapByMonth(it) })
+                    }
             }
             .create()
         dialog.show()
+    }
+
+    private suspend fun initViews(binding: ActivityMainBinding, mainUiState: MainUiState,
+                                  initData: MainViewInitData) {
+        //活动进度条初始化
+        binding.eventCard.eventProgress.run {
+            progressColor = getColor(ThemeUtil.getThemeColor(this@MainActivity))
+            textColor = getColor(ThemeUtil.getThemeColor(this@MainActivity))
+        }
+        /* 下方为四大组件初始化（日历、dailyTag、生日卡片、活动卡片） */
+        //加载日历模块，如果不是初次启动，使用viewModel保存的状态
+        val initDate = if (mainUiState.isFirstStart) null else viewModel.currentDate.value!!
+        calendarView.calendarInit(
+            binding.viewPager,
+            initDate,
+            lifecycleScope,
+            { viewModel.refreshCurrentDate(it) },
+            { viewModel.currentDate.value!! },
+            { viewModel.fetchBirthdayMapByMonth(it) }
+        )
+        //加载DailyTag
+        initData.dailyTagUiState.collect { uiState->
+            dailyTagView.refreshDailyTag(binding, uiState) {
+                viewModel.setJumpDate(it)
+            }
+        }
+        //加载活动卡片，如果不是初次启动，使用viewModel保存的状态
+        val  currentDate =
+            if (mainUiState.isFirstStart) systemDate.toDate()
+            else viewModel.currentDate.value!!
+        eventCardView.eventCardInit(binding, mainUiState, initData.currentEvent, currentDate,
+            initData.eventPicture)
+        //加载生日卡片
+        initData.birthdayCardUiState.collect{
+            //等待其膨胀完成后再初始化，防止获取不到高度
+            binding.birCard.cardView.viewTreeObserver.addOnGlobalLayoutListener(object :
+                ViewTreeObserver.OnGlobalLayoutListener {
+                override fun onGlobalLayout() {
+                    birthdayCardView.birCardInit(it, binding)
+                    binding.birCard.cardView.viewTreeObserver
+                        .removeOnGlobalLayoutListener(this)
+                }
+            })
+        }
     }
 
 }

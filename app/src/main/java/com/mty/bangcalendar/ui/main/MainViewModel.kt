@@ -22,6 +22,7 @@ import com.mty.bangcalendar.ui.main.state.DailyTagUiState
 import com.mty.bangcalendar.ui.main.state.EventCardUiState
 import com.mty.bangcalendar.ui.main.state.MainUiState
 import com.mty.bangcalendar.util.CalendarUtil
+import com.mty.bangcalendar.util.CharacterUtil
 import com.mty.bangcalendar.util.EventUtil
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -138,7 +139,10 @@ class MainViewModel : ViewModel() {
                 _birthdayCardUiState.value = characterId
         }
     }
-    suspend fun fetchCharacterByMonth(month: Int) = Repository.getCharacterByMonth(month)
+    suspend fun fetchBirthdayMapByMonth(month: Int): Map<String, Int> {
+        val characterList = Repository.getCharacterByMonth(month)
+        return CharacterUtil.characterListToBirthdayMap(characterList)
+    }
 
     //外部日期跳转请求
     val jumpDate: LiveData<IntDate>

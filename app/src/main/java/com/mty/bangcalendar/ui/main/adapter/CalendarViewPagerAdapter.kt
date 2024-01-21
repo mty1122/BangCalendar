@@ -6,12 +6,12 @@ import android.view.ViewGroup
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.PagerAdapter
-import com.mty.bangcalendar.ui.main.view.CalendarScrollView
+import com.mty.bangcalendar.ui.main.view.CalendarView
 import com.mty.bangcalendar.util.LogUtil
 import kotlinx.coroutines.launch
 
 class CalendarViewPagerAdapter(
-    val views: List<CalendarScrollView>,
+    val views: List<CalendarView.CalendarScrollView>,
     private val lifecycleScope: LifecycleCoroutineScope,
     private val fetchBirthdayMapByMonth: suspend (Int) -> Map<String, Int>,
 ) : PagerAdapter() {
@@ -57,7 +57,8 @@ class CalendarViewPagerAdapter(
     }
 
     @SuppressLint("NotifyDataSetChanged")//由于每月的数据集都不同，因此只能使用notifyDataSetChange
-    private fun refreshView(calendarView: CalendarScrollView, lastPosition: Int, position: Int) {
+    private fun refreshView(calendarView: CalendarView.CalendarScrollView,
+                            lastPosition: Int, position: Int) {
         val recyclerView = calendarView.view as RecyclerView
         val adapter = recyclerView.adapter as CalendarViewAdapter
         val calendarUtil = adapter.calendarUtil

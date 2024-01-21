@@ -19,9 +19,32 @@ import javax.inject.Inject
 class BirthdayCardView @Inject constructor(@ActivityContext val context: Context) {
 
     //记录生日卡片可见性
-    var isBirthdayCardVisible = true
+    private var isBirthdayCardVisible = true
     //记录滑动手势的起始点，用于折叠卡片
     private var touchEventStartY = 0f
+
+    //生日卡片初始化
+    fun birCardInit(id: Int, binding: ActivityMainBinding) {
+        if (id > 0) {
+            refreshBirthdayCard(id, binding)
+            isBirthdayCardVisible = true
+        }
+        else {
+            val mainLinearLayout = binding.mainView
+            val birCardIndex = mainLinearLayout.indexOfChild(binding.birCardParent)
+
+            //使用初始高度
+            val cardHeight = binding.birCard.cardView.height.toFloat()
+            val translationY = -cardHeight - GenericUtil.dpToPx(10)
+
+            for (i in birCardIndex + 1 until mainLinearLayout.childCount) {
+                val cardBelow = mainLinearLayout.getChildAt(i)
+                cardBelow.translationY = translationY
+            }
+            binding.birCard.cardView.translationY = translationY
+            isBirthdayCardVisible = false
+        }
+    }
 
     //当UiState发生改变时，进行处理
     fun handleUiState(mainBinding: ActivityMainBinding, uiState: Int) {
@@ -72,7 +95,7 @@ class BirthdayCardView @Inject constructor(@ActivityContext val context: Context
     }
 
     //刷新生日卡片
-    fun refreshBirthdayCard(id: Int, binding: ActivityMainBinding) {
+    private fun refreshBirthdayCard(id: Int, binding: ActivityMainBinding) {
         if (id == 12 || id == 17) {
             Glide.with(context).load(CharacterUtil.matchCharacter(12))
                 .into(binding.birCard.birChar1)

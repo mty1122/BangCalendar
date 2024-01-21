@@ -3,7 +3,6 @@ package com.mty.bangcalendar.ui.main.view
 import android.animation.ObjectAnimator
 import android.content.Context
 import android.graphics.drawable.Drawable
-import androidx.lifecycle.LifecycleCoroutineScope
 import com.bumptech.glide.Glide
 import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.R
@@ -21,16 +20,30 @@ import com.mty.bangcalendar.util.startActivity
 import com.mty.bangcalendar.util.startCharacterListActivity
 import dagger.hilt.android.qualifiers.ActivityContext
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class EventCardView @Inject constructor(@ActivityContext val context: Context) {
 
     //记录活动卡片的可见性
-    var isEventCardVisible = true
+    private var isEventCardVisible = true
 
-    fun handleUiState(
-        lifecycleScope: LifecycleCoroutineScope,
+    suspend fun eventCardInit(
+        binding: ActivityMainBinding,
+        mainUiState: MainUiState,
+        event: Event?,
+        currentDate: IntDate,
+        eventPicture: Flow<Drawable?>?
+    ) {
+        if (event == null || currentDate - IntDate(event.startDate) >= 13) {
+            isEventCardVisible = false
+            binding.eventCard.eventCardItem.alpha = 0f
+        } else {
+            isEventCardVisible = true
+            refreshEventComponent(mainUiState, event, eventPicture!!, binding)
+        }
+    }
+
+    suspend fun handleUiState(
         currentDate: IntDate,
         mainUiState: MainUiState,
         eventCardUiState: EventCardUiState,
@@ -52,15 +65,15 @@ class EventCardView @Inject constructor(@ActivityContext val context: Context) {
             //不可见时，刷新活动
             if (!isEventCardVisible) {
                 isEventCardVisible = true
-                refreshEventComponent(lifecycleScope, mainUiState,
-                    eventCardUiState.event, eventCardUiState.eventPicture!!, mainBinding)
+                refreshEventComponent(mainUiState, eventCardUiState.event,
+                    eventCardUiState.eventPicture!!, mainBinding)
                 //启动显示动画
                 runEventCardAnim(mainBinding, 1f)
                 //不同活动之间移动，刷新活动
             } else if (!EventUtil.isSameEvent(mainBinding.eventCard.eventType.text.toString(),
                     eventCardUiState.event.id.toInt())) {
-                refreshEventComponent(lifecycleScope, mainUiState,
-                    eventCardUiState.event, eventCardUiState.eventPicture!!, mainBinding)
+                refreshEventComponent(mainUiState, eventCardUiState.event,
+                    eventCardUiState.eventPicture!!, mainBinding)
             }
         }
     }
@@ -85,8 +98,7 @@ class EventCardView @Inject constructor(@ActivityContext val context: Context) {
         mainBinding.eventCard.eventButton.setOnClickListener(null)
     }
 
-    fun refreshEventComponent(
-        lifecycleScope: LifecycleCoroutineScope,
+    private suspend fun refreshEventComponent(
         mainUiState: MainUiState,
         event: Event,
         eventPicture: Flow<Drawable?>,
@@ -146,11 +158,9 @@ class EventCardView @Inject constructor(@ActivityContext val context: Context) {
             )
         }
         //刷新活动图片
-        lifecycleScope.launch {
-            eventPicture.collect{
-                it?.let {
-                    binding.eventCard.eventBackground.background = it
-                }
+        eventPicture.collect{
+            it?.let {
+                binding.eventCard.eventBackground.background = it
             }
         }
         binding.eventCard.eventButton.setOnClickListener {

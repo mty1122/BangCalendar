@@ -4,7 +4,7 @@ import android.content.Context
 import android.view.View
 import com.bumptech.glide.Glide
 import com.mty.bangcalendar.BangCalendarApplication
-import com.mty.bangcalendar.databinding.ActivityMainBinding
+import com.mty.bangcalendar.databinding.DailytagCardBinding
 import com.mty.bangcalendar.logic.model.IntDate
 import com.mty.bangcalendar.ui.list.EventListActivity
 import com.mty.bangcalendar.ui.main.state.DailyTagUiState
@@ -22,23 +22,23 @@ class DailyTagView @Inject constructor(@ActivityContext val context: Context) {
 
     //刷新dailyTag
     fun refreshDailyTag(
-        binding: ActivityMainBinding,
+        binding: DailytagCardBinding,
         uiState: DailyTagUiState,
         jumpDate: (IntDate) -> Unit
     ) {
         if (!uiState.shouldVisible()) {
-            binding.dailytagCard.cardView.visibility = View.GONE
+            binding.cardView.visibility = View.GONE
             return
         }
         //刷新标题
-        binding.dailytagCard.dailytagTitle.text = StringBuilder().apply {
+        binding.dailytagTitle.text = StringBuilder().apply {
             append("${BangCalendarApplication.systemDate.getTimeName()}好")
             if (uiState.userName != "")
                 append("，${uiState.userName}")
         }
         //刷新角色订阅
         uiState.preferenceCharacter?.let { character->
-            binding.dailytagCard.dailytagCardBirthday.run {
+            binding.dailytagCardBirthday.run {
                 //角色头像和名字
                 Glide.with(context)
                     .load(EventUtil.matchCharacter(character.id.toInt())).into(charImage)
@@ -67,10 +67,10 @@ class DailyTagView @Inject constructor(@ActivityContext val context: Context) {
             }
         }
         if (!uiState.shouldCharacterItemVisible())
-            binding.dailytagCard.dailytagCardBirthday.birthdayView.visibility = View.GONE
+            binding.dailytagCardBirthday.birthdayView.visibility = View.GONE
         //刷新活动订阅
         uiState.preferenceBandNextEvent?.let { event->
-            binding.dailytagCard.dailytagCardEvent.run {
+            binding.dailytagCardEvent.run {
                 //刷新活动属性
                 Glide.with(context).load(EventUtil.matchAttrs(event.attrs))
                     .into(eventAttrs)
@@ -101,9 +101,9 @@ class DailyTagView @Inject constructor(@ActivityContext val context: Context) {
             }
         }
         if (!uiState.shouldBandItemVisible())
-            binding.dailytagCard.dailytagCardEvent.eventView.visibility = View.GONE
+            binding.dailytagCardEvent.eventView.visibility = View.GONE
         //用户偏好存在时，启动dailyTag
-        binding.dailytagCard.cardView.visibility = View.VISIBLE
+        binding.cardView.visibility = View.VISIBLE
     }
 
 }

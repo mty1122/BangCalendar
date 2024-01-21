@@ -66,7 +66,8 @@ object Repository {
         val theme = PreferenceDao.getTheme()
         val lastRefreshDay = PreferenceDao.getLastRefreshDay()
         val animPreference = PreferenceDao.getAnimPreference()
-        GuideInitData(isFirstStart, theme, lastRefreshDay, animPreference)
+        val nvbarPreference = PreferenceDao.getNvbarPreference()
+        GuideInitData(isFirstStart, theme, lastRefreshDay, animPreference, nvbarPreference)
     }
 
     suspend fun isNotFirstStart() = withContext(Dispatchers.IO) {

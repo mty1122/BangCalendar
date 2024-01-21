@@ -2,6 +2,7 @@ package com.mty.bangcalendar.ui.list
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,7 +21,7 @@ import com.mty.bangcalendar.util.ThemeUtil
 import com.tomergoldst.progress_circle.ProgressCircle
 
 class EventListAdapter(private val eventList: List<Event> , private val context: Context,
-    private val viewModel: EventListViewModel) :
+    val getEventPicture: (eventId: String, onPictureReady: (Drawable) -> Unit) -> Unit) :
     RecyclerView.Adapter<EventListAdapter.ViewHolder>(){
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -79,7 +80,7 @@ class EventListAdapter(private val eventList: List<Event> , private val context:
             Glide.with(context).load(EventUtil.getBandPic(event)).into(eventBand)
             //刷新活动图片
             val eventId = EventUtil.eventIdFormat(event.id.toInt())
-            viewModel.getEventPic(eventId) {
+            getEventPicture(eventId) {
                 eventBackground.background = it
             }
         }

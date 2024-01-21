@@ -89,6 +89,8 @@
     <string name="upload_user_preference_summary">备份昵称、乐队等偏好至云端</string>
     <string name="download_user_preference_summary">从云端恢复昵称、乐队等偏好</string>
     <string name="experimental">试验性功能</string>
+    <string name="nvbar_title">小白条沉浸</string>
+    <string name="nvbar_summary">开启后，若导航栏异常，请关闭</string>
     <string name="anim_title">优雅的动画速率</string>
     <string name="anim_summary">开启后，若出现异常情况，请关闭</string>
     <string name="about_header">关于</string>

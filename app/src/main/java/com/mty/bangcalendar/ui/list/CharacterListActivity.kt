@@ -3,19 +3,18 @@ package com.mty.bangcalendar.ui.list
 import android.os.Build
 import android.os.Bundle
 import android.view.MenuItem
+import androidx.activity.viewModels
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.mty.bangcalendar.BangCalendarApplication.Companion.isNavigationBarImmersionEnabled
 import com.mty.bangcalendar.databinding.ActivityCharacterListBinding
 import com.mty.bangcalendar.ui.BaseActivity
 
 class CharacterListActivity : BaseActivity() {
 
-    private val viewModel by lazy {
-        ViewModelProvider(this).get(CharacterListViewModel::class.java)
-    }
+    private val viewModel: CharacterListViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,7 +27,7 @@ class CharacterListActivity : BaseActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         //小白条沉浸
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        if (isNavigationBarImmersionEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.setDecorFitsSystemWindows(false)
             binding.root.setOnApplyWindowInsetsListener { view, insets ->
                 val top = WindowInsetsCompat.toWindowInsetsCompat(insets, view)

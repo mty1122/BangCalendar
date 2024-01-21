@@ -4,22 +4,20 @@ import android.os.Build
 import android.os.Bundle
 import android.view.MenuItem
 import android.widget.LinearLayout
+import androidx.activity.viewModels
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.mty.bangcalendar.BangCalendarApplication.Companion.isNavigationBarImmersionEnabled
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivityEventListBinding
-import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.ui.BaseActivity
 import com.mty.bangcalendar.util.EventUtil
 
 class EventListActivity : BaseActivity() {
 
-    private val viewModel by lazy {
-        ViewModelProvider(this)[EventListViewModel::class.java]
-    }
+    private val viewModel: EventListViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,7 +30,7 @@ class EventListActivity : BaseActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         //小白条沉浸
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        if (isNavigationBarImmersionEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.setDecorFitsSystemWindows(false)
             findViewById<LinearLayout>(R.id.eventListActivity)
                 .setOnApplyWindowInsetsListener { view, insets ->
@@ -60,16 +58,15 @@ class EventListActivity : BaseActivity() {
                         newEvent.id.toInt() == startEventId
                     }.also { index->
                         //找到索引后赋值给起始位置变量
-                        startPositionIndex = if (index != -1)
-                            index
-                        else
-                            0
+                        startPositionIndex = if (index != -1) index else 0
                     }
                 }
             } else {
                 it
             }
-            val adapter = EventListAdapter(eventList, this, viewModel)
+            val adapter = EventListAdapter(eventList, this) { eventId, onPictureReady->
+                viewModel.getEventPic(eventId, onPictureReady)
+            }
             binding.eventList.adapter = adapter
             //设置起始位置
             (binding.eventList.layoutManager as LinearLayoutManager)
@@ -84,20 +81,6 @@ class EventListActivity : BaseActivity() {
             android.R.id.home -> finish()
         }
         return true
-    }
-
-    @Deprecated("对array list删除元素成本太大")
-    private fun eventListCutter(eventList: ArrayList<Event>, bandId: Int, startEventId: Int): Int {
-        var startEvent: Event? = null
-        val iterator = eventList.iterator()
-        while (iterator.hasNext()) {
-            val event = iterator.next()
-            if (EventUtil.getBand(event).id != bandId)
-                iterator.remove()
-            else if (event.id.toInt() == startEventId)
-                startEvent = event
-        }
-        return eventList.indexOf(startEvent) + 1
     }
 
 }

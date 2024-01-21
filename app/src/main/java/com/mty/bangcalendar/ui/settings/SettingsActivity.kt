@@ -15,7 +15,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
@@ -26,13 +26,19 @@ import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.ktx.messaging
 import com.mty.bangcalendar.BangCalendarApplication
+import com.mty.bangcalendar.BangCalendarApplication.Companion.isNavigationBarImmersionEnabled
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.LoginRequest
 import com.mty.bangcalendar.logic.model.SmsRequest
 import com.mty.bangcalendar.logic.network.ServiceCreator
 import com.mty.bangcalendar.ui.BaseActivity
-import com.mty.bangcalendar.util.*
+import com.mty.bangcalendar.util.AnimUtil
+import com.mty.bangcalendar.util.GenericUtil
+import com.mty.bangcalendar.util.LogUtil
+import com.mty.bangcalendar.util.SecurityUtil
+import com.mty.bangcalendar.util.ThemeUtil
+import com.mty.bangcalendar.util.toast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -63,7 +69,7 @@ class SettingsActivity : BaseActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         //小白条沉浸
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        if (isNavigationBarImmersionEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.setDecorFitsSystemWindows(false)
             findViewById<LinearLayout>(R.id.settingsActivity)
                 .setOnApplyWindowInsetsListener { view, insets ->
@@ -84,9 +90,7 @@ class SettingsActivity : BaseActivity() {
 
     class SettingsFragment : PreferenceFragmentCompat() {
 
-        private val viewModel by lazy {
-            ViewModelProvider(this)[SettingsViewModel::class.java]
-        }
+        private val viewModel:SettingsViewModel by viewModels()
 
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey)
@@ -110,7 +114,7 @@ class SettingsActivity : BaseActivity() {
                 }
             }
 
-            //登录
+            //刷新登录状态
             requireActivity().lifecycleScope.launch {
                 viewModel.phoneNum.collect {
                     findPreference<Preference>("sign_in")?.let { preference ->
@@ -123,6 +127,7 @@ class SettingsActivity : BaseActivity() {
             }
             viewModel.getPhoneNum()
 
+            //监听检查更新结果
             viewModel.appUpdateInfo.observe(this) {
                 if (it.isFailure) {
                     toast("检查更新失败，请检查网络连接")
@@ -209,6 +214,24 @@ class SettingsActivity : BaseActivity() {
                 }
             }
 
+            findPreference<Preference>("nvbar")?.let {
+                it.setOnPreferenceChangeListener { preference, newValue ->
+                    AlertDialog.Builder(requireActivity())
+                        .setTitle("小白条沉浸")
+                        .setIcon(R.mipmap.ic_launcher)
+                        .setMessage("是否${if (newValue as Boolean) "启用" else "关闭"}小白条沉浸")
+                        .setNegativeButton("取消") { _, _ ->
+                        }
+                        .setPositiveButton("确认") { _, _ ->
+                            isNavigationBarImmersionEnabled = newValue
+                            (preference as SwitchPreference).isChecked = newValue
+                            requireActivity().recreate()
+                        }
+                        .create().show()
+                    return@setOnPreferenceChangeListener false
+                }
+            }
+
             findPreference<Preference>("theme")?.let {
                 it.setOnPreferenceChangeListener { _, newValue ->
                     ThemeUtil.setCurrentTheme(newValue as String)
@@ -243,7 +266,7 @@ class SettingsActivity : BaseActivity() {
 
             view.findViewById<Button>(R.id.send_sms_button).setOnClickListener {
                 val phoneNumber = phoneText.text.toString()
-                if (checkPhoneNum(phoneNumber)) {
+                if (phoneNumber.isPhoneNum()) {
                     val button = it as Button
                     button.isEnabled = false
                     button.text = getString(R.string.sms_sending)
@@ -274,7 +297,7 @@ class SettingsActivity : BaseActivity() {
                 //验证手机号和验证码合法性，登录中禁用按钮
                 val phoneNumber = phoneText.text.toString()
                 val smsCode = codeText.text.toString()
-                if (checkPhoneNum(phoneNumber) && smsCode.length == 6) {
+                if (phoneNumber.isPhoneNum() && smsCode.length == 6) {
                     val button = it as Button
                     button.isEnabled = false
                     button.text = getString(R.string.logging)
@@ -384,15 +407,11 @@ class SettingsActivity : BaseActivity() {
             }
         }
 
-        private fun checkPhoneNum(phone: String?): Boolean {
-            phone?.let {
-                val regex = "\\b1[3-9]\\d{9}\\b"
-                val pattern = Pattern.compile(regex)
-                val matcher = pattern.matcher(it)
-                if (matcher.find())
-                    return true
-            }
-            return false
+        private fun String.isPhoneNum(): Boolean {
+            val regex = "\\b1[3-9]\\d{9}\\b"
+            val pattern = Pattern.compile(regex)
+            val matcher = pattern.matcher(this)
+            return matcher.find()
         }
 
     }

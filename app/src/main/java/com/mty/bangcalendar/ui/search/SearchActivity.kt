@@ -8,12 +8,13 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
+import com.mty.bangcalendar.BangCalendarApplication.Companion.isNavigationBarImmersionEnabled
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivitySearchBinding
 import com.mty.bangcalendar.logic.model.Character
@@ -34,9 +35,7 @@ class SearchActivity : BaseActivity() {
         const val SEARCH_EVENT = 1
     }
 
-    private val viewModel by lazy {
-        ViewModelProvider(this)[SearchViewModel::class.java]
-    }
+    private val viewModel: SearchViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,7 +48,7 @@ class SearchActivity : BaseActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         //小白条沉浸
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        if (isNavigationBarImmersionEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.setDecorFitsSystemWindows(false)
             findViewById<LinearLayout>(R.id.searchActivity)
                 .setOnApplyWindowInsetsListener { view, insets ->

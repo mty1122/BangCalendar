@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityOptionsCompat
 import androidx.lifecycle.lifecycleScope
 import com.mty.bangcalendar.BangCalendarApplication
+import com.mty.bangcalendar.BangCalendarApplication.Companion.isNavigationBarImmersionEnabled
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.service.CharacterRefreshService
 import com.mty.bangcalendar.service.EventRefreshService
@@ -90,6 +91,8 @@ class GuideActivity : ComponentActivity() {
             ThemeUtil.setCurrentTheme(initData.theme)
             //设置动画偏好
             AnimUtil.setAnimPreference(initData.animPreference)
+            //设置导航栏偏好（是否启动小白条沉浸）
+            isNavigationBarImmersionEnabled = initData.nvbarPreference
             //非首次启动不设置动画
             val anim = ActivityOptionsCompat
                 .makeCustomAnimation(this,0, 0).toBundle()

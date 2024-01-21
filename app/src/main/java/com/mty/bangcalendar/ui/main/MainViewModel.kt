@@ -212,7 +212,7 @@ class MainViewModel : ViewModel() {
         SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
             when (key) {
                 "signature", "band", "character" -> refreshDailyTag()
-                "theme" ->recreateActivity()
+                "theme", "nvbar" ->recreateActivity()
             }
         }
     init {

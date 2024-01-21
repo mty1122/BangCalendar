@@ -15,6 +15,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager.widget.ViewPager
+import com.mty.bangcalendar.BangCalendarApplication.Companion.isNavigationBarImmersionEnabled
 import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivityMainBinding
@@ -62,7 +63,8 @@ class MainActivity : BaseActivity() {
             window.statusBarColor = getColor(R.color.start)
 
         //小白条沉浸
-        navigationBarImmersion(mainBinding)
+        if (isNavigationBarImmersionEnabled)
+            navigationBarImmersion(mainBinding)
 
         //开始加载界面
         viewModel.startLoading()
@@ -209,7 +211,7 @@ class MainActivity : BaseActivity() {
 
     private fun setDailyTagUiStateObserver(mainBinding: ActivityMainBinding) {
         viewModel.dailyTagUiState.observe(this) { uiState->
-            dailyTagView.refreshDailyTag(mainBinding, uiState) {
+            dailyTagView.refreshDailyTag(mainBinding.dailytagCard, uiState) {
                 viewModel.setJumpDate(it)
             }
         }
@@ -223,7 +225,7 @@ class MainActivity : BaseActivity() {
             //刷新活动卡片
             lifecycleScope.launch {
                 eventCardView.handleUiState(viewModel.currentDate.value!!,
-                    viewModel.mainUiState.value, it, mainBinding)
+                    viewModel.mainUiState.value, it, mainBinding.eventCard)
             }
         }
     }
@@ -258,11 +260,6 @@ class MainActivity : BaseActivity() {
 
     private suspend fun initViews(binding: ActivityMainBinding, mainUiState: MainUiState,
                                   initData: MainViewInitData) {
-        //活动进度条初始化
-        binding.eventCard.eventProgress.run {
-            progressColor = getColor(ThemeUtil.getThemeColor(this@MainActivity))
-            textColor = getColor(ThemeUtil.getThemeColor(this@MainActivity))
-        }
         /* 下方为四大组件初始化（日历、dailyTag、生日卡片、活动卡片） */
         //加载日历模块，如果不是初次启动，使用viewModel保存的状态
         val initDate = if (mainUiState.isFirstStart) null else viewModel.currentDate.value!!
@@ -276,7 +273,7 @@ class MainActivity : BaseActivity() {
         )
         //加载DailyTag
         initData.dailyTagUiState.collect { uiState->
-            dailyTagView.refreshDailyTag(binding, uiState) {
+            dailyTagView.refreshDailyTag(binding.dailytagCard, uiState) {
                 viewModel.setJumpDate(it)
             }
         }
@@ -284,8 +281,8 @@ class MainActivity : BaseActivity() {
         val  currentDate =
             if (mainUiState.isFirstStart) systemDate.toDate()
             else viewModel.currentDate.value!!
-        eventCardView.eventCardInit(binding, mainUiState, initData.currentEvent, currentDate,
-            initData.eventPicture)
+        eventCardView.eventCardInit(binding.eventCard, mainUiState, initData.currentEvent,
+            currentDate, initData.eventPicture)
         //加载生日卡片
         initData.birthdayCardUiState.collect{
             //等待其膨胀完成后再初始化，防止获取不到高度

@@ -6,7 +6,7 @@ import android.graphics.drawable.Drawable
 import com.bumptech.glide.Glide
 import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.R
-import com.mty.bangcalendar.databinding.ActivityMainBinding
+import com.mty.bangcalendar.databinding.EventCardBinding
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.logic.model.IntDate
 import com.mty.bangcalendar.ui.list.EventListActivity
@@ -15,6 +15,7 @@ import com.mty.bangcalendar.ui.main.state.MainUiState
 import com.mty.bangcalendar.util.AnimUtil
 import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.LogUtil
+import com.mty.bangcalendar.util.ThemeUtil
 import com.mty.bangcalendar.util.log
 import com.mty.bangcalendar.util.startActivity
 import com.mty.bangcalendar.util.startCharacterListActivity
@@ -28,15 +29,20 @@ class EventCardView @Inject constructor(@ActivityContext val context: Context) {
     private var isEventCardVisible = true
 
     suspend fun eventCardInit(
-        binding: ActivityMainBinding,
+        binding: EventCardBinding,
         mainUiState: MainUiState,
         event: Event?,
         currentDate: IntDate,
         eventPicture: Flow<Drawable?>?
     ) {
+        //活动进度条初始化
+        binding.eventProgress.progressColor = context.getColor(ThemeUtil.getThemeColor(context))
+        binding.eventProgress.textColor = context.getColor(ThemeUtil.getThemeColor(context))
+
+        //活动卡片内容初始化
         if (event == null || currentDate - IntDate(event.startDate) >= 13) {
             isEventCardVisible = false
-            binding.eventCard.eventCardItem.alpha = 0f
+            binding.eventCardItem.alpha = 0f
         } else {
             isEventCardVisible = true
             refreshEventComponent(mainUiState, event, eventPicture!!, binding)
@@ -47,7 +53,7 @@ class EventCardView @Inject constructor(@ActivityContext val context: Context) {
         currentDate: IntDate,
         mainUiState: MainUiState,
         eventCardUiState: EventCardUiState,
-        mainBinding: ActivityMainBinding
+        binding: EventCardBinding
     ) {
         //活动小于第一期或者大于最后一期的情况
         if (eventCardUiState.event == null ||
@@ -55,9 +61,9 @@ class EventCardView @Inject constructor(@ActivityContext val context: Context) {
             if (isEventCardVisible) {
                 isEventCardVisible = false
                 //启动隐藏动画
-                runEventCardAnim(mainBinding, 0f)
+                runEventCardAnim(binding, 0f)
                 //取消注册监听器
-                cancelListener(mainBinding)
+                cancelListener(binding)
             }
             //活动合法的情况
         } else {
@@ -66,20 +72,20 @@ class EventCardView @Inject constructor(@ActivityContext val context: Context) {
             if (!isEventCardVisible) {
                 isEventCardVisible = true
                 refreshEventComponent(mainUiState, eventCardUiState.event,
-                    eventCardUiState.eventPicture!!, mainBinding)
+                    eventCardUiState.eventPicture!!, binding)
                 //启动显示动画
-                runEventCardAnim(mainBinding, 1f)
+                runEventCardAnim(binding, 1f)
                 //不同活动之间移动，刷新活动
-            } else if (!EventUtil.isSameEvent(mainBinding.eventCard.eventType.text.toString(),
+            } else if (!EventUtil.isSameEvent(binding.eventType.text.toString(),
                     eventCardUiState.event.id.toInt())) {
                 refreshEventComponent(mainUiState, eventCardUiState.event,
-                    eventCardUiState.eventPicture!!, mainBinding)
+                    eventCardUiState.eventPicture!!, binding)
             }
         }
     }
 
-    private fun runEventCardAnim(mainBinding: ActivityMainBinding, endAlpha: Float) {
-        mainBinding.eventCard.eventCardItem.run {
+    private fun runEventCardAnim(binding: EventCardBinding, endAlpha: Float) {
+        binding.eventCardItem.run {
             if (endAlpha != alpha)
                 ObjectAnimator.ofFloat(this, "alpha", endAlpha)
                     .setDuration(AnimUtil.getAnimPreference().toLong())
@@ -88,27 +94,27 @@ class EventCardView @Inject constructor(@ActivityContext val context: Context) {
         }
     }
 
-    private fun cancelListener(mainBinding: ActivityMainBinding) {
-        mainBinding.eventCard.char1.setOnClickListener(null)
-        mainBinding.eventCard.char2.setOnClickListener(null)
-        mainBinding.eventCard.char3.setOnClickListener(null)
-        mainBinding.eventCard.char4.setOnClickListener(null)
-        mainBinding.eventCard.char5.setOnClickListener(null)
-        mainBinding.eventCard.eventBand.setOnClickListener(null)
-        mainBinding.eventCard.eventButton.setOnClickListener(null)
+    private fun cancelListener(binding: EventCardBinding) {
+        binding.char1.setOnClickListener(null)
+        binding.char2.setOnClickListener(null)
+        binding.char3.setOnClickListener(null)
+        binding.char4.setOnClickListener(null)
+        binding.char5.setOnClickListener(null)
+        binding.eventBand.setOnClickListener(null)
+        binding.eventButton.setOnClickListener(null)
     }
 
     private suspend fun refreshEventComponent(
         mainUiState: MainUiState,
         event: Event,
         eventPicture: Flow<Drawable?>,
-        binding: ActivityMainBinding
+        binding: EventCardBinding
     ) {
         LogUtil.d(this, "刷新活动组件")
         //刷新活动状态
         refreshEventStatus(event, binding, mainUiState)
         //刷新活动类型
-        binding.eventCard.eventType.text = StringBuilder().run {
+        binding.eventType.text = StringBuilder().run {
             append("活动")
             append(event.id)
             append(" ")
@@ -117,41 +123,41 @@ class EventCardView @Inject constructor(@ActivityContext val context: Context) {
         }
         //刷新活动角色
         Glide.with(context).load(EventUtil.matchCharacter(event.character1))
-            .into(binding.eventCard.char1)
-        binding.eventCard.char1.setOnClickListener {
+            .into(binding.char1)
+        binding.char1.setOnClickListener {
             context.startCharacterListActivity(event.character1)
         }
         Glide.with(context).load(EventUtil.matchCharacter(event.character2))
-            .into(binding.eventCard.char2)
-        binding.eventCard.char2.setOnClickListener {
+            .into(binding.char2)
+        binding.char2.setOnClickListener {
             context.startCharacterListActivity(event.character2)
         }
         Glide.with(context).load(EventUtil.matchCharacter(event.character3))
-            .into(binding.eventCard.char3)
-        binding.eventCard.char3.setOnClickListener {
+            .into(binding.char3)
+        binding.char3.setOnClickListener {
             context.startCharacterListActivity(event.character3)
         }
         Glide.with(context).load(EventUtil.matchCharacter(event.character4))
-            .into(binding.eventCard.char4)
+            .into(binding.char4)
         event.character4?.let { character4 ->
-            binding.eventCard.char4.setOnClickListener {
+            binding.char4.setOnClickListener {
                 context.startCharacterListActivity(character4)
             }
         }
         Glide.with(context).load(EventUtil.matchCharacter(event.character5))
-            .into(binding.eventCard.char5)
+            .into(binding.char5)
         event.character5?.let { character5 ->
-            binding.eventCard.char5.setOnClickListener {
+            binding.char5.setOnClickListener {
                 context.startCharacterListActivity(character5)
             }
         }
         //刷新活动属性
         Glide.with(context).load(EventUtil.matchAttrs(event.attrs))
-            .into(binding.eventCard.eventAttrs)
+            .into(binding.eventAttrs)
         //刷新乐队图片
         Glide.with(context).load(EventUtil.getBandPic(event))
-            .into(binding.eventCard.eventBand)
-        binding.eventCard.eventBand.setOnClickListener {
+            .into(binding.eventBand)
+        binding.eventBand.setOnClickListener {
             context.startActivity<EventListActivity>(
                 "current_id" to event.id.toInt(),
                 "band_id" to EventUtil.getBand(event).id
@@ -160,17 +166,17 @@ class EventCardView @Inject constructor(@ActivityContext val context: Context) {
         //刷新活动图片
         eventPicture.collect{
             it?.let {
-                binding.eventCard.eventBackground.background = it
+                binding.eventBackground.background = it
             }
         }
-        binding.eventCard.eventButton.setOnClickListener {
+        binding.eventButton.setOnClickListener {
             context.startActivity<EventListActivity>("current_id" to event.id.toInt())
         }
     }
 
     private fun refreshEventStatus(
         event: Event,
-        binding: ActivityMainBinding,
+        binding: EventCardBinding,
         mainUiState: MainUiState
     ) {
         val todayEventId = mainUiState.todayEvent?.id
@@ -179,8 +185,8 @@ class EventCardView @Inject constructor(@ActivityContext val context: Context) {
             log(this, "刷新活动状态")
             when {
                 eventId < todayEventId -> {
-                    binding.eventCard.eventProgressName.setText(R.string.finish)
-                    binding.eventCard.eventProgress.progress = 100
+                    binding.eventProgressName.setText(R.string.finish)
+                    binding.eventProgress.progress = 100
                 }
                 eventId == todayEventId -> {
                     val systemTime = systemDate.getTimeInMillis()
@@ -188,23 +194,23 @@ class EventCardView @Inject constructor(@ActivityContext val context: Context) {
                     val eventEndTime = mainUiState.eventEndTime
                     when {
                         systemTime < eventStartTime -> {
-                            binding.eventCard.eventProgressName.setText(R.string.prepare)
-                            binding.eventCard.eventProgress.progress = 0
+                            binding.eventProgressName.setText(R.string.prepare)
+                            binding.eventProgress.progress = 0
                         }
                         systemTime >= eventEndTime -> {
-                            binding.eventCard.eventProgressName.setText(R.string.finish)
-                            binding.eventCard.eventProgress.progress = 100
+                            binding.eventProgressName.setText(R.string.finish)
+                            binding.eventProgress.progress = 100
                         }
                         else -> {
-                            binding.eventCard.eventProgressName.setText(R.string.ing)
-                            binding.eventCard.eventProgress.progress = EventUtil
+                            binding.eventProgressName.setText(R.string.ing)
+                            binding.eventProgress.progress = EventUtil
                                 .getEventProgress(systemTime, eventStartTime)
                         }
                     }
                 }
                 else -> {
-                    binding.eventCard.eventProgressName.setText(R.string.prepare)
-                    binding.eventCard.eventProgress.progress = 0
+                    binding.eventProgressName.setText(R.string.prepare)
+                    binding.eventProgress.progress = 0
                 }
             }
         }

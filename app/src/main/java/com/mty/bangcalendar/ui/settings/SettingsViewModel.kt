@@ -12,7 +12,11 @@ import androidx.lifecycle.viewModelScope
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.enum.IntentActions
 import com.mty.bangcalendar.logic.Repository
-import com.mty.bangcalendar.logic.model.*
+import com.mty.bangcalendar.logic.model.GetPreferenceRequest
+import com.mty.bangcalendar.logic.model.LoginRequest
+import com.mty.bangcalendar.logic.model.SmsRequest
+import com.mty.bangcalendar.logic.model.UpdateResponse
+import com.mty.bangcalendar.logic.model.UserPreference
 import com.mty.bangcalendar.service.CharacterRefreshService
 import com.mty.bangcalendar.service.EventRefreshService
 import com.mty.bangcalendar.util.SecurityUtil
@@ -25,18 +29,9 @@ import kotlinx.coroutines.withContext
 
 class SettingsViewModel : ViewModel() {
 
-    //接收service发来的更新进度
-    private val refreshDataResultReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val result = intent.getIntExtra("result", 0)
-            _refreshDataResult.value = result
-        }
-    }
-
     //传递更新进度
     val refreshDataResult: LiveData<Int>
         get() = _refreshDataResult
-
     private val _refreshDataResult = MutableLiveData<Int>()
 
     //更新数据库
@@ -44,8 +39,6 @@ class SettingsViewModel : ViewModel() {
         refreshCharacter(context)
         refreshEvent(context)
     }
-
-    //更新数据库数据
     private fun refreshCharacter(context: Context) {
         val intent = Intent(context, CharacterRefreshService::class.java)
         context.startService(intent)
@@ -93,7 +86,6 @@ class SettingsViewModel : ViewModel() {
             }
         }
     }
-
     fun recoveryPreference(onRecoverySuccess: (UserPreference) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             val result = Repository.downloadUserPreference(
@@ -124,13 +116,19 @@ class SettingsViewModel : ViewModel() {
         }
     }
 
+    //接收service发来的更新进度
+    private val refreshDataResultReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val result = intent.getIntExtra("result", 0)
+            _refreshDataResult.value = result
+        }
+    }
     init {
         val intentFilter = IntentFilter()
         intentFilter.addAction(IntentActions.REFRESH_DATABASE_FINISH_ACTION.value)
         ContextCompat.registerReceiver(BangCalendarApplication.context, refreshDataResultReceiver,
             intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED)
     }
-
     override fun onCleared() {
         super.onCleared()
         BangCalendarApplication.context.unregisterReceiver(refreshDataResultReceiver)

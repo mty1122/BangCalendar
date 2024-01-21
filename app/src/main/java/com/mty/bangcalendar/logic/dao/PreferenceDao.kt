@@ -69,6 +69,7 @@ object PreferenceDao {
     }
 
     fun getAnimPreference(): Boolean = defaultPreference().getBoolean("anim", false)
+    fun getNvbarPreference(): Boolean = defaultPreference().getBoolean("nvbar", false)
 
     fun setDefaultPreference() {
         defaultPreference().edit {

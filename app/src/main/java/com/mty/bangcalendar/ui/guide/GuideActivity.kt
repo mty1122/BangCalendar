@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.core.animateFloatAsState
@@ -41,6 +40,7 @@ import com.mty.bangcalendar.BangCalendarApplication.Companion.isNavigationBarImm
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.service.CharacterRefreshService
 import com.mty.bangcalendar.service.EventRefreshService
+import com.mty.bangcalendar.ui.BaseActivity
 import com.mty.bangcalendar.ui.main.MainActivity
 import com.mty.bangcalendar.ui.theme.BangCalendarTheme
 import com.mty.bangcalendar.util.AnimUtil
@@ -49,7 +49,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-class GuideActivity : ComponentActivity() {
+class GuideActivity : BaseActivity() {
 
     private val viewModel: GuideViewModel by viewModels()
 
@@ -85,6 +85,7 @@ class GuideActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.statusBarColor = getColor(R.color.start)
+        window.navigationBarColor = getColor(R.color.start)
         //初始化App
         viewModel.fetchInitData { initData ->
             //设置主题

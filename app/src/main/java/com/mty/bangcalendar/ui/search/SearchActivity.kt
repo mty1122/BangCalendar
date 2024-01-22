@@ -57,16 +57,15 @@ class SearchActivity : BaseActivity() {
                     view.updatePadding(top = top)
                     insets
                 }
+            window.navigationBarColor = getColor(R.color.transparent)
         }
 
         //活动&角色卡片初始化
         searchBinding.searchEventCard.run {
             eventCardItem.visibility = View.GONE
             eventProgress.progress = 88
-            eventProgress.progressColor =
-                getColor(ThemeUtil.getThemeColor(this@SearchActivity))
-            eventProgress.textColor =
-                getColor(ThemeUtil.getThemeColor(this@SearchActivity))
+            eventProgress.progressColor = ThemeUtil.getThemeColor(this@SearchActivity)
+            eventProgress.textColor = ThemeUtil.getThemeColor(this@SearchActivity)
             eventProgressName.text = "搜索模式"
         }
         searchBinding.searchCharacterCard.characterCardItem.visibility = View.GONE

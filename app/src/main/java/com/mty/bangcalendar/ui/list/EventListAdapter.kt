@@ -55,10 +55,8 @@ class EventListAdapter(private val eventList: List<Event> , private val context:
         val event = eventList[position]
         holder.run {
             eventProgress.progress = 66
-            eventProgress.progressColor =
-                context.getColor(ThemeUtil.getThemeColor(context))
-            eventProgress.textColor =
-                context.getColor(ThemeUtil.getThemeColor(context))
+            eventProgress.progressColor = ThemeUtil.getThemeColor(context)
+            eventProgress.textColor = ThemeUtil.getThemeColor(context)
             eventProgressName.text = "浏览模式"
             //刷新活动类型
             eventType.text = StringBuilder().run {

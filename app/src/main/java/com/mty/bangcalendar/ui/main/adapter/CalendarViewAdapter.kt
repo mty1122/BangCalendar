@@ -84,7 +84,7 @@ class CalendarViewAdapter(
         } else {
             holder.selectBg.visibility = View.GONE
             holder.birthday.visibility = View.GONE
-            holder.date.setTextColor(context.getColor(ThemeUtil.getDateTextColor(context)))
+            holder.date.setTextColor(ThemeUtil.getDateTextColor(context))
         }
     }
 

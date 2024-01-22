@@ -78,6 +78,7 @@ class SettingsActivity : BaseActivity() {
                 view.updatePadding(top = top)
                 insets
             }
+            window.navigationBarColor = getColor(R.color.transparent)
         }
     }
 

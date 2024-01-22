@@ -12,7 +12,6 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
-        <item name="android:navigationBarColor">@color/transparent</item>
         <item name="app_theme_color">@color/ppp_bar</item>
         <item name="app_text_color">@color/ppp_text</item>
         <item name="app_background_color">@color/ppp_background</item>
@@ -35,7 +34,6 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
-        <item name="android:navigationBarColor">@color/transparent</item>
         <item name="app_theme_color">@color/r_bar</item>
         <item name="app_text_color">@color/r_text</item>
         <item name="app_background_color">@color/r_background</item>
@@ -57,7 +55,6 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
-        <item name="android:navigationBarColor">@color/transparent</item>
         <item name="app_theme_color">@color/m_bar</item>
         <item name="app_text_color">@color/m_text</item>
         <item name="app_background_color">@color/m_background</item>
@@ -79,7 +76,6 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
-        <item name="android:navigationBarColor">@color/transparent</item>
         <item name="app_theme_color">@color/pp_bar</item>
         <item name="app_text_color">@color/pp_text</item>
         <item name="app_background_color">@color/pp_background</item>
@@ -101,7 +97,6 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
-        <item name="android:navigationBarColor">@color/transparent</item>
         <item name="app_theme_color">@color/ag_bar</item>
         <item name="app_text_color">@color/ag_text</item>
         <item name="app_background_color">@color/ag_background</item>
@@ -123,7 +118,6 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
-        <item name="android:navigationBarColor">@color/transparent</item>
         <item name="app_theme_color">@color/hhw_bar</item>
         <item name="app_text_color">@color/hhw_text</item>
         <item name="app_background_color">@color/hhw_background</item>
@@ -145,7 +139,6 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
-        <item name="android:navigationBarColor">@color/transparent</item>
         <item name="app_theme_color">@color/ras_bar</item>
         <item name="app_text_color">@color/ras_text</item>
         <item name="app_background_color">@color/ras_background</item>
@@ -167,7 +160,6 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
-        <item name="android:navigationBarColor">@color/transparent</item>
         <item name="app_theme_color">@color/mg_bar</item>
         <item name="app_text_color">@color/mg_text</item>
         <item name="app_background_color">@color/mg_background</item>

@@ -58,9 +58,11 @@ class MainActivity : BaseActivity() {
         setSupportActionBar(mainBinding.toolBar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
-        //初次启动时，状态栏颜色与引导界面一致
-        if (viewModel.mainUiState.value.isFirstStart)
+        //初次启动时，状态栏和导航栏颜色与引导界面一致
+        if (viewModel.mainUiState.value.isFirstStart) {
             window.statusBarColor = getColor(R.color.start)
+            window.navigationBarColor = getColor(R.color.start)
+        }
 
         //小白条沉浸
         if (isNavigationBarImmersionEnabled)
@@ -79,8 +81,10 @@ class MainActivity : BaseActivity() {
                 .distinctUntilChanged()
                 .collect { isLoading->
                     if (!isLoading) {
-                        window.statusBarColor =
-                            getColor(ThemeUtil.getToolBarColor(this@MainActivity))
+                        window.statusBarColor = ThemeUtil.getToolBarColor(this@MainActivity)
+                        if (!isNavigationBarImmersionEnabled)
+                            window.navigationBarColor =
+                                ThemeUtil.getBackgroundColor(this@MainActivity)
                         mainBinding.mainActivity.visibility = View.VISIBLE
                     }
                 }
@@ -185,17 +189,32 @@ class MainActivity : BaseActivity() {
         return true
     }
 
+    //沉浸式导航栏
     private fun navigationBarImmersion(binding: ActivityMainBinding) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            //关闭装饰窗口自适应
             window.setDecorFitsSystemWindows(false)
             binding.mainActivity.setOnApplyWindowInsetsListener { view, insets ->
                 val top = WindowInsetsCompat.toWindowInsetsCompat(insets, view)
                     .getInsets(WindowInsetsCompat.Type.statusBars()).top
+                val bottom = WindowInsetsCompat.toWindowInsetsCompat(insets, view)
+                    .getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+                //手动设置根视图到顶部的距离（状态栏高度）
                 view.updatePadding(top = top)
-                (binding.goBackFloatButton.layoutParams as FrameLayout.LayoutParams)
-                    .bottomMargin = top
+                //手动设置悬浮按钮到底部的距离（导航栏高度+原本的margin）
+                binding.goBackFloatButton.viewTreeObserver.addOnGlobalLayoutListener(object :
+                    ViewTreeObserver.OnGlobalLayoutListener {
+                    override fun onGlobalLayout() {
+                        (binding.goBackFloatButton.layoutParams as FrameLayout.LayoutParams)
+                            .bottomMargin += bottom
+                        binding.birCard.cardView.viewTreeObserver
+                            .removeOnGlobalLayoutListener(this)
+                    }
+                })
                 insets
             }
+            //设置导航栏透明
+            window.navigationBarColor = getColor(R.color.transparent)
         }
     }
 

@@ -11,20 +11,26 @@ object ThemeUtil {
     fun getThemeColor(context: Context): Int {
         val typedValue = TypedValue()
         context.theme.resolveAttribute(R.attr.app_theme_color, typedValue, true)
-        return typedValue.resourceId
+        return context.getColor(typedValue.resourceId)
     }
 
     fun getToolBarColor(context: Context): Int {
         val typedValue = TypedValue()
         context.theme.resolveAttribute(com.google.android.material.R.attr.colorPrimaryVariant ,
             typedValue, true)
-        return typedValue.resourceId
+        return context.getColor(typedValue.resourceId)
+    }
+
+    fun getBackgroundColor(context: Context): Int {
+        val typedValue = TypedValue()
+        context.theme.resolveAttribute(R.attr.app_background_color, typedValue, true)
+        return context.getColor(typedValue.resourceId)
     }
 
     fun getDateTextColor(context: Context): Int {
         val typedValue = TypedValue()
         context.theme.resolveAttribute(R.attr.date_text_color, typedValue, true)
-        return typedValue.resourceId
+        return context.getColor(typedValue.resourceId)
     }
 
     fun setCurrentTheme(themeName: String) {

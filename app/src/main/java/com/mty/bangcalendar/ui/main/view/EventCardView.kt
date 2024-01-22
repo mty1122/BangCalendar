@@ -36,8 +36,8 @@ class EventCardView @Inject constructor(@ActivityContext val context: Context) {
         eventPicture: Flow<Drawable?>?
     ) {
         //活动进度条初始化
-        binding.eventProgress.progressColor = context.getColor(ThemeUtil.getThemeColor(context))
-        binding.eventProgress.textColor = context.getColor(ThemeUtil.getThemeColor(context))
+        binding.eventProgress.progressColor = ThemeUtil.getThemeColor(context)
+        binding.eventProgress.textColor = ThemeUtil.getThemeColor(context)
 
         //活动卡片内容初始化
         if (event == null || currentDate - IntDate(event.startDate) >= 13) {

@@ -39,6 +39,7 @@ class EventListActivity : BaseActivity() {
                     view.updatePadding(top = top)
                     insets
                 }
+            window.navigationBarColor = getColor(R.color.transparent)
         }
 
         //配置adapter

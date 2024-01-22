@@ -3,7 +3,8 @@
     android:orientation="vertical"
     android:id="@+id/eventListActivity"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?attr/app_background_color">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/eventListToolBar"

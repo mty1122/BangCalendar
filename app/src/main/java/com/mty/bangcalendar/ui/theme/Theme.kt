@@ -14,10 +14,10 @@ private val DarkColorPalette = darkColors(
 )
 
 private val LightColorPalette = lightColors(
-    primary = ppp_bar,
-    primaryVariant = ppp_bar,
-    secondary = ppp_bar,
-    background = ppp_background
+    primary = m_bar,
+    primaryVariant = m_bar,
+    secondary = m_bar,
+    background = m_background
 
     /* Other default colors to override
     background = Color.White,

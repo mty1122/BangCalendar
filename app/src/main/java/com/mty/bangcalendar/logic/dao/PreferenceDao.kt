@@ -50,7 +50,7 @@ object PreferenceDao {
 
     fun getPreferenceBand(): String = defaultPreference().getString("band", "other")!!
 
-    fun getTheme(): String = defaultPreference().getString("theme", "theme_ppp")!!
+    fun getTheme(): String = defaultPreference().getString("theme", "theme_m")!!
 
     fun getPreferenceCharacter(): Int =
         Integer.parseInt(defaultPreference().getString("character", "0")!!)
@@ -73,8 +73,8 @@ object PreferenceDao {
 
     fun setDefaultPreference() {
         defaultPreference().edit {
-            putString("band", "ppp")
-            putString("character", "1")
+            putString("band", "m")
+            putString("character", "26")
         }
     }
 

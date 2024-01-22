@@ -8,7 +8,7 @@
             app:useSimpleSummaryProvider="true" />
 
         <ListPreference
-            app:defaultValue="theme_ppp"
+            app:defaultValue="theme_m"
             app:entries="@array/theme_entries"
             app:entryValues="@array/theme_values"
             app:key="theme"
@@ -16,7 +16,6 @@
             app:useSimpleSummaryProvider="true" />
 
         <ListPreference
-            app:defaultValue="other"
             app:entries="@array/band_entries"
             app:entryValues="@array/band_values"
             app:key="band"
@@ -24,7 +23,6 @@
             app:useSimpleSummaryProvider="true" />
 
         <ListPreference
-            app:defaultValue="0"
             app:entries="@array/char_entries"
             app:entryValues="@array/char_values"
             app:key="character"

@@ -1,7 +1,9 @@
 package com.mty.bangcalendar.ui
 
+import android.annotation.SuppressLint
 import android.app.UiModeManager
 import android.content.Context
+import android.content.pm.ActivityInfo
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -16,6 +18,12 @@ import com.mty.bangcalendar.util.ThemeUtil
 open class BaseActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        //锁定屏幕方向（纵向）
+        @SuppressLint("SourceLockedOrientationActivity")
+        if (requestedOrientation != ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
 
         //非沉浸模式，且非深色模式下使用浅色背景导航栏
         val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as UiModeManager

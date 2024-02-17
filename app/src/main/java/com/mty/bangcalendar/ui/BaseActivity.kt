@@ -8,7 +8,6 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.WindowInsetsController
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.mty.bangcalendar.BangCalendarApplication.Companion.isNavigationBarImmersionEnabled
@@ -34,11 +33,9 @@ open class BaseActivity : AppCompatActivity() {
                     WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,
                     WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
                 )
-            } else {
+            } else if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N_MR1) {
                 @Suppress("DEPRECATION")
-                @RequiresApi(Build.VERSION_CODES.O)
-                window.decorView.systemUiVisibility =
-                    View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
             }
         //沉浸模式恢复深色背景导航栏（透明）
         } else {
@@ -47,9 +44,8 @@ open class BaseActivity : AppCompatActivity() {
                     0,
                     WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
                 )
-            } else {
+            } else if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N_MR1) {
                 @Suppress("DEPRECATION")
-                @RequiresApi(Build.VERSION_CODES.O)
                 window.decorView.systemUiVisibility = 0
             }
         }

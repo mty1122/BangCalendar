@@ -7,6 +7,7 @@ import com.mty.bangcalendar.R
 object ThemeUtil {
 
     var currentTheme: Int? = null
+        private set
 
     fun getThemeColor(context: Context): Int {
         val typedValue = TypedValue()

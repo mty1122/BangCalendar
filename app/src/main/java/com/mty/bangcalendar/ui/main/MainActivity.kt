@@ -30,10 +30,14 @@ import com.mty.bangcalendar.ui.search.SearchActivity
 import com.mty.bangcalendar.ui.settings.SettingsActivity
 import com.mty.bangcalendar.util.*
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity() {
@@ -278,42 +282,57 @@ class MainActivity : BaseActivity() {
     }
 
     private suspend fun initViews(binding: ActivityMainBinding, mainUiState: MainUiState,
-                                  initData: MainViewInitData) {
+                                  initData: MainViewInitData) = coroutineScope {
         /* 下方为四大组件初始化（日历、dailyTag、生日卡片、活动卡片） */
         //加载日历模块，如果不是初次启动，使用viewModel保存的状态
-        val initDate = if (mainUiState.isFirstStart) null else viewModel.currentDate.value!!
-        calendarView.calendarInit(
-            binding.viewPager,
-            initDate,
-            lifecycleScope,
-            { viewModel.refreshCurrentDate(it) },
-            { viewModel.currentDate.value!! },
-            { viewModel.fetchBirthdayMapByMonth(it) }
-        )
+        launch {
+            val initDate = if (mainUiState.isFirstStart) null else viewModel.currentDate.value!!
+            calendarView.calendarInit(
+                binding.viewPager,
+                initDate,
+                lifecycleScope,
+                { viewModel.refreshCurrentDate(it) },
+                { viewModel.currentDate.value!! },
+                { viewModel.fetchBirthdayMapByMonth(it) }
+            )
+        }
         //加载DailyTag
-        initData.dailyTagUiState.collect { uiState->
-            dailyTagView.refreshDailyTag(binding.dailytagCard, uiState) {
-                viewModel.setJumpDate(it)
+        val dailyTagDeferred = async {
+            initData.dailyTagUiState.collect { uiState->
+                dailyTagView.refreshDailyTag(binding.dailytagCard, uiState) {
+                    viewModel.setJumpDate(it)
+                }
             }
         }
         //加载活动卡片，如果不是初次启动，使用viewModel保存的状态
-        val  currentDate =
-            if (mainUiState.isFirstStart) systemDate.toDate()
-            else viewModel.currentDate.value!!
-        eventCardView.eventCardInit(binding.eventCard, mainUiState, initData.currentEvent,
-            currentDate, initData.eventPicture)
-        //加载生日卡片
-        initData.birthdayCardUiState.collect{
-            //等待其膨胀完成后再初始化，防止获取不到高度
-            binding.birCard.cardView.viewTreeObserver.addOnGlobalLayoutListener(object :
-                ViewTreeObserver.OnGlobalLayoutListener {
-                override fun onGlobalLayout() {
-                    birthdayCardView.birCardInit(it, binding)
-                    binding.birCard.cardView.viewTreeObserver
-                        .removeOnGlobalLayoutListener(this)
-                }
-            })
+        val eventCardDeferred = async {
+            val  currentDate =
+                if (mainUiState.isFirstStart) systemDate.toDate()
+                else viewModel.currentDate.value!!
+            eventCardView.eventCardInit(binding.eventCard, mainUiState, initData.currentEvent,
+                currentDate, initData.eventPicture)
         }
+        //加载生日卡片
+        val birthdayCardDeferred = async {
+            initData.birthdayCardUiState.collect{ birthdayCardUiState ->
+                //等待其膨胀完成后再初始化，防止获取不到高度
+                suspendCoroutine {
+                    binding.birCard.cardView.viewTreeObserver.addOnGlobalLayoutListener(object :
+                        ViewTreeObserver.OnGlobalLayoutListener {
+                        override fun onGlobalLayout() {
+                            birthdayCardView.birCardInit(birthdayCardUiState, binding)
+                            it.resume(Unit)
+                            binding.birCard.cardView.viewTreeObserver
+                                .removeOnGlobalLayoutListener(this)
+                        }
+                    })
+                }
+            }
+        }
+        //等待加载完成
+        dailyTagDeferred.await()
+        eventCardDeferred.await()
+        birthdayCardDeferred.await()
     }
 
 }

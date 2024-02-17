@@ -11,7 +11,7 @@ import com.mty.bangcalendar.ui.list.CharacterListActivity
 /**
  * 简化Activity的启动，示范：startActivity<ArticleActivity>("page" to 20)
  * @param pairs 等价于 intent.putExtra("page", 20)
- * 仅支持Int,Boolean,String,Long,Double,Float，其余会被转成String
+ * 仅支持Int,Boolean,String,Long,Double,Float，其余会抛出异常
  */
 inline fun <reified T> Context.startActivity(vararg pairs: Pair<String, *>) {
     val intent = Intent(this, T::class.java)
@@ -22,7 +22,7 @@ inline fun <reified T> Context.startActivity(vararg pairs: Pair<String, *>) {
 }
 
 /**
- * @param pair 仅支持Int,Boolean,String,Long,Double,Float，其余会被转成String
+ * @param pair 仅支持Int,Boolean,String,Long,Double,Float，其余会抛出异常
  */
 fun Intent.putExtra(pair: Pair<String, *>) {
     when (pair.second) {
@@ -32,7 +32,7 @@ fun Intent.putExtra(pair: Pair<String, *>) {
         is Long -> putExtra(pair.first, pair.second as Long)
         is Double -> putExtra(pair.first, pair.second as Double)
         is Float -> putExtra(pair.first, pair.second as Float)
-        else -> putExtra(pair.first, pair.second.toString())
+        else -> throw IllegalArgumentException("Unsupported type")
     }
 }
 

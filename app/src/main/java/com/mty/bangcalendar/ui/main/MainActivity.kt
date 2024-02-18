@@ -1,7 +1,6 @@
 package com.mty.bangcalendar.ui.main
 
 import android.annotation.SuppressLint
-import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -15,7 +14,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager.widget.ViewPager
-import com.mty.bangcalendar.BangCalendarApplication.Companion.isNavigationBarImmersionEnabled
+import com.mty.bangcalendar.BangCalendarApplication.Companion.isNavBarImmersive
 import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivityMainBinding
@@ -43,6 +42,7 @@ import kotlin.coroutines.suspendCoroutine
 class MainActivity : BaseActivity() {
 
     private val viewModel: MainViewModel by viewModels()
+    private lateinit var mainBinding: ActivityMainBinding
 
     @Inject lateinit var calendarView: CalendarView
     @Inject lateinit var dailyTagView: DailyTagView
@@ -54,23 +54,19 @@ class MainActivity : BaseActivity() {
 
         super.onCreate(savedInstanceState)
 
-        //膨胀布局，配置viewBinding
-        val mainBinding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(mainBinding.root)
-
-        //配置toolBar
-        setSupportActionBar(mainBinding.toolBar)
-        supportActionBar?.setDisplayShowTitleEnabled(false)
-
         //初次启动时，状态栏和导航栏颜色与引导界面一致
         if (viewModel.mainUiState.value.isFirstStart) {
             window.statusBarColor = getColor(R.color.start)
             window.navigationBarColor = getColor(R.color.start)
         }
 
-        //小白条沉浸
-        if (isNavigationBarImmersionEnabled)
-            navigationBarImmersion(mainBinding)
+        //膨胀布局，配置viewBinding
+        mainBinding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(mainBinding.root)
+
+        //配置toolBar
+        setSupportActionBar(mainBinding.toolBar)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
 
         //开始加载界面
         viewModel.startLoading()
@@ -86,7 +82,7 @@ class MainActivity : BaseActivity() {
                 .collect { isLoading->
                     if (!isLoading) {
                         window.statusBarColor = ThemeUtil.getToolBarColor(this@MainActivity)
-                        if (!isNavigationBarImmersionEnabled)
+                        if (!isNavBarImmersive)
                             window.navigationBarColor =
                                 ThemeUtil.getBackgroundColor(this@MainActivity)
                         mainBinding.mainActivity.visibility = View.VISIBLE
@@ -97,7 +93,7 @@ class MainActivity : BaseActivity() {
         lifecycleScope.launch {
             viewModel.fetchInitData().collect{ initData->
                 //初始化界面
-                initViews(mainBinding, viewModel.mainUiState.value, initData)
+                initViews(viewModel.mainUiState.value, initData)
                 //重置jumpDate的值，防止activity重启后，旧的跳转日期被再次监听到
                 if (!viewModel.mainUiState.value.isFirstStart)
                     viewModel.setJumpDate(viewModel.currentDate.value!!)
@@ -128,9 +124,9 @@ class MainActivity : BaseActivity() {
         }
 
         //为三个卡片组件设置观察者，当ui状态改变时，更新界面
-        setEventCardUiStateObserver(mainBinding)
-        setBirthdayCardUiStateObserver(mainBinding)
-        setDailyTagUiStateObserver(mainBinding)
+        setEventCardUiStateObserver()
+        setBirthdayCardUiStateObserver()
+        setDailyTagUiStateObserver()
 
         //设置滑动监听器，实现生日卡片的折叠/展开
         mainBinding.mainView.setOnTouchListener { _, event ->
@@ -193,36 +189,33 @@ class MainActivity : BaseActivity() {
         return true
     }
 
-    //沉浸式导航栏
-    private fun navigationBarImmersion(binding: ActivityMainBinding) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            //关闭装饰窗口自适应
-            window.setDecorFitsSystemWindows(false)
-            binding.mainActivity.setOnApplyWindowInsetsListener { view, insets ->
-                val top = WindowInsetsCompat.toWindowInsetsCompat(insets, view)
-                    .getInsets(WindowInsetsCompat.Type.statusBars()).top
-                val bottom = WindowInsetsCompat.toWindowInsetsCompat(insets, view)
-                    .getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
-                //手动设置根视图到顶部的距离（状态栏高度）
-                view.updatePadding(top = top)
-                //手动设置悬浮按钮到底部的距离（导航栏高度+原本的margin）
-                binding.goBackFloatButton.viewTreeObserver.addOnGlobalLayoutListener(object :
-                    ViewTreeObserver.OnGlobalLayoutListener {
-                    override fun onGlobalLayout() {
-                        (binding.goBackFloatButton.layoutParams as FrameLayout.LayoutParams)
-                            .bottomMargin += bottom
-                        binding.birCard.cardView.viewTreeObserver
-                            .removeOnGlobalLayoutListener(this)
-                    }
-                })
-                insets
-            }
-            //设置导航栏透明
-            window.navigationBarColor = getColor(R.color.transparent)
+    override fun navBarImmersion(rootView: View) {
+        //关闭装饰窗口自适应
+        window.setDecorFitsSystemWindows(false)
+        rootView.setOnApplyWindowInsetsListener { view, insets ->
+            val top = WindowInsetsCompat.toWindowInsetsCompat(insets, view)
+                .getInsets(WindowInsetsCompat.Type.statusBars()).top
+            val bottom = WindowInsetsCompat.toWindowInsetsCompat(insets, view)
+                .getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+            //手动设置根视图到顶部的距离（状态栏高度）
+            view.updatePadding(top = top)
+            //手动设置悬浮按钮到底部的距离（导航栏高度+原本的margin）
+            mainBinding.goBackFloatButton.viewTreeObserver.addOnGlobalLayoutListener(object :
+                ViewTreeObserver.OnGlobalLayoutListener {
+                override fun onGlobalLayout() {
+                    (mainBinding.goBackFloatButton.layoutParams as FrameLayout.LayoutParams)
+                        .bottomMargin += bottom
+                    mainBinding.birCard.cardView.viewTreeObserver
+                        .removeOnGlobalLayoutListener(this)
+                }
+            })
+            insets
         }
+        //设置导航栏透明
+        window.navigationBarColor = getColor(R.color.transparent)
     }
 
-    private fun setBirthdayCardUiStateObserver(mainBinding: ActivityMainBinding) {
+    private fun setBirthdayCardUiStateObserver() {
         viewModel.birthdayCardUiState.observe(this) {
             //加载中不刷新生日卡片
             if (viewModel.mainUiState.value.isLoading)
@@ -232,7 +225,7 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    private fun setDailyTagUiStateObserver(mainBinding: ActivityMainBinding) {
+    private fun setDailyTagUiStateObserver() {
         viewModel.dailyTagUiState.observe(this) { uiState->
             dailyTagView.refreshDailyTag(mainBinding.dailytagCard, uiState) {
                 viewModel.setJumpDate(it)
@@ -240,7 +233,7 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    private fun setEventCardUiStateObserver(mainBinding: ActivityMainBinding) {
+    private fun setEventCardUiStateObserver() {
         viewModel.eventCardUiState.observe(this) {
             //加载中不刷新活动卡片
             if (viewModel.mainUiState.value.isLoading)
@@ -281,14 +274,14 @@ class MainActivity : BaseActivity() {
         dialog.show()
     }
 
-    private suspend fun initViews(binding: ActivityMainBinding, mainUiState: MainUiState,
-                                  initData: MainViewInitData) = coroutineScope {
+    private suspend fun initViews(
+        mainUiState: MainUiState, initData: MainViewInitData) = coroutineScope {
         /* 下方为四大组件初始化（日历、dailyTag、生日卡片、活动卡片） */
         //加载日历模块，如果不是初次启动，使用viewModel保存的状态
         launch {
             val initDate = if (mainUiState.isFirstStart) null else viewModel.currentDate.value!!
             calendarView.calendarInit(
-                binding.viewPager,
+                mainBinding.viewPager,
                 initDate,
                 lifecycleScope,
                 { viewModel.refreshCurrentDate(it) },
@@ -299,7 +292,7 @@ class MainActivity : BaseActivity() {
         //加载DailyTag
         val dailyTagDeferred = async {
             initData.dailyTagUiState.collect { uiState->
-                dailyTagView.refreshDailyTag(binding.dailytagCard, uiState) {
+                dailyTagView.refreshDailyTag(mainBinding.dailytagCard, uiState) {
                     viewModel.setJumpDate(it)
                 }
             }
@@ -309,7 +302,7 @@ class MainActivity : BaseActivity() {
             val  currentDate =
                 if (mainUiState.isFirstStart) systemDate.toDate()
                 else viewModel.currentDate.value!!
-            eventCardView.eventCardInit(binding.eventCard, mainUiState, initData.currentEvent,
+            eventCardView.eventCardInit(mainBinding.eventCard, mainUiState, initData.currentEvent,
                 currentDate, initData.eventPicture)
         }
         //加载生日卡片
@@ -317,12 +310,12 @@ class MainActivity : BaseActivity() {
             initData.birthdayCardUiState.collect{ birthdayCardUiState ->
                 //等待其膨胀完成后再初始化，防止获取不到高度
                 suspendCoroutine {
-                    binding.birCard.cardView.viewTreeObserver.addOnGlobalLayoutListener(object :
+                    mainBinding.birCard.cardView.viewTreeObserver.addOnGlobalLayoutListener(object :
                         ViewTreeObserver.OnGlobalLayoutListener {
                         override fun onGlobalLayout() {
-                            birthdayCardView.birCardInit(birthdayCardUiState, binding)
+                            birthdayCardView.birCardInit(birthdayCardUiState, mainBinding)
                             it.resume(Unit)
-                            binding.birCard.cardView.viewTreeObserver
+                            mainBinding.birCard.cardView.viewTreeObserver
                                 .removeOnGlobalLayoutListener(this)
                         }
                     })

@@ -2,20 +2,13 @@ package com.mty.bangcalendar.ui.search
 
 import android.content.Intent
 import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
-import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.appcompat.widget.Toolbar
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
-import com.mty.bangcalendar.BangCalendarApplication.Companion.isNavigationBarImmersionEnabled
-import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.ActivitySearchBinding
 import com.mty.bangcalendar.logic.model.Character
 import com.mty.bangcalendar.logic.model.Event
@@ -43,22 +36,8 @@ class SearchActivity : BaseActivity() {
         val searchBinding = ActivitySearchBinding.inflate(layoutInflater)
         setContentView(searchBinding.root)
 
-        val toolbar: Toolbar = findViewById(R.id.searchToolBar)
-        setSupportActionBar(toolbar)
+        setSupportActionBar(searchBinding.searchToolBar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
-        //小白条沉浸
-        if (isNavigationBarImmersionEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.setDecorFitsSystemWindows(false)
-            findViewById<LinearLayout>(R.id.searchActivity)
-                .setOnApplyWindowInsetsListener { view, insets ->
-                    val top = WindowInsetsCompat.toWindowInsetsCompat(insets, view)
-                        .getInsets(WindowInsetsCompat.Type.statusBars()).top
-                    view.updatePadding(top = top)
-                    insets
-                }
-            window.navigationBarColor = getColor(R.color.transparent)
-        }
 
         //活动&角色卡片初始化
         searchBinding.searchEventCard.run {

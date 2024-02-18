@@ -18,7 +18,7 @@ class BangCalendarApplication : Application() {
         lateinit var context: Context
 
         val systemDate = CalendarUtil() //系统时间
-        var isNavigationBarImmersionEnabled = false //记录小白条沉浸偏好
+        var isNavBarImmersive = false //记录小白条沉浸偏好
     }
 
     private val dateChangeReceiver = object : BroadcastReceiver() {

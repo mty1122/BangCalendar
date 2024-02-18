@@ -2,19 +2,15 @@ package com.mty.bangcalendar.ui.settings
 
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.EditText
-import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.pm.PackageInfoCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
@@ -26,7 +22,7 @@ import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.ktx.messaging
 import com.mty.bangcalendar.BangCalendarApplication
-import com.mty.bangcalendar.BangCalendarApplication.Companion.isNavigationBarImmersionEnabled
+import com.mty.bangcalendar.BangCalendarApplication.Companion.isNavBarImmersive
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.LoginRequest
@@ -69,17 +65,7 @@ class SettingsActivity : BaseActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         //小白条沉浸
-        if (isNavigationBarImmersionEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.setDecorFitsSystemWindows(false)
-            findViewById<LinearLayout>(R.id.settingsActivity)
-                .setOnApplyWindowInsetsListener { view, insets ->
-                val top = WindowInsetsCompat.toWindowInsetsCompat(insets, view)
-                    .getInsets(WindowInsetsCompat.Type.statusBars()).top
-                view.updatePadding(top = top)
-                insets
-            }
-            window.navigationBarColor = getColor(R.color.transparent)
-        }
+        navBarImmersion(findViewById(R.id.settingsActivity))
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -224,7 +210,7 @@ class SettingsActivity : BaseActivity() {
                         .setNegativeButton("取消") { _, _ ->
                         }
                         .setPositiveButton("确认") { _, _ ->
-                            isNavigationBarImmersionEnabled = newValue
+                            isNavBarImmersive = newValue
                             (preference as SwitchPreference).isChecked = newValue
                             requireActivity().recreate()
                         }

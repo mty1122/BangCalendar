@@ -1,6 +1,7 @@
 package com.mty.bangcalendar.ui.main
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -190,6 +191,7 @@ class MainActivity : BaseActivity() {
     }
 
     override fun navBarImmersion(rootView: View) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
         //关闭装饰窗口自适应
         window.setDecorFitsSystemWindows(false)
         rootView.setOnApplyWindowInsetsListener { view, insets ->

@@ -73,6 +73,7 @@ open class BaseActivity : AppCompatActivity() {
      * @param rootView 当前Activity的根视图
      */
     protected open fun navBarImmersion(rootView: View) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
         //关闭装饰窗口自适应
         window.setDecorFitsSystemWindows(false)
         rootView.setOnApplyWindowInsetsListener { view, insets ->

@@ -3,6 +3,7 @@ package com.mty.bangcalendar.ui.main.view
 import android.animation.ObjectAnimator
 import android.content.Context
 import android.graphics.drawable.Drawable
+import android.view.View
 import com.bumptech.glide.Glide
 import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.R
@@ -136,19 +137,29 @@ class EventCardView @Inject constructor(@ActivityContext val context: Context) {
         binding.char3.setOnClickListener {
             context.startCharacterListActivity(event.character3)
         }
-        event.character4?.let { character4 ->
-            Glide.with(context).load(EventUtil.matchCharacter(character4))
-                .into(binding.char4)
-            binding.char4.setOnClickListener {
-                context.startCharacterListActivity(character4)
+        if (event.character4 != null) {
+            binding.char4.apply {
+                visibility = View.VISIBLE
+                Glide.with(context).load(EventUtil.matchCharacter(event.character4))
+                    .into(this)
+                setOnClickListener {
+                    context.startCharacterListActivity(event.character4!!)
+                }
             }
+        } else {
+            binding.char4.visibility = View.INVISIBLE
         }
-        event.character5?.let { character5 ->
-            Glide.with(context).load(EventUtil.matchCharacter(character5))
-                .into(binding.char5)
-            binding.char5.setOnClickListener {
-                context.startCharacterListActivity(character5)
+        if (event.character5 != null) {
+            binding.char5.apply {
+                visibility = View.VISIBLE
+                Glide.with(context).load(EventUtil.matchCharacter(event.character5))
+                    .into(this)
+                setOnClickListener {
+                    context.startCharacterListActivity(event.character5!!)
+                }
             }
+        } else {
+            binding.char5.visibility = View.INVISIBLE
         }
         //刷新活动属性
         Glide.with(context).load(EventUtil.matchAttrs(event.attrs))

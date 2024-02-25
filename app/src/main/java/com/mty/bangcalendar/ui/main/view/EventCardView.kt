@@ -119,7 +119,6 @@ class EventCardView @Inject constructor(@ActivityContext val context: Context) {
             append(event.id)
             append(" ")
             append(EventUtil.matchType(event.type))
-            toString()
         }
         //刷新活动角色
         Glide.with(context).load(EventUtil.matchCharacter(event.character1))
@@ -137,16 +136,16 @@ class EventCardView @Inject constructor(@ActivityContext val context: Context) {
         binding.char3.setOnClickListener {
             context.startCharacterListActivity(event.character3)
         }
-        Glide.with(context).load(EventUtil.matchCharacter(event.character4))
-            .into(binding.char4)
         event.character4?.let { character4 ->
+            Glide.with(context).load(EventUtil.matchCharacter(character4))
+                .into(binding.char4)
             binding.char4.setOnClickListener {
                 context.startCharacterListActivity(character4)
             }
         }
-        Glide.with(context).load(EventUtil.matchCharacter(event.character5))
-            .into(binding.char5)
         event.character5?.let { character5 ->
+            Glide.with(context).load(EventUtil.matchCharacter(character5))
+                .into(binding.char5)
             binding.char5.setOnClickListener {
                 context.startCharacterListActivity(character5)
             }

@@ -3,7 +3,8 @@ package com.mty.bangcalendar.ui.main.adapter
 import android.annotation.SuppressLint
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.PagerAdapter
 import com.mty.bangcalendar.ui.main.view.CalendarView
@@ -12,7 +13,7 @@ import kotlinx.coroutines.launch
 
 class CalendarViewPagerAdapter(
     val views: List<CalendarView.CalendarScrollView>,
-    private val lifecycleScope: LifecycleCoroutineScope,
+    private val lifecycleOwner: LifecycleOwner,
     private val fetchBirthdayMapByMonth: suspend (Int) -> Map<String, Int>,
 ) : PagerAdapter() {
 
@@ -66,7 +67,7 @@ class CalendarViewPagerAdapter(
         when (getScrollResult(lastPosition, position)) {
             RESULT_PLUS -> {
                 calendarUtil.month += 3
-                lifecycleScope.launch {
+                lifecycleOwner.lifecycleScope.launch {
                     val birthdayMap = fetchBirthdayMapByMonth(calendarUtil.month)
                     val dateList = calendarUtil.getDateList()
                     adapter.uiState = adapter.uiState.copy(
@@ -79,7 +80,7 @@ class CalendarViewPagerAdapter(
             }
             RESULT_MINUS -> {
                 calendarUtil.month -= 3
-                lifecycleScope.launch {
+                lifecycleOwner.lifecycleScope.launch {
                     val birthdayMap = fetchBirthdayMapByMonth(calendarUtil.month)
                     val dateList = calendarUtil.getDateList()
                     adapter.uiState = adapter.uiState.copy(

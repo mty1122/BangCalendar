@@ -3,7 +3,7 @@ package com.mty.bangcalendar.ui.main.view
 import android.annotation.SuppressLint
 import android.content.Context
 import android.view.View
-import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.ViewPager
@@ -15,7 +15,10 @@ import com.mty.bangcalendar.util.CalendarUtil
 import dagger.hilt.android.qualifiers.ActivityContext
 import javax.inject.Inject
 
-class CalendarView @Inject constructor(@ActivityContext val context: Context) {
+class CalendarView @Inject constructor(
+    @ActivityContext private val context: Context,
+    private val lifecycleOwner: LifecycleOwner
+) {
 
     //记录参与滚动的view在viewPager中的上个位置
     class CalendarScrollView(val view: View, var lastPosition: Int)
@@ -25,7 +28,6 @@ class CalendarView @Inject constructor(@ActivityContext val context: Context) {
     suspend fun calendarInit(
         viewPager: ViewPager,
         initDate: IntDate?,
-        lifecycleScope: LifecycleCoroutineScope,
         onDateChange: (IntDate) -> Unit,
         getCurrentDate: () -> IntDate,
         fetchBirthdayMapByMonth: suspend (Int) -> Map<String, Int>
@@ -36,9 +38,7 @@ class CalendarView @Inject constructor(@ActivityContext val context: Context) {
                 initDate, onDateChange, getCurrentDate, fetchBirthdayMapByMonth)
         }
         //初始化viewPager
-        val pagerAdapter = CalendarViewPagerAdapter(list, lifecycleScope) { month->
-            fetchBirthdayMapByMonth(month)
-        }
+        val pagerAdapter = CalendarViewPagerAdapter(list, lifecycleOwner, fetchBirthdayMapByMonth)
         viewPager.adapter = pagerAdapter
         viewPager.currentItem = 1 //viewPager初始位置为1
         //设置监听器，用来监听滚动（日历翻页）

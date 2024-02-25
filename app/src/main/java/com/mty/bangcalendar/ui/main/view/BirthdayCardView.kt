@@ -6,6 +6,7 @@ import android.animation.ObjectAnimator
 import android.content.Context
 import android.view.MotionEvent
 import android.view.View
+import android.view.animation.DecelerateInterpolator
 import com.bumptech.glide.Glide
 import com.mty.bangcalendar.databinding.ActivityMainBinding
 import com.mty.bangcalendar.util.AnimUtil
@@ -69,10 +70,10 @@ class BirthdayCardView @Inject constructor(@ActivityContext val context: Context
     fun handleMainViewTouchEvent(
         event: MotionEvent,
         binding: ActivityMainBinding,
-        getBirthdayCardUiState: () -> Int,
+        birthdayCardUiState: Int
     ) {
         //生日卡片不显示时不处理
-        if (getBirthdayCardUiState() < 1)
+        if (birthdayCardUiState < 1)
             return
         //处理滑动手势
         when (event.action) {
@@ -84,11 +85,11 @@ class BirthdayCardView @Inject constructor(@ActivityContext val context: Context
                 //向下滑动，触发展开动画
                 if (deltaY > 0 && !isBirthdayCardVisible) {
                     isBirthdayCardVisible = true
-                    runBirthdayCardAnim(binding, true)
+                    runBirthdayCardAnim(binding, isInsert = true, isMotion = true)
                     //向上滑动，触发折叠动画
                 } else if (deltaY < 0 && isBirthdayCardVisible) {
                     isBirthdayCardVisible = false
-                    runBirthdayCardAnim(binding, false)
+                    runBirthdayCardAnim(binding, isInsert = false, isMotion = true)
                 }
             }
         }
@@ -96,7 +97,7 @@ class BirthdayCardView @Inject constructor(@ActivityContext val context: Context
 
     //刷新生日卡片
     private fun refreshBirthdayCard(id: Int, binding: ActivityMainBinding) {
-        if (id == 12 || id == 17) {
+        if (id == 12 || id == 17) { //双子生日（12与17同一天生日）
             Glide.with(context).load(CharacterUtil.matchCharacter(12))
                 .into(binding.birCard.birChar1)
             Glide.with(context).load(CharacterUtil.matchCharacter(17))
@@ -115,13 +116,11 @@ class BirthdayCardView @Inject constructor(@ActivityContext val context: Context
             binding.birCard.birChar1.setOnClickListener {
                 context.startCharacterListActivity(id)
             }
-            binding.birCard.birChar2.setOnClickListener {
-                context.startCharacterListActivity(id)
-            }
         }
     }
 
-    private fun runBirthdayCardAnim(binding: ActivityMainBinding, isInsert: Boolean) {
+    private fun runBirthdayCardAnim(binding: ActivityMainBinding, isInsert: Boolean,
+        isMotion: Boolean = false) {
         val mainLinearLayout = binding.mainView
         val birCardIndex = mainLinearLayout.indexOfChild(binding.birCardParent)
         val animDuration = AnimUtil.getAnimPreference().toLong()
@@ -133,6 +132,8 @@ class BirthdayCardView @Inject constructor(@ActivityContext val context: Context
         val translationYAnimator = ObjectAnimator.ofFloat(binding.birCard.cardView,
             "translationY", endPosition)
         translationYAnimator.duration = animDuration // 设置垂直位移动画时长
+        if (isMotion) //如果是手势操作，设置减速插值器以实现跟手效果
+            translationYAnimator.interpolator = DecelerateInterpolator()
         translationYAnimator.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationStart(animation: Animator) {
                 //处理下方卡片

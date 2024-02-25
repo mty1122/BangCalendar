@@ -134,7 +134,8 @@ class MainActivity : BaseActivity() {
             birthdayCardView.handleMainViewTouchEvent(
                 event,
                 mainBinding,
-            ) { viewModel.birthdayCardUiState.value!! }
+                viewModel.birthdayCardUiState.value!!
+            )
             true
         }
 
@@ -142,8 +143,8 @@ class MainActivity : BaseActivity() {
         mainBinding.goBackFloatButton.setOnClickListener {
             lifecycleScope.launch {
                 calendarView.jumpDate(mainBinding.viewPager, systemDate,
-                    { viewModel.refreshCurrentDate(it) },
-                    { viewModel.fetchBirthdayMapByMonth(it) })
+                    onDateChange = { viewModel.refreshCurrentDate(it) },
+                    fetchBirthdayMapByMonth = { viewModel.fetchBirthdayMapByMonth(it) })
             }
         }
 
@@ -268,8 +269,8 @@ class MainActivity : BaseActivity() {
                 if (calendarUtil.toDate().value != viewModel.currentDate.value!!.value)
                     lifecycleScope.launch {
                         calendarView.jumpDate(viewPager, calendarUtil,
-                            { viewModel.refreshCurrentDate(it) },
-                            { viewModel.fetchBirthdayMapByMonth(it) })
+                            onDateChange = { viewModel.refreshCurrentDate(it) },
+                            fetchBirthdayMapByMonth = { viewModel.fetchBirthdayMapByMonth(it) })
                     }
             }
             .create()
@@ -283,12 +284,10 @@ class MainActivity : BaseActivity() {
         launch {
             val initDate = if (mainUiState.isFirstStart) null else viewModel.currentDate.value!!
             calendarView.calendarInit(
-                mainBinding.viewPager,
-                initDate,
-                lifecycleScope,
-                { viewModel.refreshCurrentDate(it) },
-                { viewModel.currentDate.value!! },
-                { viewModel.fetchBirthdayMapByMonth(it) }
+                mainBinding.viewPager, initDate,
+                onDateChange = { viewModel.refreshCurrentDate(it) },
+                getCurrentDate = { viewModel.currentDate.value!! },
+                fetchBirthdayMapByMonth = { viewModel.fetchBirthdayMapByMonth(it) }
             )
         }
         //加载DailyTag

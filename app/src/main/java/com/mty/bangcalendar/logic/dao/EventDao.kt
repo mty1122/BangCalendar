@@ -16,7 +16,7 @@ interface EventDao {
     fun updateEvent(event: Event)
 
     @Query("select * from Event where startDate = " +
-            "(select max(startDate) from Event where startDate <= :date)")
+            "(select max(startDate) from Event where startDate <= :date) order by id desc limit 1")
     fun getNearlyEventByDate(date: Int): Event?
 
     @Query("select * from Event where startDate >= :date and character1 = :character1Id " +

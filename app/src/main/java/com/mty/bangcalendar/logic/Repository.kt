@@ -15,7 +15,6 @@ import com.mty.bangcalendar.logic.dao.PreferenceDao
 import com.mty.bangcalendar.logic.model.Character
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.logic.model.GetPreferenceRequest
-import com.mty.bangcalendar.logic.model.GuideInitData
 import com.mty.bangcalendar.logic.model.IntDate
 import com.mty.bangcalendar.logic.model.LoginRequest
 import com.mty.bangcalendar.logic.model.SmsRequest
@@ -59,19 +58,6 @@ object Repository {
 
     suspend fun addEventListToDatabase(eventList: List<Event>) {
         AppDatabase.getDatabase().eventDao().insertAll(eventList)
-    }
-
-    suspend fun getGuideInitData() = withContext(Dispatchers.IO) {
-        val isFirstStart = PreferenceDao.isFirstStart
-        val theme = PreferenceDao.getTheme()
-        val lastRefreshDay = PreferenceDao.getLastRefreshDay()
-        val animPreference = PreferenceDao.getAnimPreference()
-        val nvbarPreference = PreferenceDao.getNvbarPreference()
-        GuideInitData(isFirstStart, theme, lastRefreshDay, animPreference, nvbarPreference)
-    }
-
-    suspend fun isNotFirstStart() = withContext(Dispatchers.IO) {
-        PreferenceDao.isFirstStart = false
     }
 
     suspend fun getUserName() = withContext(Dispatchers.IO) {
@@ -242,10 +228,6 @@ object Repository {
 
     fun setAesKey(key: String) {
         PreferenceDao.aesKey = key
-    }
-
-    suspend fun setDefaultPreference() = withContext(Dispatchers.IO) {
-        PreferenceDao.setDefaultPreference()
     }
 
 }

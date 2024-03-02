@@ -109,7 +109,7 @@ class MainActivity : BaseActivity() {
             viewModel.getEventByDate(date) //刷新活动
             viewModel.refreshBirthdayCard(date) //刷新生日卡片
             //顶部日期刷新
-            mainBinding.date.text = StringBuilder().run {
+            mainBinding.date.text = StringBuilder().apply {
                 append(date.getYear())
                 append("年")
                 append(date.getMonth())
@@ -156,8 +156,8 @@ class MainActivity : BaseActivity() {
                 !viewModel.mainUiState.value.isLoading) {
                 lifecycleScope.launch{
                     calendarView.jumpDate(mainBinding.viewPager, target,
-                        { viewModel.refreshCurrentDate(it) },
-                        { viewModel.fetchBirthdayMapByMonth(it) })
+                        onDateChange = { viewModel.refreshCurrentDate(it) },
+                        fetchBirthdayMapByMonth = { viewModel.fetchBirthdayMapByMonth(it) })
                 }
             }
         }

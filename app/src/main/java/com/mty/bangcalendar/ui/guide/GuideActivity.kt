@@ -1,11 +1,7 @@
 package com.mty.bangcalendar.ui.guide
 
-import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
-import android.content.ServiceConnection
 import android.os.Bundle
-import android.os.IBinder
 import android.view.View
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -39,56 +35,27 @@ import androidx.lifecycle.lifecycleScope
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.BangCalendarApplication.Companion.isNavBarImmersive
 import com.mty.bangcalendar.R
-import com.mty.bangcalendar.service.CharacterRefreshService
 import com.mty.bangcalendar.service.EventRefreshService
 import com.mty.bangcalendar.ui.BaseActivity
 import com.mty.bangcalendar.ui.main.MainActivity
 import com.mty.bangcalendar.ui.theme.BangCalendarTheme
 import com.mty.bangcalendar.util.AnimUtil
 import com.mty.bangcalendar.util.ThemeUtil
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class GuideActivity : BaseActivity() {
 
     private val viewModel: GuideViewModel by viewModels()
-
-    //创建service connection，供app首次启动初始化使用
-    private val eventConnection: ServiceConnection by lazy {
-        object : ServiceConnection {
-            override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
-                val refreshBinder = p1 as EventRefreshService.RefreshBinder
-                refreshBinder.refresh { progress, details ->
-                    viewModel.updateProgress(progress, details)
-                }
-            }
-
-            override fun onServiceDisconnected(p0: ComponentName?) {
-            }
-        }
-    }
-
-    private val characterConnection: ServiceConnection by lazy {
-        object : ServiceConnection {
-            override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
-                val refreshBinder = p1 as CharacterRefreshService.RefreshBinder
-                refreshBinder.refresh { progress, details ->
-                    viewModel.updateProgress(progress, details)
-                }
-            }
-
-            override fun onServiceDisconnected(p0: ComponentName?) {
-            }
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.statusBarColor = getColor(R.color.start)
         window.navigationBarColor = getColor(R.color.start)
         //初始化App
-        viewModel.fetchInitData { initData ->
+        lifecycleScope.launch {
+            val initData = viewModel.initData.await()
             //设置主题
             ThemeUtil.setCurrentTheme(initData.theme)
             //设置动画偏好
@@ -97,12 +64,11 @@ class GuideActivity : BaseActivity() {
             isNavBarImmersive = initData.nvbarPreference
             //非首次启动不设置动画
             val anim = ActivityOptionsCompat
-                .makeCustomAnimation(this,0, 0).toBundle()
+                .makeCustomAnimation(this@GuideActivity,0, 0).toBundle()
             //检查启动类型
             if (initData.isFirstStart) {
                 /* 首次启动 */
                 setContent { ShowContent() }
-                firstStartInit()
             } else if (BangCalendarApplication.systemDate.getDayOfWeak() == 2
                 && initData.lastRefreshDay != BangCalendarApplication.systemDate.day) {
                 /* 每周一自动更新数据库 */
@@ -137,7 +103,7 @@ class GuideActivity : BaseActivity() {
                             this,0, android.R.anim.fade_out).toBundle()
                         startMainActivity(anim)
                     },
-                    buttonEnabled = uiState.launchButtonEnabled
+                    buttonEnabled = uiState.initProgress == 100
                 )
             }
         }
@@ -151,34 +117,6 @@ class GuideActivity : BaseActivity() {
 
     //引导界面不执行沉浸
     override fun navBarImmersion(rootView: View) {}
-
-    private fun firstStartInit() {
-        lifecycleScope.launch {
-            viewModel.setDefaultPreference()
-            viewModel.appInitUiState
-                .map { it.initProgress }
-                .distinctUntilChanged()
-                .collect { progress ->
-                    when (progress) {
-                        50 -> {
-                            val intent = Intent(this@GuideActivity,
-                                CharacterRefreshService::class.java)
-                            bindService(intent, characterConnection, Context.BIND_AUTO_CREATE)
-                        }
-                        100 -> {
-                            viewModel.isNotFirstStart()
-                            unbindService(eventConnection)
-                            unbindService(characterConnection)
-                            viewModel.setLaunchButtonEnabled(true)
-                            viewModel.updateProgress(100,
-                                getString(R.string.init_complete))
-                        }
-                    }
-            }
-        }
-        val intent = Intent(this, EventRefreshService::class.java)
-        bindService(intent, eventConnection, Context.BIND_AUTO_CREATE)
-    }
 
 }
 

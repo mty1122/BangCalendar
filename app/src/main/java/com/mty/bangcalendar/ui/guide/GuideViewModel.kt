@@ -7,10 +7,12 @@ import com.mty.bangcalendar.R
 import com.mty.bangcalendar.logic.DatabaseUpdater
 import com.mty.bangcalendar.logic.repository.GuideRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,13 +28,19 @@ class GuideViewModel @Inject constructor(
                 launch {
                     guideRepository.setDefaultPreference()
                     DatabaseUpdater.initDatabase { progress, detail ->
-                        _appInitUiState.value = AppInitUiState(progress, detail)
+                        withContext(Dispatchers.Main) {
+                            _appInitUiState.value = AppInitUiState(progress, detail)
+                        }
                     }.await()
                     guideRepository.setNotFirstStart()
                     //数据库初始化完成
                     _appInitUiState.value = AppInitUiState(100,
                         BangCalendarApplication.context.getString(R.string.init_complete))
                 }
+            } else if (BangCalendarApplication.systemDate.getDayOfWeak() == 2
+                && it.lastRefreshDay != BangCalendarApplication.systemDate.day) {
+                //每周一自动更新数据库
+                DatabaseUpdater.updateDatabase()
             }
         }
     }

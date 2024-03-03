@@ -24,6 +24,7 @@ import com.google.firebase.messaging.ktx.messaging
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.BangCalendarApplication.Companion.isNavBarImmersive
 import com.mty.bangcalendar.R
+import com.mty.bangcalendar.logic.DatabaseUpdater
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.LoginRequest
 import com.mty.bangcalendar.logic.model.SmsRequest
@@ -41,13 +42,6 @@ import kotlinx.coroutines.withContext
 import java.util.regex.Pattern
 
 class SettingsActivity : BaseActivity() {
-
-    companion object {
-        const val REFRESH_CHARACTER_FAILURE = 10
-        const val REFRESH_CHARACTER_SUCCESS = 11
-        const val REFRESH_EVENT_FAILURE = 20
-        const val REFRESH_EVENT_SUCCESS = 21
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -82,21 +76,23 @@ class SettingsActivity : BaseActivity() {
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey)
 
-            //监听数据库刷新结果
-            viewModel.refreshDataResult.observe(this) { result ->
-                when (result) {
-                    REFRESH_CHARACTER_FAILURE -> toast("角色数据更新失败，请检查网络")
-                    REFRESH_CHARACTER_SUCCESS -> toast("角色数据更新成功")
-                    REFRESH_EVENT_FAILURE -> toast("活动数据更新失败，请检查网络")
-                    REFRESH_EVENT_SUCCESS -> toast("活动数据更新成功")
-                    else -> toast("系统错误，请联系作者")
-                }
-            }
-
             //刷新数据库
             findPreference<Preference>("update_database")?.let {
                 it.setOnPreferenceClickListener {
-                    viewModel.refreshDataBase(requireContext())
+                    lifecycleScope.launch {
+                        viewModel.refreshDataBase().collect { updateState->
+                            when (updateState) {
+                                DatabaseUpdater.DatabaseUpdateState.PREPARE ->
+                                    toast("开始更新")
+                                DatabaseUpdater.DatabaseUpdateState.SUCCESS_EVENT ->
+                                    toast("活动数据更新成功")
+                                DatabaseUpdater.DatabaseUpdateState.SUCCESS_CHARACTER ->
+                                    toast("角色数据更新成功")
+                                DatabaseUpdater.DatabaseUpdateState.ERROR ->
+                                    toast("更新失败，请检查网络")
+                            }
+                        }
+                    }
                     return@setOnPreferenceClickListener true
                 }
             }

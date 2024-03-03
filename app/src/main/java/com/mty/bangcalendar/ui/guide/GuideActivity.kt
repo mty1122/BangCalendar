@@ -32,10 +32,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityOptionsCompat
 import androidx.lifecycle.lifecycleScope
-import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.BangCalendarApplication.Companion.isNavBarImmersive
 import com.mty.bangcalendar.R
-import com.mty.bangcalendar.service.EventRefreshService
 import com.mty.bangcalendar.ui.BaseActivity
 import com.mty.bangcalendar.ui.main.MainActivity
 import com.mty.bangcalendar.ui.theme.BangCalendarTheme
@@ -55,6 +53,7 @@ class GuideActivity : BaseActivity() {
         window.navigationBarColor = getColor(R.color.start)
         //初始化App
         lifecycleScope.launch {
+            //等待初始化数据加载完成
             val initData = viewModel.initData.await()
             //设置主题
             ThemeUtil.setCurrentTheme(initData.theme)
@@ -69,14 +68,6 @@ class GuideActivity : BaseActivity() {
             if (initData.isFirstStart) {
                 /* 首次启动 */
                 setContent { ShowContent() }
-            } else if (BangCalendarApplication.systemDate.getDayOfWeak() == 2
-                && initData.lastRefreshDay != BangCalendarApplication.systemDate.day) {
-                /* 每周一自动更新数据库 */
-                //使用application context，避免内存泄漏
-                val intent = Intent(BangCalendarApplication.context,
-                    EventRefreshService::class.java)
-                startService(intent)
-                startMainActivity(anim)
             } else {
                 /* 常规启动 */
                 startMainActivity(anim)

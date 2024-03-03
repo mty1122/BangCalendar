@@ -7,7 +7,6 @@ import com.mty.bangcalendar.logic.model.UserPreference
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.lang.RuntimeException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -46,9 +45,9 @@ object BangCalendarNetwork {
     suspend fun getUserPreference(request: GetPreferenceRequest) =
         userService.getPreference(request).await()
 
-    fun getCharacterList() = databaseRefreshService.getCharacterList()
+    suspend fun getCharacterList() = databaseRefreshService.getCharacterList().await()
 
-    fun getEventList() = databaseRefreshService.getEventList()
+    suspend fun getEventList() = databaseRefreshService.getEventList().await()
 
     suspend fun getAppUpdateInfo() = appInfoService.getUpdateInfo().await()
 

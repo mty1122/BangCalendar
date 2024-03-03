@@ -41,14 +41,6 @@
             android:label="@string/title_activity_settings"
             android:screenOrientation="locked"/>
 
-        <service
-            android:name=".service.EventRefreshService"
-            android:enabled="true"
-            android:exported="false" />
-        <service
-            android:name=".service.CharacterRefreshService"
-            android:enabled="true"
-            android:exported="false" />
         <service android:name=".service.FcmService"
             android:enabled="true"
             android:exported="false" >

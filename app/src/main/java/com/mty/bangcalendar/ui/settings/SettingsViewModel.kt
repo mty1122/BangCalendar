@@ -1,24 +1,16 @@
 package com.mty.bangcalendar.ui.settings
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.mty.bangcalendar.BangCalendarApplication
-import com.mty.bangcalendar.enum.IntentActions
+import com.mty.bangcalendar.logic.DatabaseUpdater
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.GetPreferenceRequest
 import com.mty.bangcalendar.logic.model.LoginRequest
 import com.mty.bangcalendar.logic.model.SmsRequest
 import com.mty.bangcalendar.logic.model.UpdateResponse
 import com.mty.bangcalendar.logic.model.UserPreference
-import com.mty.bangcalendar.service.CharacterRefreshService
-import com.mty.bangcalendar.service.EventRefreshService
 import com.mty.bangcalendar.util.SecurityUtil
 import com.mty.bangcalendar.util.toast
 import kotlinx.coroutines.Dispatchers
@@ -29,25 +21,8 @@ import kotlinx.coroutines.withContext
 
 class SettingsViewModel : ViewModel() {
 
-    //传递更新进度
-    val refreshDataResult: LiveData<Int>
-        get() = _refreshDataResult
-    private val _refreshDataResult = MutableLiveData<Int>()
-
     //更新数据库
-    fun refreshDataBase(context: Context) {
-        refreshCharacter(context)
-        refreshEvent(context)
-    }
-    private fun refreshCharacter(context: Context) {
-        val intent = Intent(context, CharacterRefreshService::class.java)
-        context.startService(intent)
-    }
-
-    private fun refreshEvent(context: Context) {
-        val intent = Intent(context, EventRefreshService::class.java)
-        context.startService(intent)
-    }
+    fun refreshDataBase() = DatabaseUpdater.updateDatabase()
 
     //发送验证码
     suspend fun sendSms(request: SmsRequest) = Repository.sendSms(request)
@@ -114,24 +89,6 @@ class SettingsViewModel : ViewModel() {
         viewModelScope.launch {
             _appUpdateInfo.value = Repository.getAppUpdateInfo()
         }
-    }
-
-    //接收service发来的更新进度
-    private val refreshDataResultReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val result = intent.getIntExtra("result", 0)
-            _refreshDataResult.value = result
-        }
-    }
-    init {
-        val intentFilter = IntentFilter()
-        intentFilter.addAction(IntentActions.REFRESH_DATABASE_FINISH_ACTION.value)
-        ContextCompat.registerReceiver(BangCalendarApplication.context, refreshDataResultReceiver,
-            intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED)
-    }
-    override fun onCleared() {
-        super.onCleared()
-        BangCalendarApplication.context.unregisterReceiver(refreshDataResultReceiver)
     }
 
 }

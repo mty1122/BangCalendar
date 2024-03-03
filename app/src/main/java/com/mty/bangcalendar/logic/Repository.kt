@@ -3,7 +3,6 @@ package com.mty.bangcalendar.logic
 import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
 import android.net.Uri
-import androidx.room.withTransaction
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
@@ -12,8 +11,6 @@ import com.bumptech.glide.request.transition.Transition
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.logic.dao.AppDatabase
 import com.mty.bangcalendar.logic.dao.PreferenceDao
-import com.mty.bangcalendar.logic.model.Character
-import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.logic.model.GetPreferenceRequest
 import com.mty.bangcalendar.logic.model.IntDate
 import com.mty.bangcalendar.logic.model.LoginRequest
@@ -31,34 +28,6 @@ object Repository {
     private val glideOptions = RequestOptions()
         .skipMemoryCache(false)
         .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-
-    fun getCharacterJSONStreamFromAssets() =
-        BangCalendarApplication.context.assets.open("character.json")
-
-    fun getEventJSONStreamFromAssets() =
-        BangCalendarApplication.context.assets.open("event.json")
-
-    suspend fun withDatabaseTransaction(block: suspend () -> Unit) {
-        AppDatabase.getDatabase().withTransaction {
-            block()
-        }
-    }
-
-    suspend fun addCharacterToDatabase(character: Character) {
-        AppDatabase.getDatabase().characterDao().insertCharacter(character)
-    }
-
-    suspend fun addEventToDatabase(event: Event) {
-        AppDatabase.getDatabase().eventDao().insertEvent(event)
-    }
-
-    suspend fun addCharacterListToDatabase(characterList: List<Character>) {
-        AppDatabase.getDatabase().characterDao().insertAll(characterList)
-    }
-
-    suspend fun addEventListToDatabase(eventList: List<Event>) {
-        AppDatabase.getDatabase().eventDao().insertAll(eventList)
-    }
 
     suspend fun getUserName() = withContext(Dispatchers.IO) {
         PreferenceDao.getUserName()
@@ -118,10 +87,6 @@ object Repository {
         AppDatabase.getDatabase().characterDao().getCharacterByName(name)
     }
 
-    fun getCharacterListFromInternet() = BangCalendarNetwork.getCharacterList()
-
-    fun getEventListFromInternet() = BangCalendarNetwork.getEventList()
-
     suspend fun sendSms(request: SmsRequest) = withContext(Dispatchers.IO) {
         try {
             val result = BangCalendarNetwork.sendSms(request)
@@ -180,10 +145,6 @@ object Repository {
 
     suspend fun getCharacterList() = withContext(Dispatchers.IO) {
         AppDatabase.getDatabase().characterDao().getCharacterList()
-    }
-
-    fun setLastRefreshDay(day: Int) {
-        PreferenceDao.setLastRefreshDay(day)
     }
 
     suspend fun getEventPic(eventId: String) = suspendCoroutine {

@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -54,7 +55,7 @@ object DatabaseUpdater {
     }
 
     fun updateDatabase(): StateFlow<DatabaseUpdateState> {
-        val stateFlow = MutableStateFlow(DatabaseUpdateState.PREPARE)
+        val updateStateFlow = MutableStateFlow(DatabaseUpdateState.PREPARE)
         internalScope.launch {
             val eventList: List<Event>
             val characterList: List<Character>
@@ -63,18 +64,18 @@ object DatabaseUpdater {
                 characterList = BangCalendarNetwork.getCharacterList()
             } catch (e: Exception) {
                 e.printStackTrace()
-                stateFlow.value = DatabaseUpdateState.ERROR
+                updateStateFlow.value = DatabaseUpdateState.ERROR
                 return@launch
             }
 
             AppDatabase.getDatabase().eventDao().insertAll(eventList)
-            stateFlow.value = DatabaseUpdateState.SUCCESS_EVENT
+            updateStateFlow.value = DatabaseUpdateState.SUCCESS_EVENT
             AppDatabase.getDatabase().characterDao().insertAll(characterList)
-            stateFlow.value = DatabaseUpdateState.SUCCESS_CHARACTER
+            updateStateFlow.value = DatabaseUpdateState.SUCCESS_CHARACTER
 
             PreferenceDao.setLastRefreshDay(BangCalendarApplication.systemDate.day)
         }
-        return stateFlow
+        return updateStateFlow.asStateFlow()
     }
 
 }

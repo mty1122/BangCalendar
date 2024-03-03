@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -24,20 +25,9 @@ class GuideViewModel @Inject constructor(
     val initData = viewModelScope.async {
         guideRepository.fetchGuideInitData().also {
             if (it.isFirstStart) {
-                //如果是初次启动则初始化数据库，并更新初始化进度
-                launch {
-                    guideRepository.setDefaultPreference()
-                    DatabaseUpdater.initDatabase { progress, detail ->
-                        withContext(Dispatchers.Main) {
-                            _appInitUiState.value = AppInitUiState(progress, detail)
-                        }
-                    }.await()
-                    guideRepository.setNotFirstStart()
-                    //数据库初始化完成
-                    _appInitUiState.value = AppInitUiState(100,
-                        BangCalendarApplication.context.getString(R.string.init_complete))
-                }
-            } else if (BangCalendarApplication.systemDate.getDayOfWeak() == 2
+                //执行首次启动初始化相关业务逻辑
+                firstStartInit()
+            }else if (BangCalendarApplication.systemDate.getDayOfWeak() == 2
                 && it.lastRefreshDay != BangCalendarApplication.systemDate.day) {
                 //每周一自动更新数据库
                 DatabaseUpdater.updateDatabase()
@@ -45,9 +35,25 @@ class GuideViewModel @Inject constructor(
         }
     }
 
+    //为了避免本函数被内联，导致阻塞调用方协程（async.await()），因此不能为private
+    internal fun firstStartInit() {
+        viewModelScope.launch {
+            guideRepository.setDefaultPreference()
+            DatabaseUpdater.initDatabase { progress, detail ->
+                withContext(Dispatchers.Main) {
+                    _appInitUiState.value = AppInitUiState(progress, detail)
+                }
+            }.await()
+            guideRepository.setNotFirstStart()
+            //数据库初始化完成
+            _appInitUiState.value = AppInitUiState(100,
+                BangCalendarApplication.context.getString(R.string.init_complete))
+        }
+    }
+
     //app首次启动初始化相关UI状态
     private val _appInitUiState by lazy { MutableStateFlow(AppInitUiState()) }
     val appInitUiState : StateFlow<AppInitUiState>
-        get() = _appInitUiState
+        get() = _appInitUiState.asStateFlow()
 
 }

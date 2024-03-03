@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.ResponseBody
 
 class SettingsViewModel : ViewModel() {
 
@@ -25,10 +26,23 @@ class SettingsViewModel : ViewModel() {
     fun refreshDataBase() = DatabaseUpdater.updateDatabase()
 
     //发送验证码
-    suspend fun sendSms(request: SmsRequest) = Repository.sendSms(request)
+    suspend fun sendSms(phoneNumber: String): Result<ResponseBody> {
+        val requestCode = SecurityUtil.getSmsRequestCode()
+        val request = SmsRequest(phoneNumber, requestCode[0], requestCode[1], requestCode[2])
+        return Repository.sendSms(request)
+    }
 
     //登录
-    suspend fun login(request: LoginRequest) = Repository.login(request)
+    suspend fun login(phoneNumber: String, smsCode: String): Result<ResponseBody> {
+        SecurityUtil.aesKey = SecurityUtil.getRandomKey()
+        Repository.setAesKey(SecurityUtil.aesKey)
+        val request = LoginRequest(
+            phoneNumber,
+            SecurityUtil.encrypt(SecurityUtil.aesKey, smsCode),
+            SecurityUtil.getEncryptedKey(SecurityUtil.aesKey)
+        )
+        return Repository.login(request)
+    }
 
     //LiveData线程不安全，同步数据需要在子线程中进行，因此选择线程安全的StateFlow
     private val phoneNumFlow = MutableStateFlow("")

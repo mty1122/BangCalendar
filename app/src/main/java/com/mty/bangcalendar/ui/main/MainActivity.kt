@@ -143,8 +143,9 @@ class MainActivity : BaseActivity() {
         mainBinding.goBackFloatButton.setOnClickListener {
             lifecycleScope.launch {
                 calendarView.jumpDate(mainBinding.viewPager, systemDate,
-                    onDateChange = { viewModel.refreshCurrentDate(it) },
-                    fetchBirthdayMapByMonth = { viewModel.fetchBirthdayMapByMonth(it) })
+                    onDateChange = viewModel::refreshCurrentDate,
+                    fetchBirthdayMapByMonth = viewModel::fetchBirthdayMapByMonth
+                )
             }
         }
 
@@ -156,8 +157,8 @@ class MainActivity : BaseActivity() {
                 !viewModel.mainUiState.value.isLoading) {
                 lifecycleScope.launch{
                     calendarView.jumpDate(mainBinding.viewPager, target,
-                        onDateChange = { viewModel.refreshCurrentDate(it) },
-                        fetchBirthdayMapByMonth = { viewModel.fetchBirthdayMapByMonth(it) })
+                        onDateChange = viewModel::refreshCurrentDate,
+                        fetchBirthdayMapByMonth = viewModel::fetchBirthdayMapByMonth)
                 }
             }
         }
@@ -230,9 +231,7 @@ class MainActivity : BaseActivity() {
 
     private fun setDailyTagUiStateObserver() {
         viewModel.dailyTagUiState.observe(this) { uiState->
-            dailyTagView.refreshDailyTag(mainBinding.dailytagCard, uiState) {
-                viewModel.setJumpDate(it)
-            }
+            dailyTagView.refreshDailyTag(mainBinding.dailytagCard, uiState, viewModel::setJumpDate)
         }
     }
 
@@ -269,8 +268,8 @@ class MainActivity : BaseActivity() {
                 if (calendarUtil.toDate().value != viewModel.currentDate.value!!.value)
                     lifecycleScope.launch {
                         calendarView.jumpDate(viewPager, calendarUtil,
-                            onDateChange = { viewModel.refreshCurrentDate(it) },
-                            fetchBirthdayMapByMonth = { viewModel.fetchBirthdayMapByMonth(it) })
+                            onDateChange = viewModel::refreshCurrentDate,
+                            fetchBirthdayMapByMonth = viewModel::fetchBirthdayMapByMonth)
                     }
             }
             .create()
@@ -285,17 +284,16 @@ class MainActivity : BaseActivity() {
             val initDate = if (mainUiState.isFirstStart) null else viewModel.currentDate.value!!
             calendarView.calendarInit(
                 mainBinding.viewPager, initDate,
-                onDateChange = { viewModel.refreshCurrentDate(it) },
+                onDateChange = viewModel::refreshCurrentDate,
                 getCurrentDate = { viewModel.currentDate.value!! },
-                fetchBirthdayMapByMonth = { viewModel.fetchBirthdayMapByMonth(it) }
+                fetchBirthdayMapByMonth = viewModel::fetchBirthdayMapByMonth
             )
         }
         //加载DailyTag
         val dailyTagDeferred = async {
             initData.dailyTagUiState.collect { uiState->
-                dailyTagView.refreshDailyTag(mainBinding.dailytagCard, uiState) {
-                    viewModel.setJumpDate(it)
-                }
+                dailyTagView.refreshDailyTag(mainBinding.dailytagCard, uiState,
+                    viewModel::setJumpDate)
             }
         }
         //加载活动卡片，如果不是初次启动，使用viewModel保存的状态

@@ -3,10 +3,7 @@ package com.mty.bangcalendar.ui.settings
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.MenuItem
-import android.widget.Button
-import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
@@ -25,22 +22,19 @@ import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.BangCalendarApplication.Companion.isNavBarImmersive
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.logic.DatabaseUpdater
-import com.mty.bangcalendar.logic.Repository
-import com.mty.bangcalendar.logic.model.LoginRequest
-import com.mty.bangcalendar.logic.model.SmsRequest
 import com.mty.bangcalendar.logic.network.ServiceCreator
 import com.mty.bangcalendar.ui.BaseActivity
+import com.mty.bangcalendar.ui.settings.view.LoginView
 import com.mty.bangcalendar.util.AnimUtil
 import com.mty.bangcalendar.util.GenericUtil
 import com.mty.bangcalendar.util.LogUtil
-import com.mty.bangcalendar.util.SecurityUtil
 import com.mty.bangcalendar.util.ThemeUtil
 import com.mty.bangcalendar.util.toast
-import kotlinx.coroutines.Dispatchers
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.util.regex.Pattern
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class SettingsActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,9 +63,12 @@ class SettingsActivity : BaseActivity() {
         return true
     }
 
+    @AndroidEntryPoint
     class SettingsFragment : PreferenceFragmentCompat() {
 
         private val viewModel:SettingsViewModel by viewModels()
+
+        @Inject lateinit var loginView: LoginView
 
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey)
@@ -226,90 +223,16 @@ class SettingsActivity : BaseActivity() {
             findPreference<Preference>("sign_in")?.let {
                 it.setOnPreferenceClickListener { preference ->
                     if (preference.summary == getString(R.string.sign_in_summary))
-                        login()
+                        loginView.loginDialog(
+                            sendSms = viewModel::sendSms,
+                            login = viewModel::login,
+                            onSuccess = viewModel::setPhoneNum
+                        ).show()
                     else
                         logout()
                     return@setOnPreferenceClickListener true
                 }
             }
-        }
-
-        private fun login() {
-            val view = LayoutInflater.from(activity)
-                .inflate(R.layout.login, null, false)
-            val phoneText: EditText = view.findViewById(R.id.sms_phone)
-            val codeText: EditText = view.findViewById(R.id.sms_code)
-            val dialog = AlertDialog.Builder(requireActivity())
-                .setTitle("登录")
-                .setIcon(R.mipmap.ic_launcher)
-                .setView(view)
-                .setCancelable(false)
-                .create()
-                .apply { setCanceledOnTouchOutside(false) }
-
-            view.findViewById<Button>(R.id.send_sms_button).setOnClickListener {
-                val phoneNumber = phoneText.text.toString()
-                if (phoneNumber.isPhoneNum()) {
-                    val button = it as Button
-                    button.isEnabled = false
-                    button.text = getString(R.string.sms_sending)
-                    requireActivity().lifecycleScope.launch(Dispatchers.IO) {
-                        val requestCode = SecurityUtil.getSmsRequestCode()
-                        val result = viewModel.sendSms(
-                            SmsRequest(phoneNumber, requestCode[0], requestCode[1], requestCode[2])
-                        )
-                        val response = result.getOrNull()
-                        withContext(Dispatchers.Main) {
-                            if (response != null && response.string() == "OK") {
-                                button.text = getString(R.string.sms_send_success)
-                                codeText.requestFocus()
-                            } else {
-                                toast("发送失败，请重试，或检查网络连接")
-                                button.isEnabled = true
-                                button.text = getString(R.string.sms_send)
-                            }
-                        }
-                    }
-                } else
-                    toast("请输入正确的手机号")
-            }
-            view.findViewById<Button>(R.id.login_cancel_button).setOnClickListener {
-                dialog.dismiss()
-            }
-            view.findViewById<Button>(R.id.login_button).setOnClickListener {
-                //验证手机号和验证码合法性，登录中禁用按钮
-                val phoneNumber = phoneText.text.toString()
-                val smsCode = codeText.text.toString()
-                if (phoneNumber.isPhoneNum() && smsCode.length == 6) {
-                    val button = it as Button
-                    button.isEnabled = false
-                    button.text = getString(R.string.logging)
-                    requireActivity().lifecycleScope.launch(Dispatchers.IO) {
-                        SecurityUtil.aesKey = SecurityUtil.getRandomKey()
-                        Repository.setAesKey(SecurityUtil.aesKey)
-                        val result = viewModel.login(
-                            LoginRequest(phoneNumber,
-                                         SecurityUtil.encrypt(SecurityUtil.aesKey, smsCode),
-                                         SecurityUtil.getEncryptedKey(SecurityUtil.aesKey)
-                            )
-                        )
-                        val response = result.getOrNull()
-                        withContext(Dispatchers.Main) {
-                            if (response != null && response.string() == "OK") {
-                                viewModel.setPhoneNum(phoneNumber)
-                                dialog.dismiss()
-                                toast("登录成功")
-                            } else {
-                                toast("手机号或验证码错误")
-                                button.isEnabled = true
-                                button.text = getString(R.string.sign_in_title)
-                            }
-                        }
-                    }
-                }
-            }
-
-            dialog.show()
         }
 
         private fun logout() {
@@ -388,13 +311,6 @@ class SettingsActivity : BaseActivity() {
                     LogUtil.w("FCM Warning", it.exception.toString())
                 }
             }
-        }
-
-        private fun String.isPhoneNum(): Boolean {
-            val regex = "\\b1[3-9]\\d{9}\\b"
-            val pattern = Pattern.compile(regex)
-            val matcher = pattern.matcher(this)
-            return matcher.find()
         }
 
     }

@@ -11,12 +11,7 @@ import com.bumptech.glide.request.transition.Transition
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.logic.dao.AppDatabase
 import com.mty.bangcalendar.logic.dao.PreferenceDao
-import com.mty.bangcalendar.logic.model.GetPreferenceRequest
 import com.mty.bangcalendar.logic.model.IntDate
-import com.mty.bangcalendar.logic.model.LoginRequest
-import com.mty.bangcalendar.logic.model.SmsRequest
-import com.mty.bangcalendar.logic.model.UserPreference
-import com.mty.bangcalendar.logic.network.BangCalendarNetwork
 import com.mty.bangcalendar.logic.network.ServiceCreator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -87,58 +82,6 @@ object Repository {
         AppDatabase.getDatabase().characterDao().getCharacterByName(name)
     }
 
-    suspend fun sendSms(request: SmsRequest) = withContext(Dispatchers.IO) {
-        try {
-            val result = BangCalendarNetwork.sendSms(request)
-            Result.success(result)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun login(request: LoginRequest) = withContext(Dispatchers.IO) {
-        try {
-            val result = BangCalendarNetwork.login(request)
-            Result.success(result)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getPhoneNum() = withContext(Dispatchers.IO) {
-        PreferenceDao.getPhoneNum()
-    }
-
-    suspend fun setPhoneNum(phone: String) = withContext(Dispatchers.IO) {
-        PreferenceDao.setPhoneNum(phone)
-    }
-
-    suspend fun downloadUserPreference(request: GetPreferenceRequest) = withContext(Dispatchers.IO) {
-        try {
-            val result = BangCalendarNetwork.getUserPreference(request)
-            Result.success(result)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun uploadUserPreference(userPreference: UserPreference) = withContext(Dispatchers.IO) {
-        try {
-            val result = BangCalendarNetwork.setUserPreference(userPreference)
-            Result.success(result)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getUserPreference() = withContext(Dispatchers.IO) {
-        PreferenceDao.getUserPreference()
-    }
-
-    suspend fun setUserPreference(userPreference: UserPreference) = withContext(Dispatchers.IO) {
-        PreferenceDao.setUserPreference(userPreference)
-    }
-
     suspend fun getEventList() = withContext(Dispatchers.IO) {
         AppDatabase.getDatabase().eventDao().getEventList()
     }
@@ -176,19 +119,6 @@ object Repository {
         PreferenceDao.unregisterOnDefaultPreferenceChangeListener(listener)
     }
 
-    suspend fun getAppUpdateInfo() = withContext(Dispatchers.IO) {
-        try {
-            val updateInfo = BangCalendarNetwork.getAppUpdateInfo()
-            Result.success(updateInfo)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
     fun getAesKey() = PreferenceDao.aesKey
-
-    fun setAesKey(key: String) {
-        PreferenceDao.aesKey = key
-    }
 
 }

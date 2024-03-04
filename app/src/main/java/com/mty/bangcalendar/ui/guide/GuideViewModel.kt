@@ -28,7 +28,7 @@ class GuideViewModel @Inject constructor(
                 //执行首次启动初始化相关业务逻辑
                 firstStartInit()
             }else if (BangCalendarApplication.systemDate.getDayOfWeak() == 2
-                && it.lastRefreshDay != BangCalendarApplication.systemDate.day) {
+                && BangCalendarApplication.systemDate.toDate().value == it.lastRefreshDate.value) {
                 //每周一自动更新数据库
                 DatabaseUpdater.updateDatabase()
             }

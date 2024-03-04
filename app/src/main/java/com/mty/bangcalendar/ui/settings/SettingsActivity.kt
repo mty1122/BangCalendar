@@ -7,7 +7,6 @@ import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
-import androidx.core.content.pm.PackageInfoCompat
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
@@ -22,15 +21,18 @@ import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.BangCalendarApplication.Companion.isNavBarImmersive
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.logic.DatabaseUpdater
-import com.mty.bangcalendar.logic.network.ServiceCreator
 import com.mty.bangcalendar.ui.BaseActivity
 import com.mty.bangcalendar.ui.settings.view.LoginView
+import com.mty.bangcalendar.ui.settings.view.UpdateAppView
 import com.mty.bangcalendar.util.AnimUtil
 import com.mty.bangcalendar.util.GenericUtil
 import com.mty.bangcalendar.util.LogUtil
 import com.mty.bangcalendar.util.ThemeUtil
 import com.mty.bangcalendar.util.toast
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -69,13 +71,23 @@ class SettingsActivity : BaseActivity() {
         private val viewModel:SettingsViewModel by viewModels()
 
         @Inject lateinit var loginView: LoginView
+        @Inject lateinit var updateAppView: UpdateAppView
 
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey)
 
             //刷新数据库
-            findPreference<Preference>("update_database")?.let {
-                it.setOnPreferenceClickListener {
+            findPreference<Preference>("update_database")?.let { preference->
+                lifecycleScope.launch {
+                    viewModel.settingsUiState
+                        .map { it.lastRefreshDate }
+                        .distinctUntilChanged()
+                        .filterNotNull()
+                        .collect {
+                            if (it.value != 0) preference.summary = "最后更新 ${it.value}"
+                        }
+                }
+                preference.setOnPreferenceClickListener {
                     lifecycleScope.launch {
                         viewModel.refreshDataBase().collect { updateState->
                             when (updateState) {
@@ -95,30 +107,17 @@ class SettingsActivity : BaseActivity() {
             }
 
             //刷新登录状态
-            requireActivity().lifecycleScope.launch {
-                viewModel.phoneNum.collect {
-                    findPreference<Preference>("sign_in")?.let { preference ->
-                        if (it != "")
-                            preference.summary = "已登录：$it"
-                        else
-                            preference.summary = getString(R.string.sign_in_summary)
-                    }
-                }
-            }
-            viewModel.getPhoneNum()
-
-            //监听检查更新结果
-            viewModel.appUpdateInfo.observe(this) {
-                if (it.isFailure) {
-                    toast("检查更新失败，请检查网络连接")
-                } else {
-                    val currentVersionCode = getVersionCode()
-                    val latestVersionCode = it.getOrNull()!!.versionCode
-                    if (currentVersionCode < latestVersionCode) {
-                        updateJump(it.getOrNull()!!.versionName)
-                    } else {
-                        toast("当前版本已是最新版本")
-                    }
+            lifecycleScope.launch {
+                viewModel.settingsUiState
+                    .map { it.phoneNumber }
+                    .distinctUntilChanged()
+                    .collect {
+                        findPreference<Preference>("sign_in")?.let { preference ->
+                            if (it != "")
+                                preference.summary = "已登录：$it"
+                            else
+                                preference.summary = getString(R.string.sign_in_summary)
+                        }
                 }
             }
 
@@ -171,7 +170,8 @@ class SettingsActivity : BaseActivity() {
 
             findPreference<Preference>("version")?.let {
                 it.setOnPreferenceClickListener {
-                    viewModel.getAppUpdateInfo()
+                    val uiState = viewModel.settingsUiState.value
+                    updateAppView.handleClickEvent(uiState.hasNewVersion, uiState.newVersionName)
                     return@setOnPreferenceClickListener true
                 }
             }
@@ -225,53 +225,14 @@ class SettingsActivity : BaseActivity() {
                     if (preference.summary == getString(R.string.sign_in_summary))
                         loginView.loginDialog(
                             sendSms = viewModel::sendSms,
-                            login = viewModel::login,
-                            onSuccess = viewModel::setPhoneNum
+                            requestLogin = viewModel::login,
+                            setPhoneNumber = viewModel::setPhoneNumber
                         ).show()
                     else
-                        logout()
+                        loginView.logoutDialog(viewModel::setPhoneNumber).show()
                     return@setOnPreferenceClickListener true
                 }
             }
-        }
-
-        private fun logout() {
-            val dialog = AlertDialog.Builder(requireActivity())
-                .setTitle("退出登录")
-                .setIcon(R.mipmap.ic_launcher)
-                .setMessage(getString(R.string.logout))
-                .setNegativeButton("取消") { _, _ ->
-                }
-                .setPositiveButton("确认") { _, _ ->
-                    viewModel.setPhoneNum("")
-                    Toast.makeText(activity, "退出登录成功", Toast.LENGTH_SHORT).show()
-                }
-                .create()
-            dialog.show()
-        }
-
-        private fun getVersionCode(): Long {
-            val packageManager = BangCalendarApplication.context.packageManager
-            val packageInfo = packageManager
-                .getPackageInfo(BangCalendarApplication.context.packageName, 0)
-            return PackageInfoCompat.getLongVersionCode(packageInfo)
-        }
-
-        private fun updateJump(versionName: String) {
-            val dialog = AlertDialog.Builder(requireActivity())
-                .setTitle("发现新版本")
-                .setIcon(R.mipmap.ic_launcher)
-                .setMessage("检测到新版本，版本号$versionName，是否立即更新？")
-                .setNegativeButton("取消") { _, _ ->
-                }
-                .setPositiveButton("确认") { _, _ ->
-                    val intent = Intent(Intent.ACTION_VIEW)
-                    intent.data = Uri.parse(ServiceCreator.BASE_URL +
-                            "app_service/BangCalendar_$versionName.apk")
-                    startActivity(intent)
-                }
-                .create()
-            dialog.show()
         }
 
         private fun startPush(preference: SwitchPreference) {

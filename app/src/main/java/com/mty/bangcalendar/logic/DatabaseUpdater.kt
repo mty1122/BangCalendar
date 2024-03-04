@@ -73,7 +73,7 @@ object DatabaseUpdater {
             AppDatabase.getDatabase().characterDao().insertAll(characterList)
             updateStateFlow.value = DatabaseUpdateState.SUCCESS_CHARACTER
 
-            PreferenceDao.setLastRefreshDay(BangCalendarApplication.systemDate.day)
+            PreferenceDao.setLastRefreshDate(BangCalendarApplication.systemDate.toDate().value)
         }
         return updateStateFlow.asStateFlow()
     }

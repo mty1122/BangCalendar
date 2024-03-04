@@ -21,11 +21,11 @@ object PreferenceDao {
         get() = sharedPreference().getString("aesKey", "")!!
         set(value) = sharedPreference().edit { putString("aesKey", value) }
 
-    fun getLastRefreshDay(): Int = sharedPreference().getInt("lastRefreshDay", 0)
+    fun getLastRefreshDate(): Int = sharedPreference().getInt("lastRefreshDate", 0)
 
-    fun setLastRefreshDay(day: Int) {
+    fun setLastRefreshDate(date: Int) {
         sharedPreference().edit {
-            putInt("lastRefreshDay", day)
+            putInt("lastRefreshDate", date)
         }
     }
 

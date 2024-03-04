@@ -4,6 +4,7 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -24,8 +25,8 @@ class LoginView @Inject constructor(
 
     fun loginDialog(
         sendSms: suspend (phoneNumber: String) -> Result<ResponseBody>,
-        login: suspend (phoneNumber: String, smsCode: String) -> Result<ResponseBody>,
-        onSuccess: (phoneNumber: String) -> Unit
+        requestLogin: suspend (phoneNumber: String, smsCode: String) -> Result<ResponseBody>,
+        setPhoneNumber: (phoneNumber: String) -> Unit
     ): AlertDialog {
         val view = LayoutInflater.from(context)
             .inflate(R.layout.login, null, false)
@@ -74,11 +75,11 @@ class LoginView @Inject constructor(
                 button.isEnabled = false
                 button.text = context.getString(R.string.logging)
                 lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    val result = login(phoneNumber, smsCode)
+                    val result = requestLogin(phoneNumber, smsCode)
                     val response = result.getOrNull()
                     withContext(Dispatchers.Main) {
                         if (response != null && response.string() == "OK") {
-                            onSuccess(phoneNumber)
+                            setPhoneNumber(phoneNumber)
                             dialog.dismiss()
                             toast("登录成功")
                         } else {
@@ -92,6 +93,20 @@ class LoginView @Inject constructor(
         }
         return dialog
     }
+
+    fun logoutDialog(
+        setPhoneNumber: (phoneNumber: String) -> Unit
+    ) = AlertDialog.Builder(context)
+        .setTitle("退出登录")
+        .setIcon(R.mipmap.ic_launcher)
+        .setMessage(context.getString(R.string.logout))
+        .setNegativeButton("取消") { _, _ ->
+        }
+        .setPositiveButton("确认") { _, _ ->
+            setPhoneNumber("")
+            Toast.makeText(context, "退出登录成功", Toast.LENGTH_SHORT).show()
+        }
+        .create()
 
     private fun String.isPhoneNum(): Boolean {
         val regex = "\\b1[3-9]\\d{9}\\b"

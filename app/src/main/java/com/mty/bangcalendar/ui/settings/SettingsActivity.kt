@@ -12,21 +12,16 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
-import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.common.GoogleApiAvailability
-import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.messaging.ktx.messaging
-import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.BangCalendarApplication.Companion.isNavBarImmersive
+import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.logic.DatabaseUpdater
 import com.mty.bangcalendar.ui.BaseActivity
+import com.mty.bangcalendar.ui.settings.view.FcmView
 import com.mty.bangcalendar.ui.settings.view.LoginView
 import com.mty.bangcalendar.ui.settings.view.UpdateAppView
 import com.mty.bangcalendar.util.AnimUtil
 import com.mty.bangcalendar.util.GenericUtil
-import com.mty.bangcalendar.util.LogUtil
 import com.mty.bangcalendar.util.ThemeUtil
 import com.mty.bangcalendar.util.toast
 import dagger.hilt.android.AndroidEntryPoint
@@ -72,11 +67,11 @@ class SettingsActivity : BaseActivity() {
 
         @Inject lateinit var loginView: LoginView
         @Inject lateinit var updateAppView: UpdateAppView
+        @Inject lateinit var fcmView: FcmView
 
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey)
 
-            //刷新数据库
             findPreference<Preference>("update_database")?.let { preference->
                 lifecycleScope.launch {
                     viewModel.settingsUiState
@@ -84,40 +79,33 @@ class SettingsActivity : BaseActivity() {
                         .distinctUntilChanged()
                         .filterNotNull()
                         .collect {
-                            if (it.value != 0) preference.summary = "最后更新 ${it.value}"
+                            if (it.value != 0) preference.summary = "最后更新：${it.value}"
                         }
                 }
                 preference.setOnPreferenceClickListener {
+                    preference.isSelectable = false
                     lifecycleScope.launch {
+                        val originalSummary = preference.summary
                         viewModel.refreshDataBase().collect { updateState->
                             when (updateState) {
                                 DatabaseUpdater.DatabaseUpdateState.PREPARE ->
-                                    toast("开始更新")
+                                    preference.summary = "正在下载更新"
                                 DatabaseUpdater.DatabaseUpdateState.SUCCESS_EVENT ->
-                                    toast("活动数据更新成功")
-                                DatabaseUpdater.DatabaseUpdateState.SUCCESS_CHARACTER ->
-                                    toast("角色数据更新成功")
-                                DatabaseUpdater.DatabaseUpdateState.ERROR ->
+                                    preference.summary = "活动数据更新成功"
+                                DatabaseUpdater.DatabaseUpdateState.SUCCESS_CHARACTER -> {
+                                    preference.summary = "最后更新：${systemDate.toDate().value}"
+                                    toast("更新成功")
+                                    preference.isSelectable = true
+                                }
+                                DatabaseUpdater.DatabaseUpdateState.ERROR -> {
+                                    preference.summary = originalSummary
                                     toast("更新失败，请检查网络")
+                                    preference.isSelectable = true
+                                }
                             }
                         }
                     }
                     return@setOnPreferenceClickListener true
-                }
-            }
-
-            //刷新登录状态
-            lifecycleScope.launch {
-                viewModel.settingsUiState
-                    .map { it.phoneNumber }
-                    .distinctUntilChanged()
-                    .collect {
-                        findPreference<Preference>("sign_in")?.let { preference ->
-                            if (it != "")
-                                preference.summary = "已登录：$it"
-                            else
-                                preference.summary = getString(R.string.sign_in_summary)
-                        }
                 }
             }
 
@@ -178,11 +166,9 @@ class SettingsActivity : BaseActivity() {
 
             findPreference<Preference>("notification")?.let {
                 it.setOnPreferenceChangeListener { preference, newValue ->
-                    if (newValue as Boolean) {
-                        startPush(preference as SwitchPreference)
-                    } else {
-                        getDeviceCode()
-                    }
+                    fcmView.handlePreferenceChangeEvent(
+                        newValue as Boolean, preference as SwitchPreference
+                    )
                     return@setOnPreferenceChangeListener false
                 }
             }
@@ -220,8 +206,8 @@ class SettingsActivity : BaseActivity() {
                 }
             }
 
-            findPreference<Preference>("sign_in")?.let {
-                it.setOnPreferenceClickListener { preference ->
+            findPreference<Preference>("sign_in")?.let { preference ->
+                preference.setOnPreferenceClickListener {
                     if (preference.summary == getString(R.string.sign_in_summary))
                         loginView.loginDialog(
                             sendSms = viewModel::sendSms,
@@ -232,44 +218,17 @@ class SettingsActivity : BaseActivity() {
                         loginView.logoutDialog(viewModel::setPhoneNumber).show()
                     return@setOnPreferenceClickListener true
                 }
-            }
-        }
-
-        private fun startPush(preference: SwitchPreference) {
-            val dialog = AlertDialog.Builder(requireActivity())
-                .setTitle("启用FCM推送服务")
-                .setIcon(R.mipmap.ic_launcher)
-                .setMessage(getString(R.string.notification_text))
-                .setNegativeButton("取消") { _, _ ->
-                }
-                .setPositiveButton("启用") { _, _ ->
-                    val googleApiAvailability = GoogleApiAvailability.getInstance()
-                    val result = googleApiAvailability
-                        .isGooglePlayServicesAvailable(BangCalendarApplication.context)
-                    if (result == ConnectionResult.SUCCESS) {
-                        fcmInit()
-                        toast("开启成功")
-                        preference.isChecked = true
-                    } else {
-                        toast("开启失败，GMS服务不可用")
-                    }
-                }
-                .create()
-            dialog.show()
-        }
-
-        private fun fcmInit() {
-            Firebase.analytics.setAnalyticsCollectionEnabled(true)
-            Firebase.messaging.isAutoInitEnabled = true
-        }
-
-        private fun getDeviceCode() {
-            Firebase.messaging.token.addOnCompleteListener {
-                if (it.isSuccessful) {
-                    val token = it.result
-                    GenericUtil.copyToClipboard(token, "已复制推送token到剪贴板")
-                } else {
-                    LogUtil.w("FCM Warning", it.exception.toString())
+                //刷新登录状态
+                lifecycleScope.launch {
+                    viewModel.settingsUiState
+                        .map { it.phoneNumber }
+                        .distinctUntilChanged()
+                        .collect { phoneNumber->
+                            if (phoneNumber != "")
+                                preference.summary = "已登录：$phoneNumber"
+                            else
+                                preference.summary = getString(R.string.sign_in_summary)
+                        }
                 }
             }
         }

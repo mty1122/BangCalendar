@@ -241,10 +241,8 @@ class MainActivity : BaseActivity() {
             if (viewModel.mainUiState.value.isLoading)
                 return@observe
             //刷新活动卡片
-            lifecycleScope.launch {
-                eventCardView.handleUiState(viewModel.currentDate.value!!,
-                    viewModel.mainUiState.value, it, mainBinding.eventCard)
-            }
+            eventCardView.handleUiState(viewModel.currentDate.value!!,
+                viewModel.mainUiState.value, it, mainBinding.eventCard)
         }
     }
 
@@ -313,9 +311,9 @@ class MainActivity : BaseActivity() {
                         ViewTreeObserver.OnGlobalLayoutListener {
                         override fun onGlobalLayout() {
                             birthdayCardView.birCardInit(birthdayCardUiState, mainBinding)
-                            it.resume(Unit)
                             mainBinding.birCard.cardView.viewTreeObserver
                                 .removeOnGlobalLayoutListener(this)
+                            it.resume(Unit)
                         }
                     })
                 }

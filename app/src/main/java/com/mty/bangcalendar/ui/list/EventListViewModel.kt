@@ -1,7 +1,9 @@
 package com.mty.bangcalendar.ui.list
 
-import android.graphics.drawable.Drawable
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Event
 import kotlinx.coroutines.launch
@@ -17,12 +19,6 @@ class EventListViewModel : ViewModel() {
         }
     }
 
-    fun getEventPic(eventId: String, onPicReady: (Drawable) -> Unit) {
-        viewModelScope.launch {
-            Repository.getEventPic(eventId)?.let {
-                onPicReady(it)
-            }
-        }
-    }
+    fun getEventPic(eventId: String) = Repository.getEventPic(eventId)
 
 }

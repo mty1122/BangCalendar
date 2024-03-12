@@ -4,6 +4,8 @@ import android.animation.ObjectAnimator
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.view.View
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.R
@@ -21,15 +23,22 @@ import com.mty.bangcalendar.util.log
 import com.mty.bangcalendar.util.startActivity
 import com.mty.bangcalendar.util.startCharacterListActivity
 import dagger.hilt.android.qualifiers.ActivityContext
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class EventCardView @Inject constructor(@ActivityContext val context: Context) {
+class EventCardView @Inject constructor(
+    @ActivityContext private val context: Context,
+    private val lifecycleOwner: LifecycleOwner
+) {
 
     //记录活动卡片的可见性
     private var isEventCardVisible = true
+    //记录活动图片获取Job
+    private var eventPictureJob: Job? = null
 
-    suspend fun eventCardInit(
+    fun eventCardInit(
         binding: EventCardBinding,
         mainUiState: MainUiState,
         event: Event?,
@@ -50,7 +59,7 @@ class EventCardView @Inject constructor(@ActivityContext val context: Context) {
         }
     }
 
-    suspend fun handleUiState(
+    fun handleUiState(
         currentDate: IntDate,
         mainUiState: MainUiState,
         eventCardUiState: EventCardUiState,
@@ -105,7 +114,7 @@ class EventCardView @Inject constructor(@ActivityContext val context: Context) {
         binding.eventButton.setOnClickListener(null)
     }
 
-    private suspend fun refreshEventComponent(
+    private fun refreshEventComponent(
         mainUiState: MainUiState,
         event: Event,
         eventPicture: Flow<Drawable?>,
@@ -174,8 +183,9 @@ class EventCardView @Inject constructor(@ActivityContext val context: Context) {
             )
         }
         //刷新活动图片
-        eventPicture.collect{
-            it?.let {
+        eventPictureJob?.cancel()
+        eventPictureJob = lifecycleOwner.lifecycleScope.launch {
+            eventPicture.collect {
                 binding.eventBackground.background = it
             }
         }

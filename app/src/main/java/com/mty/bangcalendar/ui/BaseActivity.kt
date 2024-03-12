@@ -11,7 +11,6 @@ import android.view.WindowInsetsController
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
-import com.bumptech.glide.Glide
 import com.mty.bangcalendar.BangCalendarApplication.Companion.isNavBarImmersive
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.util.ThemeUtil
@@ -92,11 +91,6 @@ open class BaseActivity : AppCompatActivity() {
         //实现小白条沉浸
         if (isNavBarImmersive)
             navBarImmersion(view)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        Glide.get(this).clearMemory()
     }
 
 }

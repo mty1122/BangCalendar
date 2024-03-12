@@ -97,7 +97,7 @@ class MainViewModel : ViewModel() {
         }
         val eventPicture: Flow<Drawable?>? = if (currentEvent != null) {
             val eventId = EventUtil.eventIdFormat(currentEvent.id.toInt())
-            flow { emit(Repository.getEventPic(eventId)) }
+            Repository.getEventPic(eventId)
         }  else {
             null
         }
@@ -163,7 +163,7 @@ class MainViewModel : ViewModel() {
                 _eventCardUiState.value = EventCardUiState(null, null)
             } else {
                 val eventId = EventUtil.eventIdFormat(event.id.toInt())
-                val eventPicture = flow { emit(Repository.getEventPic(eventId)) }
+                val eventPicture = Repository.getEventPic(eventId)
                 _eventCardUiState.value = EventCardUiState(event, eventPicture)
             }
         }

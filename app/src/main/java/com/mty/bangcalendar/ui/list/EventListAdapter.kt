@@ -9,6 +9,8 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.android.material.card.MaterialCardView
@@ -19,9 +21,14 @@ import com.mty.bangcalendar.ui.main.MainActivity
 import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.ThemeUtil
 import com.tomergoldst.progress_circle.ProgressCircle
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 
 class EventListAdapter(private val eventList: List<Event> , private val context: Context,
-    val getEventPicture: (eventId: String, onPictureReady: (Drawable) -> Unit) -> Unit) :
+    private val lifecycleOwner: LifecycleOwner,
+    private val getEventPicture: (eventId: String) -> Flow<Drawable?>
+) :
     RecyclerView.Adapter<EventListAdapter.ViewHolder>(){
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -38,6 +45,7 @@ class EventListAdapter(private val eventList: List<Event> , private val context:
         val eventBand: ImageView = eventCard.findViewById(R.id.eventBand)
         val eventProgress: ProgressCircle = eventCard.findViewById(R.id.eventProgress)
         val eventProgressName: TextView = eventCard.findViewById(R.id.eventProgressName)
+        var eventPictureJob: Job? = null //用来记录图片加载任务完成情况
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -78,10 +86,17 @@ class EventListAdapter(private val eventList: List<Event> , private val context:
             Glide.with(context).load(EventUtil.getBandPic(event)).into(eventBand)
             //刷新活动图片
             val eventId = EventUtil.eventIdFormat(event.id.toInt())
-            getEventPicture(eventId) {
-                eventBackground.background = it
+            eventPictureJob = lifecycleOwner.lifecycleScope.launch {
+                getEventPicture(eventId).collect {
+                    eventBackground.background = it
+                }
             }
         }
+    }
+
+    override fun onViewRecycled(holder: ViewHolder) {
+        holder.eventPictureJob?.cancel()
+        super.onViewRecycled(holder)
     }
 
     override fun getItemCount() = eventList.size

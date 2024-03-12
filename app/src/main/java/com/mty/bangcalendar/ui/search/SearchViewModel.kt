@@ -1,6 +1,5 @@
 package com.mty.bangcalendar.ui.search
 
-import android.graphics.drawable.Drawable
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -30,10 +29,6 @@ class SearchViewModel : ViewModel() {
         }
     }
 
-    suspend fun getEventPic(eventId: String, onPicReady: (Drawable) -> Unit) {
-        Repository.getEventPic(eventId)?.let {
-            onPicReady(it)
-        }
-    }
+    fun getEventPic(eventId: String) = Repository.getEventPic(eventId)
 
 }

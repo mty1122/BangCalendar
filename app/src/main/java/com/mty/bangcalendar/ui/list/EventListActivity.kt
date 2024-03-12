@@ -44,9 +44,8 @@ class EventListActivity : BaseActivity() {
             } else {
                 it
             }
-            val adapter = EventListAdapter(eventList, this) { eventId, onPictureReady->
-                viewModel.getEventPic(eventId, onPictureReady)
-            }
+            val adapter = EventListAdapter(eventList, this, this,
+                viewModel::getEventPic)
             binding.eventList.adapter = adapter
             //设置起始位置
             (binding.eventList.layoutManager as LinearLayoutManager)

@@ -14,9 +14,11 @@ import com.mty.bangcalendar.logic.dao.PreferenceDao
 import com.mty.bangcalendar.logic.model.IntDate
 import com.mty.bangcalendar.logic.network.ServiceCreator
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 object Repository {
 
@@ -90,19 +92,46 @@ object Repository {
         AppDatabase.getDatabase().characterDao().getCharacterList()
     }
 
-    suspend fun getEventPic(eventId: String) = suspendCoroutine {
+    fun getEventPic(eventId: String) = callbackFlow {
         val uri = Uri.parse(
             ServiceCreator.BASE_URL + "event/banner_memorial_event$eventId.png")
-        Glide.with(BangCalendarApplication.context).load(uri).apply(glideOptions)
-            .into(object : CustomTarget<Drawable>() {
-                override fun onResourceReady(resource: Drawable,
-                                             transition: Transition<in Drawable>?) {
-                    it.resume(resource)
+        //设置回调
+        val customTarget = object : CustomTarget<Drawable>() {
+            private val target = this
+            private var retryTimes: Long = 500
+
+            override fun onResourceReady(resource: Drawable,
+                                         transition: Transition<in Drawable>?) {
+                trySend(resource)
+                close()
+            }
+            override fun onLoadFailed(errorDrawable: Drawable?) {
+                trySend(null)
+                //加载失败后进行重试，一共重试三次
+                if (retryTimes < 2001) {
+                    launch {
+                        delay(retryTimes)
+                        retryTimes *= 2
+                        Glide.with(BangCalendarApplication.context)
+                            .load(uri).apply(glideOptions).into(target)
+                    }
+                } else {
+                    close()
                 }
-                override fun onLoadCleared(placeholder: Drawable?) {
-                    it.resume(null)
-                }
-            })
+            }
+            override fun onLoadCleared(placeholder: Drawable?) {
+                trySend(null)
+                close()
+            }
+        }
+        //获取图片
+        Glide.with(BangCalendarApplication.context).load(uri).apply(glideOptions).into(customTarget)
+        //关闭流后取消图片加载
+        awaitClose {
+            launch(Dispatchers.Main) {
+                Glide.with(BangCalendarApplication.context).clear(customTarget)
+            }
+        }
     }
 
     fun setFcmToken(token: String) {

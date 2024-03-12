@@ -18,6 +18,7 @@ import com.mty.bangcalendar.ui.list.EventListActivity
 import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.LogUtil
 import com.mty.bangcalendar.util.ThemeUtil
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.util.regex.Pattern
 
@@ -29,6 +30,7 @@ class SearchActivity : BaseActivity() {
     }
 
     private val viewModel: SearchViewModel by viewModels()
+    private var eventPictureJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -169,8 +171,9 @@ class SearchActivity : BaseActivity() {
             .into(binding.searchEventCard.eventBand)
         //刷新活动图片
         val eventId = EventUtil.eventIdFormat(event.id.toInt())
-        lifecycleScope.launch{
-            viewModel.getEventPic(eventId) {
+        eventPictureJob?.cancel()
+        eventPictureJob = lifecycleScope.launch{
+            viewModel.getEventPic(eventId).collect {
                 binding.searchEventCard.eventBackground.background = it
             }
         }

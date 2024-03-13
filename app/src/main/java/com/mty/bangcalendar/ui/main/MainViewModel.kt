@@ -113,11 +113,13 @@ class MainViewModel @Inject constructor(
         val dailyTagUiState = fetchDailyTagUiState()
         val birthdayCardUiState = if (mainUiState.value.isFirstStart) flow {
             emit(
-                characterRepository.getCharacterIdByBirthday(systemDate.toDate().toBirthday()).toInt()
+                characterRepository.getCharacterIdByBirthday(systemDate.toDate().toBirthday())
+                    .toInt()
             )
         } else flow {
             emit(
-                characterRepository.getCharacterIdByBirthday(currentDate.value!!.toBirthday()).toInt()
+                characterRepository.getCharacterIdByBirthday(currentDate.value!!.toBirthday())
+                    .toInt()
             )
         }
         emit(

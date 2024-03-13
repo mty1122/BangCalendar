@@ -6,7 +6,9 @@ import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mty.bangcalendar.databinding.ActivityCharacterListBinding
 import com.mty.bangcalendar.ui.BaseActivity
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class CharacterListActivity : BaseActivity() {
 
     private val viewModel: CharacterListViewModel by viewModels()

@@ -35,17 +35,23 @@ class SettingsViewModel @Inject constructor(
     init {
         //启动时后台自动获取UiState
         viewModelScope.launch {
-            val appUpdateInfo = settingsRepository.getAppUpdateInfo().getOrNull()
+            //先获取手机号码，及时更新登录状态
             val phoneNumber = settingsRepository.getPhoneNumber()
+            _settingsUiState.update {
+                it.copy(phoneNumber = phoneNumber)
+            }
+            //获取新版本信息
+            val appUpdateInfo = settingsRepository.getAppUpdateInfo().getOrNull()
             val currentVersionCode = settingsRepository.getVersionCode()
             val lastRefreshDate = settingsRepository.getLastRefreshDate()
-            _settingsUiState.value = SettingsUiState(
-                lastRefreshDate = lastRefreshDate,
-                phoneNumber = phoneNumber,
-                hasNewVersion = currentVersionCode < (appUpdateInfo?.versionCode
-                    ?: currentVersionCode),
-                newVersionName = appUpdateInfo?.versionName ?: ""
-            )
+            _settingsUiState.update {
+                it.copy(
+                    lastRefreshDate = lastRefreshDate,
+                    hasNewVersion = currentVersionCode < (appUpdateInfo?.versionCode
+                        ?: currentVersionCode),
+                    newVersionName = appUpdateInfo?.versionName ?: ""
+                )
+            }
         }
     }
 

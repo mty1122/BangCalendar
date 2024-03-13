@@ -5,12 +5,12 @@ import android.content.pm.PackageManager
 import android.content.pm.Signature
 import android.os.Build
 import com.mty.bangcalendar.BangCalendarApplication.Companion.context
-import com.mty.bangcalendar.logic.Repository
+import com.mty.bangcalendar.logic.repository.ObjectRepository
 import java.security.MessageDigest
 
 object SecurityUtil {
 
-    var aesKey: String = Repository.getAesKey()
+    var aesKey: String = ObjectRepository.getAesKey()
 
     init {
         System.loadLibrary("bangcalendar")

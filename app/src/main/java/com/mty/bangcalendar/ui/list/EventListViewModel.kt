@@ -4,21 +4,26 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Event
+import com.mty.bangcalendar.logic.repository.EventRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class EventListViewModel : ViewModel() {
+@HiltViewModel
+class EventListViewModel @Inject constructor(
+    private val eventRepository: EventRepository
+) : ViewModel() {
 
     private val _eventList = MutableLiveData<List<Event>>()
     val eventList: LiveData<List<Event>>
         get() = _eventList
     fun getEventList() {
         viewModelScope.launch {
-           _eventList.value = Repository.getEventList()
+           _eventList.value = eventRepository.getEventList()
         }
     }
 
-    fun getEventPic(eventId: String) = Repository.getEventPic(eventId)
+    fun getEventPic(eventId: String) = eventRepository.getEventPic(eventId)
 
 }

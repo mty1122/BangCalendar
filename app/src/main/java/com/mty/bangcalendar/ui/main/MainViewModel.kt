@@ -14,24 +14,33 @@ import androidx.lifecycle.viewModelScope
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.enum.IntentActions
-import com.mty.bangcalendar.logic.Repository
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.logic.model.IntDate
 import com.mty.bangcalendar.logic.model.MainViewInitData
+import com.mty.bangcalendar.logic.repository.CharacterRepository
+import com.mty.bangcalendar.logic.repository.EventRepository
+import com.mty.bangcalendar.logic.repository.PreferenceRepository
 import com.mty.bangcalendar.ui.main.state.DailyTagUiState
 import com.mty.bangcalendar.ui.main.state.EventCardUiState
 import com.mty.bangcalendar.ui.main.state.MainUiState
 import com.mty.bangcalendar.util.CalendarUtil
 import com.mty.bangcalendar.util.CharacterUtil
 import com.mty.bangcalendar.util.EventUtil
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MainViewModel : ViewModel() {
+@HiltViewModel
+class MainViewModel @Inject constructor(
+    private val eventRepository: EventRepository,
+    private val characterRepository: CharacterRepository,
+    private val preferenceRepository: PreferenceRepository
+) : ViewModel() {
 
     //主界面状态
     private val _mainUiState =  MutableStateFlow(
@@ -89,7 +98,7 @@ class MainViewModel : ViewModel() {
     //主界面加载的起点，首次启动使用当天活动
     fun fetchInitData() = flow {
         val currentEvent = if (mainUiState.value.isFirstStart) {
-            val todayEvent = Repository.getEventByDate(systemDate.toDate())!!
+            val todayEvent = eventRepository.getEventByDate(systemDate.toDate())!!
             setTodayEventState(todayEvent)
             todayEvent
         } else {
@@ -97,18 +106,18 @@ class MainViewModel : ViewModel() {
         }
         val eventPicture: Flow<Drawable?>? = if (currentEvent != null) {
             val eventId = EventUtil.eventIdFormat(currentEvent.id.toInt())
-            Repository.getEventPic(eventId)
+            eventRepository.getEventPic(eventId)
         }  else {
             null
         }
         val dailyTagUiState = fetchDailyTagUiState()
         val birthdayCardUiState = if (mainUiState.value.isFirstStart) flow {
             emit(
-                Repository.getCharacterIdByBirthday(systemDate.toDate().toBirthday()).toInt()
+                characterRepository.getCharacterIdByBirthday(systemDate.toDate().toBirthday()).toInt()
             )
         } else flow {
             emit(
-                Repository.getCharacterIdByBirthday(currentDate.value!!.toBirthday()).toInt()
+                characterRepository.getCharacterIdByBirthday(currentDate.value!!.toBirthday()).toInt()
             )
         }
         emit(
@@ -134,13 +143,14 @@ class MainViewModel : ViewModel() {
     private val _birthdayCardUiState = MutableLiveData<Int>()
     fun refreshBirthdayCard(date: IntDate) {
         viewModelScope.launch {
-            val characterId = Repository.getCharacterIdByBirthday(date.toBirthday()).toInt()
+            val characterId = characterRepository.getCharacterIdByBirthday(date.toBirthday())
+                .toInt()
             if (characterId != _birthdayCardUiState.value)
                 _birthdayCardUiState.value = characterId
         }
     }
     suspend fun fetchBirthdayMapByMonth(month: Int): Map<String, Int> {
-        val characterList = Repository.getCharacterByMonth(month)
+        val characterList = characterRepository.getCharacterByMonth(month)
         return CharacterUtil.characterListToBirthdayMap(characterList)
     }
 
@@ -158,12 +168,12 @@ class MainViewModel : ViewModel() {
         get() = _eventCardUiState
     fun getEventByDate(date: IntDate) {
         viewModelScope.launch {
-            val event = Repository.getEventByDate(date)
+            val event = eventRepository.getEventByDate(date)
             if (event == null) {
                 _eventCardUiState.value = EventCardUiState(null, null)
             } else {
                 val eventId = EventUtil.eventIdFormat(event.id.toInt())
-                val eventPicture = Repository.getEventPic(eventId)
+                val eventPicture = eventRepository.getEventPic(eventId)
                 _eventCardUiState.value = EventCardUiState(event, eventPicture)
             }
         }
@@ -181,18 +191,18 @@ class MainViewModel : ViewModel() {
         }
     }
     private fun fetchDailyTagUiState() = flow {
-        val userName = Repository.getUserName()
-        val preferenceBand = Repository.getPreferenceBand()
-        val preferenceBandNextEvent = Repository.getBandEventByDate(
+        val userName = preferenceRepository.getUserName()
+        val preferenceBand = preferenceRepository.getPreferenceBand()
+        val preferenceBandNextEvent = eventRepository.getBandEventByDate(
             date = systemDate.toDate(),
             character1Id = EventUtil.bandNameToCharacter1(preferenceBand)
         )
-        val preferenceBandLatestEvent = Repository.getBandLastEventByDate(
+        val preferenceBandLatestEvent = eventRepository.getBandLastEventByDate(
             date = systemDate.toDate(),
             character1Id = preferenceBandNextEvent?.character1
         )
-        val characterId = Repository.getPreferenceCharacter()
-        val preferenceCharacter = Repository.getCharacterById(characterId)
+        val characterId = preferenceRepository.getPreferenceCharacter()
+        val preferenceCharacter = characterRepository.getCharacterById(characterId)
         emit(
             DailyTagUiState(userName, preferenceBand,
             preferenceBandNextEvent, preferenceBandLatestEvent, preferenceCharacter)
@@ -216,7 +226,7 @@ class MainViewModel : ViewModel() {
             }
         }
     init {
-        Repository.registerOnDefaultPreferenceChangeListener(onSettingsChangeListener)
+        preferenceRepository.registerOnDefaultPreferenceChangeListener(onSettingsChangeListener)
 
         val intentFilter = IntentFilter()
         intentFilter.addAction(IntentActions.JUMP_DATE_ACTION.value)
@@ -226,7 +236,7 @@ class MainViewModel : ViewModel() {
     //取消注册监听器
     override fun onCleared() {
         super.onCleared()
-        Repository.unregisterOnDefaultPreferenceChangeListener(onSettingsChangeListener)
+        preferenceRepository.unregisterOnDefaultPreferenceChangeListener(onSettingsChangeListener)
         BangCalendarApplication.context.unregisterReceiver(jumpDateReceiver)
     }
 

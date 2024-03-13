@@ -18,10 +18,12 @@ import com.mty.bangcalendar.ui.list.EventListActivity
 import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.LogUtil
 import com.mty.bangcalendar.util.ThemeUtil
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.util.regex.Pattern
 
+@AndroidEntryPoint
 class SearchActivity : BaseActivity() {
 
     companion object {

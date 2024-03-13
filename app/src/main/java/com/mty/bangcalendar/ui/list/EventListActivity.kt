@@ -7,7 +7,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.mty.bangcalendar.databinding.ActivityEventListBinding
 import com.mty.bangcalendar.ui.BaseActivity
 import com.mty.bangcalendar.util.EventUtil
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class EventListActivity : BaseActivity() {
 
     private val viewModel: EventListViewModel by viewModels()

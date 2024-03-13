@@ -1,6 +1,5 @@
-package com.mty.bangcalendar.logic
+package com.mty.bangcalendar.logic.repository
 
-import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import com.bumptech.glide.Glide
@@ -10,7 +9,6 @@ import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.logic.dao.AppDatabase
-import com.mty.bangcalendar.logic.dao.PreferenceDao
 import com.mty.bangcalendar.logic.model.IntDate
 import com.mty.bangcalendar.logic.network.ServiceCreator
 import kotlinx.coroutines.Dispatchers
@@ -19,24 +17,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-object Repository {
+class EventRepository @Inject constructor() {
 
     private val glideOptions = RequestOptions()
         .skipMemoryCache(false)
         .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-
-    suspend fun getUserName() = withContext(Dispatchers.IO) {
-        PreferenceDao.getUserName()
-    }
-
-    suspend fun getPreferenceBand() = withContext(Dispatchers.IO) {
-        PreferenceDao.getPreferenceBand()
-    }
-
-    suspend fun getPreferenceCharacter() = withContext(Dispatchers.IO) {
-        PreferenceDao.getPreferenceCharacter()
-    }
 
     suspend fun getEventByDate(date: IntDate) = withContext(Dispatchers.IO) {
         AppDatabase.getDatabase().eventDao().getNearlyEventByDate(date.value)
@@ -46,7 +33,7 @@ object Repository {
         AppDatabase.getDatabase().eventDao().getEventById(id)
     }
 
-    suspend fun getBandEventByDate(date: IntDate, character1Id: Int) = withContext(Dispatchers.IO) {
+    suspend fun getBandEventByDate(date: IntDate, character1Id: Int) = withContext(Dispatchers.IO){
         if (character1Id < 1)
             null
         else
@@ -60,36 +47,10 @@ object Repository {
                     .getLastNearlyBandEventByDate(date.value, character1Id)
             else
                 null
-    }
-
-   suspend fun getCharacterByMonth(month: Int) = withContext(Dispatchers.IO) {
-        val formatMonth = if (month < 10) "0$month"
-                          else month.toString()
-       AppDatabase.getDatabase().characterDao().getCharacterByMonth(formatMonth)
-    }
-
-    suspend fun getCharacterIdByBirthday(birthday: String) = withContext(Dispatchers.IO) {
-        val idList = AppDatabase.getDatabase().characterDao().getCharacterIdByBirthday(birthday)
-        if (idList.isEmpty()) 0 else idList[0]
-    }
-
-    suspend fun getCharacterById(id: Int) = withContext(Dispatchers.IO) {
-        if (id < 1)
-            null
-        else
-            AppDatabase.getDatabase().characterDao().getCharacterById(id)
-    }
-
-    suspend fun getCharacterByName(name: String) = withContext(Dispatchers.IO) {
-        AppDatabase.getDatabase().characterDao().getCharacterByName(name)
-    }
+        }
 
     suspend fun getEventList() = withContext(Dispatchers.IO) {
         AppDatabase.getDatabase().eventDao().getEventList()
-    }
-
-    suspend fun getCharacterList() = withContext(Dispatchers.IO) {
-        AppDatabase.getDatabase().characterDao().getCharacterList()
     }
 
     fun getEventPic(eventId: String) = callbackFlow {
@@ -133,21 +94,5 @@ object Repository {
             }
         }
     }
-
-    fun setFcmToken(token: String) {
-        PreferenceDao.setFcmToken(token)
-    }
-
-    fun registerOnDefaultPreferenceChangeListener(listener:
-        SharedPreferences.OnSharedPreferenceChangeListener) {
-        PreferenceDao.registerOnDefaultPreferenceChangeListener(listener)
-    }
-
-    fun unregisterOnDefaultPreferenceChangeListener(listener:
-        SharedPreferences.OnSharedPreferenceChangeListener) {
-        PreferenceDao.unregisterOnDefaultPreferenceChangeListener(listener)
-    }
-
-    fun getAesKey() = PreferenceDao.aesKey
 
 }

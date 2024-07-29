@@ -199,16 +199,12 @@ class EventCardView @Inject constructor(
         binding: EventCardBinding,
         mainUiState: MainUiState
     ) {
-        val todayEventId = mainUiState.todayEvent?.id
-        val eventId = event.id
-        todayEventId?.let {
+        val todayEvent = mainUiState.todayEvent
+        todayEvent?.let {
             log(this, "刷新活动状态")
             when {
-                eventId < todayEventId -> {
-                    binding.eventProgressName.setText(R.string.finish)
-                    binding.eventProgress.progress = 100
-                }
-                eventId == todayEventId -> {
+                //活动编号与当前活动相同，即为当前活动
+                event.id == todayEvent.id -> {
                     val systemTime = systemDate.getTimeInMillis()
                     val eventStartTime = mainUiState.eventStartTime
                     val eventEndTime = mainUiState.eventEndTime
@@ -227,6 +223,11 @@ class EventCardView @Inject constructor(
                                 .getEventProgress(systemTime, eventStartTime)
                         }
                     }
+                }
+                //由于存在某个活动提前开始或者推迟开始的情况，因此如果不是当前活动，则比较开始日期
+                event.startDate < todayEvent.startDate -> {
+                    binding.eventProgressName.setText(R.string.finish)
+                    binding.eventProgress.progress = 100
                 }
                 else -> {
                     binding.eventProgressName.setText(R.string.prepare)

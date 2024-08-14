@@ -11,9 +11,11 @@ import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.logic.dao.AppDatabase
 import com.mty.bangcalendar.logic.model.IntDate
 import com.mty.bangcalendar.logic.network.ServiceCreator
+import com.mty.bangcalendar.util.isAssetExists
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -53,9 +55,20 @@ class EventRepository @Inject constructor() {
         AppDatabase.getDatabase().eventDao().getEventList()
     }
 
-    fun getEventPic(eventId: String) = callbackFlow {
-        val uri = Uri.parse(
-            ServiceCreator.BASE_URL + "event/banner_memorial_event$eventId.png")
+    fun getEventPic(eventId: String): Flow<Drawable?> {
+        val fileName = "banner_memorial_event$eventId.png"
+
+        //本地文件存在时，本地加载；不存在时，网络加载
+        return if (BangCalendarApplication.context.isAssetExists("event_pic/$fileName")) {
+            getEventPicByAssets(fileName)
+        } else {
+            getEventPicByNetwork(fileName)
+        }
+
+    }
+
+    private fun getEventPicByNetwork(fileName: String) = callbackFlow {
+        val uri = Uri.parse(ServiceCreator.BASE_URL + "event/$fileName")
         //设置回调
         val customTarget = object : CustomTarget<Drawable>() {
             private val target = this
@@ -88,6 +101,27 @@ class EventRepository @Inject constructor() {
         //获取图片
         Glide.with(BangCalendarApplication.context).load(uri).apply(glideOptions).into(customTarget)
         //关闭流后取消图片加载
+        awaitClose {
+            launch(Dispatchers.Main) {
+                Glide.with(BangCalendarApplication.context).clear(customTarget)
+            }
+        }
+    }
+
+    private fun getEventPicByAssets(fileName: String) = callbackFlow {
+        val localUri = Uri.parse("file:///android_asset/event_pic/$fileName")
+        val customTarget = object : CustomTarget<Drawable>() {
+            override fun onResourceReady(resource: Drawable,
+                                         transition: Transition<in Drawable>?) {
+                trySend(resource)
+                close()
+            }
+            override fun onLoadCleared(placeholder: Drawable?) {
+                trySend(null)
+                close()
+            }
+        }
+        Glide.with(BangCalendarApplication.context).load(localUri).into(customTarget)
         awaitClose {
             launch(Dispatchers.Main) {
                 Glide.with(BangCalendarApplication.context).clear(customTarget)

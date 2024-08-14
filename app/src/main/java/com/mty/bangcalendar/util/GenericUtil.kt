@@ -44,12 +44,32 @@ fun Context.startCharacterListActivity(id: Int) {
     startActivity<CharacterListActivity>("current_id" to id)
 }
 
+fun Context.isAssetExists(filePath: String): Boolean {
+    try {
+        //分离出目录和文件名
+        val directory = filePath.substringBeforeLast("/", "")
+        val fileName = filePath.substringAfterLast("/")
+
+        val assetManager = this.assets
+        //获取对应目录下的文件列表
+        val files = assetManager.list(directory) ?: return false
+        //检查对应文件是否存在
+        return files.contains(fileName)
+    } catch (e: Exception) {
+        return false
+    }
+}
+
 /**
  * 采用类名作为tag发出debug log
  * @param obj 一般情况下传入this即可，若this为匿名类，则采用LogUtil作为Tag
  */
 fun <T> log(obj: T, msg: String) {
     LogUtil.d(obj, msg)
+}
+
+fun log(tag: String, msg: String) {
+    LogUtil.d(tag, msg)
 }
 
 object GenericUtil {

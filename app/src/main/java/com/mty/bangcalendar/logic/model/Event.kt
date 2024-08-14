@@ -4,6 +4,10 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlinx.serialization.Serializable
 
+/**
+ * @param endDate 该参数仅用于校准活动长度，用于计算当前活动的进度，对已经结束和尚未开始的活动无效
+ */
+
 @Entity
 @Serializable
 data class Event(@PrimaryKey(autoGenerate = true) var id: Long, var name: String? = null,

@@ -11,7 +11,6 @@ import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.logic.dao.AppDatabase
 import com.mty.bangcalendar.logic.model.IntDate
 import com.mty.bangcalendar.logic.network.ServiceCreator
-import com.mty.bangcalendar.util.isAssetExists
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
@@ -22,6 +21,10 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class EventRepository @Inject constructor() {
+
+    companion object {
+        private var eventPicFilesNameCache: Array<String>? = null
+    }
 
     private val glideOptions = RequestOptions()
         .skipMemoryCache(false)
@@ -55,16 +58,12 @@ class EventRepository @Inject constructor() {
         AppDatabase.getDatabase().eventDao().getEventList()
     }
 
-    fun getEventPic(eventId: String): Flow<Drawable?> {
+    suspend fun getEventPic(eventId: String): Flow<Drawable?> {
         val fileName = "banner_memorial_event$eventId.png"
 
         //本地文件存在时，本地加载；不存在时，网络加载
-        return if (BangCalendarApplication.context.isAssetExists("event_pic/$fileName")) {
-            getEventPicByAssets(fileName)
-        } else {
-            getEventPicByNetwork(fileName)
-        }
-
+        return if (isEventPicAssetExists(fileName)) getEventPicByAssets(fileName)
+        else getEventPicByNetwork(fileName)
     }
 
     private fun getEventPicByNetwork(fileName: String) = callbackFlow {
@@ -127,6 +126,19 @@ class EventRepository @Inject constructor() {
                 Glide.with(BangCalendarApplication.context).clear(customTarget)
             }
         }
+    }
+
+    private suspend fun isEventPicAssetExists(fileName: String): Boolean {
+        //活动图片文件名称缓存不存在则进行读取
+        if (eventPicFilesNameCache == null) {
+            withContext(Dispatchers.IO) {
+                val assetManager = BangCalendarApplication.context.assets
+                //这里不需要考虑线程安全问题，因为这段代码只可能在MainView初始化时被调用
+                eventPicFilesNameCache = assetManager.list("event_pic") ?: arrayOf()
+            }
+        }
+        //检查对应活动的图片是否存在
+        return eventPicFilesNameCache!!.contains(fileName)
     }
 
 }

@@ -36,6 +36,6 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    fun getEventPic(eventId: String) = eventRepository.getEventPic(eventId)
+    suspend fun getEventPic(eventId: String) = eventRepository.getEventPic(eventId)
 
 }

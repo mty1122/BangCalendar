@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 
 class EventListAdapter(private val eventList: List<Event> , private val context: Context,
     private val lifecycleOwner: LifecycleOwner,
-    private val getEventPicture: (eventId: String) -> Flow<Drawable?>
+    private val getEventPicture: suspend (eventId: String) -> Flow<Drawable?>
 ) :
     RecyclerView.Adapter<EventListAdapter.ViewHolder>(){
 
@@ -65,7 +65,7 @@ class EventListAdapter(private val eventList: List<Event> , private val context:
             eventProgress.progress = 66
             eventProgress.progressColor = ThemeUtil.getThemeColor(context)
             eventProgress.textColor = ThemeUtil.getThemeColor(context)
-            eventProgressName.text = "浏览模式"
+            eventProgressName.text = context.getString(R.string.browse_mode)
             //刷新活动类型
             eventType.text = StringBuilder().run {
                 append("活动")

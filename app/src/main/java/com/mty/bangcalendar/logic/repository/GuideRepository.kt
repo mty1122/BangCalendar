@@ -10,12 +10,13 @@ import javax.inject.Inject
 class GuideRepository @Inject constructor() {
 
     suspend fun fetchGuideInitData() = withContext(Dispatchers.IO) {
-        val isFirstStart = PreferenceDao.isFirstStart
-        val theme = PreferenceDao.getTheme()
-        val lastRefreshDay = IntDate(PreferenceDao.getLastRefreshDate())
-        val animPreference = PreferenceDao.getAnimPreference()
-        val nvbarPreference = PreferenceDao.getNvbarPreference()
-        GuideInitData(isFirstStart, theme, lastRefreshDay, animPreference, nvbarPreference)
+        GuideInitData(
+            isFirstStart = PreferenceDao.isFirstStart,
+            theme = PreferenceDao.getTheme(),
+            lastRefreshDate = IntDate(PreferenceDao.getLastRefreshDate()),
+            animPreference = PreferenceDao.getAnimPreference(),
+            nvbarPreference = PreferenceDao.getNvbarPreference(),
+        )
     }
 
     suspend fun setDefaultPreference() = withContext(Dispatchers.IO) {

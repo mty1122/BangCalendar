@@ -7,6 +7,7 @@
     <string name="jump">日期跳转</string>
     <string name="search_activity">数据库检索</string>
     <string name="event_list_activity">活动列表</string>
+    <string name="browse_mode">浏览模式</string>
     <string name="character_list_activity">角色列表</string>
     <string name="DailyTag">DailyTag</string>
     <string name="plusButton">添加功能</string>

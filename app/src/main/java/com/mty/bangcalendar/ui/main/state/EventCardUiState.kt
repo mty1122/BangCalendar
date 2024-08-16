@@ -6,5 +6,6 @@ import kotlinx.coroutines.flow.Flow
 
 data class EventCardUiState(
     val event: Event?,
-    val eventPicture: Flow<Drawable?>?
+    val eventPicture: Flow<Drawable?>?,
+    val progress: Int?
 )

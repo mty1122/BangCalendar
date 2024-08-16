@@ -21,6 +21,10 @@
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
             app:popupTheme="@style/theme_ppp">
 
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent">
+
                 <TextView
                     android:id="@+id/date"
                     android:layout_width="wrap_content"
@@ -29,6 +33,19 @@
                     android:layout_marginBottom="8dp"
                     android:textColor="@color/white"
                     android:textSize="26sp" />
+
+                <TextView
+                    android:id="@+id/dateAway"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="bottom"
+                    android:layout_marginBottom="11dp"
+                    android:layout_marginStart="3dp"
+                    android:textColor="@color/white"
+                    android:alpha="0.8"
+                    android:textSize="13sp" />
+
+            </LinearLayout>
 
         </androidx.appcompat.widget.Toolbar>
 

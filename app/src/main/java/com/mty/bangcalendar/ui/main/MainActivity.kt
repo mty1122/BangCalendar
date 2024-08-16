@@ -28,7 +28,10 @@ import com.mty.bangcalendar.ui.main.view.DailyTagView
 import com.mty.bangcalendar.ui.main.view.EventCardView
 import com.mty.bangcalendar.ui.search.SearchActivity
 import com.mty.bangcalendar.ui.settings.SettingsActivity
-import com.mty.bangcalendar.util.*
+import com.mty.bangcalendar.util.CalendarUtil
+import com.mty.bangcalendar.util.ThemeUtil
+import com.mty.bangcalendar.util.log
+import com.mty.bangcalendar.util.startActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -38,6 +41,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlin.math.abs
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity() {
@@ -106,7 +110,7 @@ class MainActivity : BaseActivity() {
         //观察当前日期变化，刷新顶部日期、返回今天按钮、活动组件和生日组件
         viewModel.currentDate.observe(this) { date->
             log(this, "日期发生变化 $date")
-            viewModel.getEventByDate(date) //刷新活动
+            viewModel.refreshEventCard(date) //刷新活动
             viewModel.refreshBirthdayCard(date) //刷新生日卡片
             //顶部日期刷新
             mainBinding.date.text = StringBuilder().apply {
@@ -115,12 +119,18 @@ class MainActivity : BaseActivity() {
                 append(date.getMonth())
                 append("月")
             }
-            //返回今天浮窗
+            //返回今天浮窗&距今多少天
             if (date.getYear() == systemDate.year && date.getMonth() == systemDate.month
                 && date.getDay()== systemDate.day) {
                 mainBinding.goBackFloatButton.visibility = View.GONE
+                mainBinding.dateAway.text = null
             } else {
                 mainBinding.goBackFloatButton.visibility = View.VISIBLE
+                val dateAway = systemDate - CalendarUtil(date)
+                if (dateAway > 0)
+                    mainBinding.dateAway.text = StringBuilder().append(dateAway).append("天前")
+                else
+                    mainBinding.dateAway.text = StringBuilder().append(abs(dateAway)).append("天后")
             }
         }
 
@@ -241,8 +251,7 @@ class MainActivity : BaseActivity() {
             if (viewModel.mainUiState.value.isLoading)
                 return@observe
             //刷新活动卡片
-            eventCardView.handleUiState(viewModel.currentDate.value!!,
-                viewModel.mainUiState.value, it, mainBinding.eventCard)
+            eventCardView.handleUiState(viewModel.currentDate.value!!, it, mainBinding.eventCard)
         }
     }
 
@@ -296,11 +305,11 @@ class MainActivity : BaseActivity() {
         }
         //加载活动卡片，如果不是初次启动，使用viewModel保存的状态
         val eventCardDeferred = async {
-            val  currentDate =
+            val currentDate =
                 if (mainUiState.isFirstStart) systemDate.toDate()
                 else viewModel.currentDate.value!!
-            eventCardView.eventCardInit(mainBinding.eventCard, mainUiState, initData.currentEvent,
-                currentDate, initData.eventPicture)
+            eventCardView.eventCardInit(mainBinding.eventCard, initData.eventCardUiState,
+                currentDate)
         }
         //加载生日卡片
         val birthdayCardDeferred = async {

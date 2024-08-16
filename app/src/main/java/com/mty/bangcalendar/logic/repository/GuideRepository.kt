@@ -1,5 +1,7 @@
 package com.mty.bangcalendar.logic.repository
 
+import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
+import com.mty.bangcalendar.logic.dao.AppDatabase
 import com.mty.bangcalendar.logic.dao.PreferenceDao
 import com.mty.bangcalendar.logic.model.GuideInitData
 import com.mty.bangcalendar.logic.model.IntDate
@@ -16,6 +18,8 @@ class GuideRepository @Inject constructor() {
             lastRefreshDate = IntDate(PreferenceDao.getLastRefreshDate()),
             animPreference = PreferenceDao.getAnimPreference(),
             nvbarPreference = PreferenceDao.getNvbarPreference(),
+            todayEvent = AppDatabase.getDatabase().eventDao()
+                .getNearlyEventByDate(systemDate.toDate().value)!!
         )
     }
 

@@ -24,6 +24,7 @@ class GuideViewModel @Inject constructor(
     //载入GuideInitData，包括判断是否初次启动和获取全局偏好
     val initData = viewModelScope.async {
         guideRepository.fetchGuideInitData().also {
+            //also后的内容主要执行后台任务
             if (it.isFirstStart) {
                 //执行首次启动初始化相关业务逻辑
                 firstStartInit()

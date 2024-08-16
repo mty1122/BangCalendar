@@ -2,7 +2,6 @@ package com.mty.bangcalendar.ui.list
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,20 +15,17 @@ import com.bumptech.glide.Glide
 import com.google.android.material.card.MaterialCardView
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.enum.IntentActions
-import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.ui.main.MainActivity
+import com.mty.bangcalendar.ui.main.state.EventCardUiState
 import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.ThemeUtil
 import com.tomergoldst.progress_circle.ProgressCircle
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
-class EventListAdapter(private val eventList: List<Event> , private val context: Context,
-    private val lifecycleOwner: LifecycleOwner,
-    private val getEventPicture: suspend (eventId: String) -> Flow<Drawable?>
-) :
-    RecyclerView.Adapter<EventListAdapter.ViewHolder>(){
+class EventListAdapter(private val context: Context, private val lifecycleOwner: LifecycleOwner,
+    private val eventCardUiStateList: List<EventCardUiState>
+) : RecyclerView.Adapter<EventListAdapter.ViewHolder>() {
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         private val eventCard: MaterialCardView = view.findViewById(R.id.listEventCard)
@@ -60,12 +56,19 @@ class EventListAdapter(private val eventList: List<Event> , private val context:
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val event = eventList[position]
+        val event = eventCardUiStateList[position].event!!
         holder.run {
-            eventProgress.progress = 66
+            //设置进度条颜色
             eventProgress.progressColor = ThemeUtil.getThemeColor(context)
             eventProgress.textColor = ThemeUtil.getThemeColor(context)
-            eventProgressName.text = context.getString(R.string.browse_mode)
+            //刷新活动进度
+            val progress = eventCardUiStateList[position].progress!!
+            eventProgress.progress = progress
+            when {
+                progress <= 0 -> eventProgressName.setText(R.string.prepare)
+                progress >= 100 -> eventProgressName.setText(R.string.finish)
+                else -> eventProgressName.setText(R.string.ing)
+            }
             //刷新活动类型
             eventType.text = StringBuilder().run {
                 append("活动")
@@ -85,9 +88,8 @@ class EventListAdapter(private val eventList: List<Event> , private val context:
             //刷新乐队图片
             Glide.with(context).load(EventUtil.getBandPic(event)).into(eventBand)
             //刷新活动图片
-            val eventId = EventUtil.eventIdFormat(event.id.toInt())
             eventPictureJob = lifecycleOwner.lifecycleScope.launch {
-                getEventPicture(eventId).collect {
+                eventCardUiStateList[position].eventPicture!!.collect {
                     eventBackground.background = it
                 }
             }
@@ -99,13 +101,14 @@ class EventListAdapter(private val eventList: List<Event> , private val context:
         super.onViewRecycled(holder)
     }
 
-    override fun getItemCount() = eventList.size
+    override fun getItemCount() = eventCardUiStateList.size
 
     private fun startMainActivity(viewHolder: ViewHolder) {
         val intent = Intent(IntentActions.JUMP_DATE_ACTION.value)
         intent.setPackage(context.packageName)
         val position = viewHolder.adapterPosition
-        intent.putExtra("current_start_date", eventList[position].startDate)
+        intent.putExtra("current_start_date",
+            eventCardUiStateList[position].event!!.startDate)
         context.sendBroadcast(intent)
 
         val activityIntent = Intent(context, MainActivity::class.java)

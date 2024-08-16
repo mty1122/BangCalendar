@@ -1,5 +1,6 @@
 package com.mty.bangcalendar.util
 
+import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.enum.EventConstant
 import com.mty.bangcalendar.logic.model.Event
@@ -12,6 +13,7 @@ object EventUtil {
      * 记录单次活动的时长，仅用于计算当前活动进度，对于已经结束和尚未开始的活动无效
      */
     private var eventLength: Long = 633600000
+    lateinit var todayEvent: Event
 
     fun matchCharacter(character: Int?) =
         when (character) {
@@ -145,34 +147,51 @@ object EventUtil {
         return false
     }
 
-    fun getEventStartTime(event: Event): Long =
+    fun getEventProgress(event: Event): Int {
+        //活动编号与当前活动相同，即为当前活动
+        if (event.id == todayEvent.id) {
+            val startTime = getEventStartTime(event)
+            val endTime: Long
+            //若存在结束日期，则为非常规长度活动，另行计算结束时间
+            if (todayEvent.endDate != null) {
+                endTime = getEventEndTime(IntDate(todayEvent.endDate!!))
+                //设置活动长度，用来计算活动进度
+                eventLength = endTime - startTime
+            } else {
+                endTime = getEventEndTime(todayEvent)
+            }
+            val systemTime = systemDate.getTimeInMillis()
+            return when {
+                systemTime < startTime -> 0
+                systemTime >= endTime -> 100
+                else -> {
+                    //计算正在进行的活动进度
+                    val eventFinishedTimes = (systemTime - startTime).toDouble()
+                    ((eventFinishedTimes / eventLength) * 100).toInt()
+                }
+            }
+        }
+        //由于存在某个活动提前开始或者推迟开始的情况，因此如果不是当前活动，则比较开始日期
+        return if (event.startDate < todayEvent.startDate) 100 else 0
+    }
+
+    private fun getEventStartTime(event: Event): Long =
         CalendarUtil(IntDate(event.startDate)).run {
         hour = 15
         getTimeInMillis()
         }
 
-    fun getEventEndTime(event: Event): Long =
+    private fun getEventEndTime(event: Event): Long =
         CalendarUtil(IntDate(event.startDate)).run {
             day += 7
             hour = 23
             getTimeInMillis()
         }
 
-    fun getEventEndTime(date: IntDate): Long =
+    private fun getEventEndTime(date: IntDate): Long =
         CalendarUtil(date).run {
             hour = 23
             getTimeInMillis()
         }
-
-    fun getEventProgress(systemTime: Long, eventStartTime: Long): Int {
-        val eventFinishedTimes = (systemTime - eventStartTime).toDouble()
-        val eventProgress = ((eventFinishedTimes / eventLength) * 100).toInt()
-        log(this, "eventProgress = $eventProgress")
-        return eventProgress
-    }
-
-    fun setEventLength(eventLength: Long) {
-        this.eventLength = eventLength
-    }
 
 }

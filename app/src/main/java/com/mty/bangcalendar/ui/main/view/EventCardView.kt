@@ -7,19 +7,16 @@ import android.view.View
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
-import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.EventCardBinding
 import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.logic.model.IntDate
 import com.mty.bangcalendar.ui.list.EventListActivity
 import com.mty.bangcalendar.ui.main.state.EventCardUiState
-import com.mty.bangcalendar.ui.main.state.MainUiState
 import com.mty.bangcalendar.util.AnimUtil
 import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.LogUtil
 import com.mty.bangcalendar.util.ThemeUtil
-import com.mty.bangcalendar.util.log
 import com.mty.bangcalendar.util.startActivity
 import com.mty.bangcalendar.util.startCharacterListActivity
 import dagger.hilt.android.qualifiers.ActivityContext
@@ -40,28 +37,27 @@ class EventCardView @Inject constructor(
 
     fun eventCardInit(
         binding: EventCardBinding,
-        mainUiState: MainUiState,
-        event: Event?,
+        eventCardUiState: EventCardUiState,
         currentDate: IntDate,
-        eventPicture: Flow<Drawable?>?
     ) {
         //活动进度条初始化
         binding.eventProgress.progressColor = ThemeUtil.getThemeColor(context)
         binding.eventProgress.textColor = ThemeUtil.getThemeColor(context)
 
         //活动卡片内容初始化
+        val event = eventCardUiState.event
         if (event == null || currentDate - IntDate(event.startDate) >= 13) {
             isEventCardVisible = false
             binding.eventCardItem.alpha = 0f
         } else {
             isEventCardVisible = true
-            refreshEventComponent(mainUiState, event, eventPicture!!, binding)
+            refreshEventComponent(event,
+                eventCardUiState.eventPicture!!, eventCardUiState.progress!!, binding)
         }
     }
 
     fun handleUiState(
         currentDate: IntDate,
-        mainUiState: MainUiState,
         eventCardUiState: EventCardUiState,
         binding: EventCardBinding
     ) {
@@ -81,15 +77,15 @@ class EventCardView @Inject constructor(
             //不可见时，刷新活动
             if (!isEventCardVisible) {
                 isEventCardVisible = true
-                refreshEventComponent(mainUiState, eventCardUiState.event,
-                    eventCardUiState.eventPicture!!, binding)
+                refreshEventComponent(eventCardUiState.event,
+                    eventCardUiState.eventPicture!!, eventCardUiState.progress!!, binding)
                 //启动显示动画
                 runEventCardAnim(binding, 1f)
                 //不同活动之间移动，刷新活动
             } else if (!EventUtil.isSameEvent(binding.eventType.text.toString(),
                     eventCardUiState.event.id.toInt())) {
-                refreshEventComponent(mainUiState, eventCardUiState.event,
-                    eventCardUiState.eventPicture!!, binding)
+                refreshEventComponent(eventCardUiState.event,
+                    eventCardUiState.eventPicture!!, eventCardUiState.progress!!, binding)
             }
         }
     }
@@ -115,14 +111,14 @@ class EventCardView @Inject constructor(
     }
 
     private fun refreshEventComponent(
-        mainUiState: MainUiState,
         event: Event,
         eventPicture: Flow<Drawable?>,
+        eventProgress: Int,
         binding: EventCardBinding
     ) {
         LogUtil.d(this, "刷新活动组件")
         //刷新活动状态
-        refreshEventStatus(event, binding, mainUiState)
+        refreshEventStatus(eventProgress, binding)
         //刷新活动类型
         binding.eventType.text = StringBuilder().run {
             append("活动")
@@ -195,45 +191,14 @@ class EventCardView @Inject constructor(
     }
 
     private fun refreshEventStatus(
-        event: Event,
-        binding: EventCardBinding,
-        mainUiState: MainUiState
+        eventProgress: Int,
+        binding: EventCardBinding
     ) {
-        val todayEvent = mainUiState.todayEvent
-        todayEvent?.let {
-            log(this, "刷新活动状态")
-            when {
-                //活动编号与当前活动相同，即为当前活动
-                event.id == todayEvent.id -> {
-                    val systemTime = systemDate.getTimeInMillis()
-                    val eventStartTime = mainUiState.eventStartTime
-                    val eventEndTime = mainUiState.eventEndTime
-                    when {
-                        systemTime < eventStartTime -> {
-                            binding.eventProgressName.setText(R.string.prepare)
-                            binding.eventProgress.progress = 0
-                        }
-                        systemTime >= eventEndTime -> {
-                            binding.eventProgressName.setText(R.string.finish)
-                            binding.eventProgress.progress = 100
-                        }
-                        else -> {
-                            binding.eventProgressName.setText(R.string.ing)
-                            binding.eventProgress.progress = EventUtil
-                                .getEventProgress(systemTime, eventStartTime)
-                        }
-                    }
-                }
-                //由于存在某个活动提前开始或者推迟开始的情况，因此如果不是当前活动，则比较开始日期
-                event.startDate < todayEvent.startDate -> {
-                    binding.eventProgressName.setText(R.string.finish)
-                    binding.eventProgress.progress = 100
-                }
-                else -> {
-                    binding.eventProgressName.setText(R.string.prepare)
-                    binding.eventProgress.progress = 0
-                }
-            }
+        binding.eventProgress.progress = eventProgress
+        when {
+            eventProgress <= 0 -> binding.eventProgressName.setText(R.string.prepare)
+            eventProgress >= 100 -> binding.eventProgressName.setText(R.string.finish)
+            else -> binding.eventProgressName.setText(R.string.ing)
         }
     }
 

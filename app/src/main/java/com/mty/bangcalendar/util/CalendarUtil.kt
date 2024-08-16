@@ -2,11 +2,15 @@ package com.mty.bangcalendar.util
 
 import com.mty.bangcalendar.logic.model.IntDate
 import java.util.Calendar
+import kotlin.math.round
 
 class CalendarUtil(date: IntDate? = null) {
 
+    //整数直接相除会产生误差，因此需要转化为浮点，并通过四舍五入避免误差
     operator fun minus(calendarUtil: CalendarUtil): Int =
-        ( (this.getTimeInMillis() - calendarUtil.getTimeInMillis()) / (1000 * 3600 * 24) ).toInt()
+        ( (this.getTimeInMillis() - calendarUtil.getTimeInMillis()) / (1000 * 3600 * 24.0) ).run{
+            round(this@run).toInt()
+        }
 
     companion object {
 

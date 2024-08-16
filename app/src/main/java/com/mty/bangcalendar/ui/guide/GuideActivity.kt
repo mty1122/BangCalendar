@@ -38,6 +38,7 @@ import com.mty.bangcalendar.ui.BaseActivity
 import com.mty.bangcalendar.ui.main.MainActivity
 import com.mty.bangcalendar.ui.theme.BangCalendarTheme
 import com.mty.bangcalendar.util.AnimUtil
+import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.ThemeUtil
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -61,6 +62,8 @@ class GuideActivity : BaseActivity() {
             AnimUtil.setAnimPreference(initData.animPreference)
             //设置导航栏偏好（是否启动小白条沉浸）
             isNavBarImmersive = initData.nvbarPreference
+            //设置今日活动
+            EventUtil.todayEvent = initData.todayEvent
             //非首次启动不设置动画
             val anim = ActivityOptionsCompat
                 .makeCustomAnimation(this@GuideActivity,0, 0).toBundle()

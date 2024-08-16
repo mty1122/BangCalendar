@@ -96,7 +96,7 @@
     <string name="anim_summary">开启后，若出现异常情况，请关闭</string>
     <string name="about_header">关于</string>
     <string name="version_title">版本</string>
-    <string name="version">1.6.2</string>
+    <string name="version">1.6.3</string>
     <string name="program_title">项目地址</string>
     <string name="program_url">https://github.com/mty1122/BangCalendar</string>
     <string name="material_title">素材来源</string>

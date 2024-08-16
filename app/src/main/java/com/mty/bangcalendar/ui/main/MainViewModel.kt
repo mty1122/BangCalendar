@@ -14,7 +14,6 @@ import androidx.lifecycle.viewModelScope
 import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.enum.IntentActions
-import com.mty.bangcalendar.logic.model.Event
 import com.mty.bangcalendar.logic.model.IntDate
 import com.mty.bangcalendar.logic.model.MainViewInitData
 import com.mty.bangcalendar.logic.repository.CharacterRepository
@@ -47,11 +46,9 @@ class MainViewModel @Inject constructor(
         MainUiState(
             isLoading = true,
             isFirstStart = true,
-            shouldRecreate = false,
-            todayEvent = null,
-            eventStartTime = 0,
-            eventEndTime = 0
-    ))
+            shouldRecreate = false
+        )
+    )
     val mainUiState = _mainUiState.asStateFlow()
     fun startLoading() {
         _mainUiState.update {
@@ -76,41 +73,25 @@ class MainViewModel @Inject constructor(
             it.copy(shouldRecreate = false)
         }
     }
-    private fun setTodayEventState(todayEvent: Event) {
-        val eventStartTime = EventUtil.getEventStartTime(todayEvent)
-        val eventEndTime: Long
-        if (todayEvent.endDate != null) {
-            eventEndTime =
-                EventUtil.getEventEndTime(IntDate(todayEvent.endDate!!))
-            EventUtil.setEventLength(eventEndTime - eventStartTime)
-        } else {
-            eventEndTime = EventUtil.getEventEndTime(todayEvent)
-        }
-        _mainUiState.update {
-            it.copy(
-                todayEvent = todayEvent,
-                eventStartTime = eventStartTime,
-                eventEndTime = eventEndTime
-            )
-        }
-    }
 
     //主界面加载的起点，首次启动使用当天活动
     fun fetchInitData() = flow {
-        val currentEvent = if (mainUiState.value.isFirstStart) {
-            val todayEvent = eventRepository.getEventByDate(systemDate.toDate())!!
-            setTodayEventState(todayEvent)
-            todayEvent
-        } else {
-            eventCardUiState.value!!.event
-        }
-        val eventPicture: Flow<Drawable?>? = if (currentEvent != null) {
+        val currentEvent = if (mainUiState.value.isFirstStart) EventUtil.todayEvent
+        else eventCardUiState.value!!.event
+        val eventPicture: Flow<Drawable?>?
+        val eventProgress: Int?
+        if (currentEvent != null) {
             val eventId = EventUtil.eventIdFormat(currentEvent.id.toInt())
-            eventRepository.getEventPic(eventId)
+            eventPicture = eventRepository.getEventPic(eventId)
+            eventProgress = EventUtil.getEventProgress(currentEvent)
         }  else {
-            null
+            eventPicture = null
+            eventProgress = null
         }
+        val eventCardUiState = EventCardUiState(currentEvent, eventPicture, eventProgress)
+
         val dailyTagUiState = fetchDailyTagUiState()
+
         val birthdayCardUiState = if (mainUiState.value.isFirstStart) flow {
             emit(
                 characterRepository.getCharacterIdByBirthday(systemDate.toDate().toBirthday())
@@ -123,7 +104,7 @@ class MainViewModel @Inject constructor(
             )
         }
         emit(
-            MainViewInitData(currentEvent, eventPicture, dailyTagUiState, birthdayCardUiState)
+            MainViewInitData(eventCardUiState, dailyTagUiState, birthdayCardUiState)
         )
     }
 
@@ -168,15 +149,16 @@ class MainViewModel @Inject constructor(
     private val _eventCardUiState = MutableLiveData<EventCardUiState>()
     val eventCardUiState: LiveData<EventCardUiState>
         get() = _eventCardUiState
-    fun getEventByDate(date: IntDate) {
+    fun refreshEventCard(date: IntDate) {
         viewModelScope.launch {
             val event = eventRepository.getEventByDate(date)
             if (event == null) {
-                _eventCardUiState.value = EventCardUiState(null, null)
+                _eventCardUiState.value = EventCardUiState(null, null, null)
             } else {
                 val eventId = EventUtil.eventIdFormat(event.id.toInt())
                 val eventPicture = eventRepository.getEventPic(eventId)
-                _eventCardUiState.value = EventCardUiState(event, eventPicture)
+                val eventProgress = EventUtil.getEventProgress(event)
+                _eventCardUiState.value = EventCardUiState(event, eventPicture, eventProgress)
             }
         }
     }

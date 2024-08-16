@@ -12,6 +12,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
+import com.bumptech.glide.Glide
+import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.BangCalendarApplication.Companion.isNavBarImmersive
 import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.R
@@ -25,10 +27,12 @@ import com.mty.bangcalendar.util.GenericUtil
 import com.mty.bangcalendar.util.ThemeUtil
 import com.mty.bangcalendar.util.toast
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -160,6 +164,19 @@ class SettingsActivity : BaseActivity() {
                 it.setOnPreferenceClickListener {
                     val uiState = viewModel.settingsUiState.value
                     updateAppView.handleClickEvent(uiState.hasNewVersion, uiState.newVersionName)
+                    return@setOnPreferenceClickListener true
+                }
+            }
+
+            findPreference<Preference>("event_pic")?.let { preference->
+                preference.setOnPreferenceClickListener {
+                    lifecycleScope.launch {
+                        withContext(Dispatchers.IO) {
+                            Glide.get(BangCalendarApplication.context).clearDiskCache()
+                        }
+                        Glide.get(BangCalendarApplication.context).clearMemory()
+                        preference.summary = "已清除"
+                    }
                     return@setOnPreferenceClickListener true
                 }
             }

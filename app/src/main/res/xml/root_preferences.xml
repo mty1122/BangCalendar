@@ -109,6 +109,12 @@
             app:useSimpleSummaryProvider="true" />
 
         <Preference
+            app:key="event_pic"
+            app:title="@string/event_pic_title"
+            app:summary="@string/event_pic_summary"
+            app:useSimpleSummaryProvider="true" />
+
+        <Preference
             app:key="author"
             app:title="@string/author_title"
             app:summary="@string/author_mail"

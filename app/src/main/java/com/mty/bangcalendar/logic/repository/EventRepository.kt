@@ -23,7 +23,10 @@ import javax.inject.Inject
 class EventRepository @Inject constructor() {
 
     companion object {
-        private var eventPicFilesNameCache: Array<String>? = null
+        /**
+         * 内置到assets中的活动图片按照顺序排列，且最后一张图片的编号为总数量
+         */
+        private var localPicEndEventId = 0
     }
 
     private val glideOptions = RequestOptions()
@@ -62,7 +65,7 @@ class EventRepository @Inject constructor() {
         val fileName = "banner_memorial_event$eventId.png"
 
         //本地文件存在时，本地加载；不存在时，网络加载
-        return if (isEventPicAssetExists(fileName)) getEventPicByAssets(fileName)
+        return if (isEventPicAssetExists(eventId)) getEventPicByAssets(fileName)
         else getEventPicByNetwork(fileName)
     }
 
@@ -128,17 +131,16 @@ class EventRepository @Inject constructor() {
         }
     }
 
-    private suspend fun isEventPicAssetExists(fileName: String): Boolean {
-        //活动图片文件名称缓存不存在则进行读取
-        if (eventPicFilesNameCache == null) {
+    private suspend fun isEventPicAssetExists(eventId: String): Boolean {
+        //获取本地活动图片截止ID
+        if (localPicEndEventId == 0) {
             withContext(Dispatchers.IO) {
                 val assetManager = BangCalendarApplication.context.assets
-                //这里不需要考虑线程安全问题，因为这段代码只可能在MainView初始化时被调用
-                eventPicFilesNameCache = assetManager.list("event_pic") ?: arrayOf()
+                localPicEndEventId = assetManager.list("event_pic")!!.size
             }
         }
-        //检查对应活动的图片是否存在
-        return eventPicFilesNameCache!!.contains(fileName)
+        //本地图片存在即为true
+        return eventId.toInt() <= localPicEndEventId
     }
 
 }

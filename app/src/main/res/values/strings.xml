@@ -101,6 +101,8 @@
     <string name="program_url">https://github.com/mty1122/BangCalendar</string>
     <string name="material_title">素材来源</string>
     <string name="material_source">图片素材来自网络，如有侵权，烦请通知删除</string>
+    <string name="event_pic_title">清除图片缓存</string>
+    <string name="event_pic_summary">国服更新后，可获取中文活动图片</string>
     <string name="author_title">联系作者</string>
     <string name="author_mail">admin@mxmnb.cn</string>
     <!-- searchActivity -->

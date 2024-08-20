@@ -126,7 +126,7 @@ class MainActivity : BaseActivity() {
                 mainBinding.dateAway.text = null
             } else {
                 mainBinding.goBackFloatButton.visibility = View.VISIBLE
-                val dateAway = systemDate - CalendarUtil(date)
+                val dateAway = systemDate.toDate() - date
                 if (dateAway > 0)
                     mainBinding.dateAway.text = StringBuilder().append(dateAway).append("天前")
                 else

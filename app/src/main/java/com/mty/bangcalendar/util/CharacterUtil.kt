@@ -32,10 +32,7 @@ object CharacterUtil {
 
     fun birthdayAway(birthday: String, systemDate: CalendarUtil): Int {
         val birthdayDate = getNextBirthdayDate(birthday, systemDate)
-        val calendarUtilLater = CalendarUtil(birthdayDate)
-        val calendarUtilEarlier =
-            CalendarUtil(CalendarUtil.getDate(systemDate.year, systemDate.month, systemDate.day))
-        return (calendarUtilLater - calendarUtilEarlier)
+        return birthdayDate - systemDate.toDate()
     }
 
     fun matchCharacter(id: Int) =

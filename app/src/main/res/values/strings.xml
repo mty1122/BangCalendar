@@ -49,6 +49,7 @@
     <string name="prepare">尚未开始</string>
     <string name="finish">已经结束</string>
     <string name="ing">正在进行</string>
+    <string name="closeToEnd">即将结束</string>
     <!-- event attrs -->
     <string name="eventAttrs">eventAttrs</string>
     <string name="pure">Pure</string>

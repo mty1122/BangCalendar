@@ -7,6 +7,7 @@ import android.view.View
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
+import com.mty.bangcalendar.BangCalendarApplication.Companion.systemDate
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.databinding.EventCardBinding
 import com.mty.bangcalendar.logic.model.Event
@@ -14,6 +15,7 @@ import com.mty.bangcalendar.logic.model.IntDate
 import com.mty.bangcalendar.ui.list.EventListActivity
 import com.mty.bangcalendar.ui.main.state.EventCardUiState
 import com.mty.bangcalendar.util.AnimUtil
+import com.mty.bangcalendar.util.CalendarUtil
 import com.mty.bangcalendar.util.EventUtil
 import com.mty.bangcalendar.util.LogUtil
 import com.mty.bangcalendar.util.ThemeUtil
@@ -198,7 +200,22 @@ class EventCardView @Inject constructor(
         when {
             eventProgress <= 0 -> binding.eventProgressName.setText(R.string.prepare)
             eventProgress >= 100 -> binding.eventProgressName.setText(R.string.finish)
-            else -> binding.eventProgressName.setText(R.string.ing)
+            else -> {
+                val eventEndDate: IntDate =
+                    if (EventUtil.todayEvent.endDate != null)
+                        IntDate(EventUtil.todayEvent.endDate!!)
+                    else
+                        CalendarUtil(IntDate(EventUtil.todayEvent.startDate)).run {
+                            day += EventUtil.DEFAULT_EVENT_LENGTH_DAYS
+                            toDate()
+                        }
+                val dateAway = eventEndDate - systemDate.toDate()
+                if (dateAway != 0)
+                    binding.eventProgressName.text =
+                        StringBuilder().append("剩余").append(dateAway).append("天")
+                else
+                    binding.eventProgressName.setText(R.string.closeToEnd)
+            }
         }
     }
 

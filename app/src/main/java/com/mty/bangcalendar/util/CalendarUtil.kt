@@ -2,21 +2,17 @@ package com.mty.bangcalendar.util
 
 import com.mty.bangcalendar.logic.model.IntDate
 import java.util.Calendar
-import kotlin.math.round
 
 class CalendarUtil(date: IntDate? = null) {
 
     /**
-     * 本函数用于计算两个日期之间的天数差;
+     * 本函数用于计算两个CalendarUtil对象之间的毫秒差;
      * 整数直接相除会产生误差，因此需要转化为浮点，并通过四舍五入避免误差;
-     * 使用本函数时，需要注意Calendar对象包括小时分钟等，两个相减的对象如果小时/分钟不相同，结果可能也会不一样;
-     * 例如假设一个是21号18点，一个是20号0点，两个相减结果就是2;
-     * 如果仅需要计算天数差，不想小时/分钟产生影响，请使用两个IntDate对象相减，该类提供的函数会忽略小时/分钟带来的影响
+     * 请注意，CalendarUtil对象不仅仅会存储日期，而且会存储时间;
+     * 如果仅需要计算天数差，不想小时/分钟产生影响，请使用两个IntDate对象相减，该类相减的返回值为两个日期的天数差
      */
-    operator fun minus(calendarUtil: CalendarUtil): Int =
-        ( (this.getTimeInMillis() - calendarUtil.getTimeInMillis()) / (1000 * 3600 * 24.0) ).run{
-            round(this@run).toInt()
-        }
+    operator fun minus(calendarUtil: CalendarUtil): Double =
+        (this.getTimeInMillis() - calendarUtil.getTimeInMillis()) / (1000 * 3600 * 24.0)
 
     companion object {
 

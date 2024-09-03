@@ -15,6 +15,9 @@ object EventUtil {
     private var eventLength: Long = 633600000
     lateinit var todayEvent: Event
 
+    //默认活动天数
+    const val DEFAULT_EVENT_LENGTH_DAYS = 7
+
     fun matchCharacter(character: Int?) =
         when (character) {
             1 -> R.drawable.char_1
@@ -151,14 +154,11 @@ object EventUtil {
         //活动编号与当前活动相同，即为当前活动
         if (event.id == todayEvent.id) {
             val startTime = getEventStartTime(event)
-            val endTime: Long
-            //若存在结束日期，则为非常规长度活动，另行计算结束时间
+            val endTime = getEventEndTime(todayEvent)
+            //若存在结束日期，则为非常规长度活动
             if (todayEvent.endDate != null) {
-                endTime = getEventEndTime(IntDate(todayEvent.endDate!!))
-                //设置活动长度，用来计算活动进度
+                //重新设置活动长度，用来计算活动进度
                 eventLength = endTime - startTime
-            } else {
-                endTime = getEventEndTime(todayEvent)
             }
             val systemTime = systemDate.getTimeInMillis()
             return when {
@@ -181,17 +181,19 @@ object EventUtil {
         getTimeInMillis()
         }
 
-    private fun getEventEndTime(event: Event): Long =
-        CalendarUtil(IntDate(event.startDate)).run {
-            day += 7
-            hour = 23
-            getTimeInMillis()
-        }
 
-    private fun getEventEndTime(date: IntDate): Long =
-        CalendarUtil(date).run {
-            hour = 23
-            getTimeInMillis()
-        }
+    private fun getEventEndTime(event: Event): Long =
+        //若存在结束日期，则为非常规长度活动
+        if (event.endDate != null)
+            CalendarUtil(IntDate(event.endDate!!)).run {
+                hour = 23
+                getTimeInMillis()
+            }
+        else
+            CalendarUtil(IntDate(event.startDate)).run {
+                day += DEFAULT_EVENT_LENGTH_DAYS
+                hour = 23
+                getTimeInMillis()
+            }
 
 }

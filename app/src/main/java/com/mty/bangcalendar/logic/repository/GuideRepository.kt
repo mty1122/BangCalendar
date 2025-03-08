@@ -17,9 +17,7 @@ class GuideRepository @Inject constructor() {
             theme = PreferenceDao.getTheme(),
             lastRefreshDate = IntDate(PreferenceDao.getLastRefreshDate()),
             animPreference = PreferenceDao.getAnimPreference(),
-            nvbarPreference = PreferenceDao.getNvbarPreference(),
-            todayEvent = AppDatabase.getDatabase().eventDao()
-                .getNearlyEventByDate(systemDate.toDate().value)!!
+            nvbarPreference = PreferenceDao.getNvbarPreference()
         )
     }
 
@@ -29,6 +27,11 @@ class GuideRepository @Inject constructor() {
 
     suspend fun setNotFirstStart() = withContext(Dispatchers.IO) {
         PreferenceDao.isFirstStart = false
+    }
+
+    // 今日活动不并入初始数据是因为存在空指针风险，初次启动无法查询到今日活动，因此需要在数据库加载完成后查找
+    suspend fun getTodayEvent() = withContext(Dispatchers.IO) {
+        AppDatabase.getDatabase().eventDao().getNearlyEventByDate(systemDate.toDate().value)!!
     }
 
 }

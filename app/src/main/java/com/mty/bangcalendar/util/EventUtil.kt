@@ -12,11 +12,11 @@ object EventUtil {
     /**
      * 记录单次活动的时长，仅用于计算当前活动进度，对于已经结束和尚未开始的活动无效
      */
-    private var eventLength: Long = 633600000
+    private var eventLength: Long = 720000000
     lateinit var todayEvent: Event
 
     //默认活动天数
-    const val DEFAULT_EVENT_LENGTH_DAYS = 7
+    const val DEFAULT_EVENT_LENGTH_DAYS = 8
 
     fun matchCharacter(character: Int?) =
         when (character) {

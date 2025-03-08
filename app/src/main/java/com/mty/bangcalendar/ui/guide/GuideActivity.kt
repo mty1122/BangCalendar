@@ -62,8 +62,6 @@ class GuideActivity : BaseActivity() {
             AnimUtil.setAnimPreference(initData.animPreference)
             //设置导航栏偏好（是否启动小白条沉浸）
             isNavBarImmersive = initData.nvbarPreference
-            //设置今日活动
-            EventUtil.todayEvent = initData.todayEvent
             //非首次启动不设置动画
             val anim = ActivityOptionsCompat
                 .makeCustomAnimation(this@GuideActivity,0, 0).toBundle()
@@ -73,7 +71,12 @@ class GuideActivity : BaseActivity() {
                 setContent { ShowContent() }
             } else {
                 /* 常规启动 */
-                startMainActivity(anim)
+                lifecycleScope.launch {
+                    //设置今日活动（非初次启动，数据库已经加载完成，可以正常查询今日活动，初次启动在相关逻辑中设置）
+                    EventUtil.todayEvent = viewModel.getTodayEvent()
+
+                    startMainActivity(anim)
+                }
             }
         }
     }

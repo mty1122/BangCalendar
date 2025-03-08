@@ -6,6 +6,7 @@ import com.mty.bangcalendar.BangCalendarApplication
 import com.mty.bangcalendar.R
 import com.mty.bangcalendar.logic.DatabaseUpdater
 import com.mty.bangcalendar.logic.repository.GuideRepository
+import com.mty.bangcalendar.util.EventUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -46,6 +47,10 @@ class GuideViewModel @Inject constructor(
                 }
             }.await()
             guideRepository.setNotFirstStart()
+
+            //设置今日活动（此时数据库已经加载完成，可以正常查询今日活动，非初次启动在启动前设置）
+            EventUtil.todayEvent = getTodayEvent()
+
             //数据库初始化完成
             _appInitUiState.value = AppInitUiState(100,
                 BangCalendarApplication.context.getString(R.string.init_complete))
@@ -56,5 +61,7 @@ class GuideViewModel @Inject constructor(
     private val _appInitUiState by lazy { MutableStateFlow(AppInitUiState()) }
     val appInitUiState : StateFlow<AppInitUiState>
         get() = _appInitUiState.asStateFlow()
+
+    suspend fun getTodayEvent() = guideRepository.getTodayEvent()
 
 }
